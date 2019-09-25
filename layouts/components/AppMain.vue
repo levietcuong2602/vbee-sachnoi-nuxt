@@ -2,6 +2,7 @@
   <section class="app-main">
     <transition name="fade-transform" mode="out-in">
       <div class="main-content">
+        <breadcrumb />
         <nuxt />
       </div>
     </transition>
@@ -9,8 +10,13 @@
 </template>
 
 <script>
+import Breadcrumb from "@/components/Breadcrumb";
+
 export default {
   name: "AppMain",
+  components: {
+    Breadcrumb
+  },
   computed: {
     key() {
       return this.$route.path;

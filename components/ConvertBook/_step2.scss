@@ -1,0 +1,109 @@
+.step2 {
+  .options {
+    color: #9c9c9c;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    .btn-option {
+      cursor: pointer;
+    }
+  }
+  .box-left {
+    padding-right: 5px;
+    overflow: hidden;
+    display: flex;
+    justify-content: flex-start;
+    .box-main {
+      .preview-book {
+        background: #ffffff;
+        border: 1px solid #c4c4c4;
+        box-sizing: border-box;
+        padding: 5px;
+        height: 650px;
+        .content {
+          padding: 20px;
+          text-align: justify;
+          font-size: 95%;
+        }
+      }
+      .preview-pager {
+        text-align: center;
+        padding-top: 20px;
+      }
+    }
+    .no-extend {
+      min-width: 34px;
+      background-color: #c4c4c4;
+      margin-left: 5px;
+      height: 650px;
+    }
+  }
+  .box-right {
+    padding-left: 5px;
+    overflow: hidden;
+    .preview-option {
+      background: #ffffff;
+      border: 1px solid #c4c4c4;
+      box-sizing: border-box;
+      padding: 5px;
+      height: 650px;
+      padding: 20px;
+      font-size: 95%;
+      .box-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        .title {
+          line-height: 22px;
+          text-transform: uppercase;
+          font-weight: 400;
+        }
+        .search {
+          display: flex;
+          align-items: center;
+          .el-input {
+            min-width: 180px;
+          }
+        }
+      }
+      .box-main {
+        height: 500px;
+
+        .el-table {
+          padding-top: 20px;
+          font-size: 84%;
+          th,
+          td {
+            border: none;
+            height: 15px;
+            padding: 0px;
+          }
+
+          &::before {
+            content: none;
+          }
+        }
+      }
+      .box-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+  }
+
+  .el-scrollbar {
+    height: 100%;
+    .preview-book__scroll {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+  }
+  .el-checkbox__input.is-checked {
+    .el-checkbox__inner {
+      background-color: #0dd260;
+      border-color: #0dd260;
+    }
+  }
+}

@@ -1,20 +1,22 @@
 <template>
   <div class="navbar">
-    <hamburger
-      :is-active="sidebar.opened"
-      class="hamburger-container"
-      @toggleClick="toggleSideBar"
-    />
+    <div class="brand">
+      <hamburger
+        :is-active="sidebar.opened"
+        class="hamburger-container"
+        @toggleClick="toggleSideBar"
+      />
 
-    <!-- <breadcrumb class="breadcrumb-container" /> -->
-    <a href="/" class="logo-container">
-      <img src="/img/logo.png" alt="logo" class="logo-brand" />
-    </a>
+      <!-- <breadcrumb class="breadcrumb-container" /> -->
+      <a href="/" class="logo-container">
+        <img src="/img/logo.png" alt="logo" class="logo-brand" />
+      </a>
+    </div>
 
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar" />
+          <!-- <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar" /> -->
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -73,6 +75,7 @@ export default {
   position: fixed;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  padding: 0px;
 
   .hamburger-container {
     line-height: 46px;

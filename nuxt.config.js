@@ -15,7 +15,13 @@ module.exports = {
         content: process.env.npm_package_description || ""
       }
     ],
-    link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }]
+    link: [
+      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+      {
+        rel: "stylesheet",
+        href: "https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+      }
+    ]
   },
   /*
    ** Customize the progress-bar color
@@ -37,7 +43,11 @@ module.exports = {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: ["@/plugins/element-ui", "@/plugins/svg-icon"],
+  plugins: [
+    "@/plugins/element-ui",
+    "@/plugins/svg-icon",
+    "@/plugins/bootstrap-vue.js"
+  ],
   /*
    ** Nuxt.js dev-modules
    */
