@@ -76,5 +76,5 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import "./_step1.scss";
+@import "./styles/_step1.scss";
 </style>

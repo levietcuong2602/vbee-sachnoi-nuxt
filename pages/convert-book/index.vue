@@ -1,6 +1,7 @@
 <template>
   <div class="convert-book">
     <div class="main-wrapper">
+      <Breadcrumb />
       <div class="row">
         <div class="col-md-3 col-sm-6 col-12">
           <template v-if="currentStep === 1">
@@ -218,6 +219,7 @@
   </div>
 </template>
 <script>
+import Breadcrumb from "@/components/Breadcrumb";
 import Step1Component from "@/components/ConvertBook/Step1";
 import Step2Component from "@/components/ConvertBook/Step2";
 import Step3Component from "@/components/ConvertBook/Step3";
@@ -225,6 +227,7 @@ import Step4Component from "@/components/ConvertBook/Step4";
 export default {
   name: "ConvertBook",
   components: {
+    Breadcrumb,
     Step1Component,
     Step2Component,
     Step3Component,

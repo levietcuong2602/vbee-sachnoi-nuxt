@@ -119,6 +119,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import "./_step2.scss";
-@import "./_step3.scss";
+@import "./styles/_step2.scss";
+@import "./styles/_step3.scss";
 </style>

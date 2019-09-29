@@ -74,6 +74,13 @@ div:focus {
   }
 }
 
+.el-table__row {
+  .cell {
+    word-break: break-word;
+    word-wrap: break-word;
+  }
+}
+// convert-book step4
 .speed-voice {
   .el-slider__input {
     width: 40px;
@@ -84,5 +91,17 @@ div:focus {
   .el-slider__runway {
     margin-right: 50px;
     margin-left: 15px
+  }
+}
+
+// analysic book
+.analysic-book {
+  .el-range-separator {
+    width: 35px;
+  }
+  .analysic-book__main {
+    .analysic-book__scroll {
+      max-height: 500px;
+    }
   }
 }
