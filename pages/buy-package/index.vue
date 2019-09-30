@@ -30,19 +30,40 @@
       <!-- Tab panes -->
       <div class="tab-content">
         <div id="cost-fee" class="container tab-pane active">
-          <carousel>
-            <CostFeeItem v-for="i in 10" :key="i" />
+          <carousel
+            :items="4"
+            :margin="10"
+            :nav="false"
+            :dots="false"
+            :responsive="options.responsive"
+            :loop="true"
+          >
+            <PackageData v-for="i in 10" :key="i" />
           </carousel>
         </div>
         <div id="book-voice" class="container tab-pane fade">
-          <br />
-          <h3>Menu 1</h3>
-          <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+          <carousel
+            :items="4"
+            :margin="10"
+            :nav="false"
+            :dots="false"
+            :responsive="options.responsive"
+            :loop="true"
+          >
+            <PackageData v-for="i in 10" :key="i+10" />
+          </carousel>
         </div>
         <div id="paper-voice" class="container tab-pane fade">
-          <br />
-          <h3>Menu 2</h3>
-          <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+          <carousel
+            :items="4"
+            :margin="10"
+            :nav="false"
+            :dots="false"
+            :responsive="options.responsive"
+            :loop="true"
+          >
+            <PackageData v-for="i in 10" :key="i+20" />
+          </carousel>
         </div>
       </div>
     </div>
@@ -72,24 +93,59 @@
   </div>
 </template>
 <script>
-const carousel = () => {
-  if (typeof window !== "undefined" && typeof document !== "undefined") {
-    return import("vue-owl-carousel");
-  }
-  return null;
-};
+// const carousel = () => {
+//   if (typeof window !== "undefined" && typeof document !== "undefined") {
+//     return import("vue-owl-carousel");
+//   }
+//   return null;
+// };
+let carousel;
+if (process.client) {
+  carousel = require("vue-owl-carousel");
+}
 import Breadcrumb from "@/components/Breadcrumb";
-import CostFeeItem from "@/components/BuyPackage/CostFeeItem";
+import PackageData from "@/components/BuyPackage/PackageData";
 export default {
   name: "BuyPackage",
   components: {
     carousel,
     Breadcrumb,
-    CostFeeItem
+    PackageData
+  },
+  data() {
+    return {
+      options: {
+        items: 4,
+        margin: 10,
+        loop: true,
+        autoplay: true,
+        nav: false,
+        rewind: true,
+        dots: false,
+        responsive: {
+          1024: {
+            items: 4,
+            margin: 40
+          },
+          768: {
+            items: 3,
+            margin: 30
+          },
+          640: {
+            items: 2,
+            margin: 20
+          },
+          320: {
+            items: 1,
+            margin: 10
+          }
+        }
+      }
+    };
   }
 };
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 .buy-package {
   padding: 0px 20px;
   .buy-package__header {
@@ -108,9 +164,9 @@ export default {
       }
     }
   }
-  .buy-package__main {
-  }
-  .buy-package__footer {
-  }
+  // .buy-package__main {
+  // }
+  // .buy-package__footer {
+  // }
 }
 </style>
