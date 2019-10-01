@@ -1,8 +1,10 @@
 <template>
   <el-breadcrumb separator-class="el-icon-minus">
-    <el-breadcrumb-item :to="{ path: '/' }">Sách nói</el-breadcrumb-item>
-    <el-breadcrumb-item>Thống kê sách</el-breadcrumb-item>
-    <el-breadcrumb-item>Thống kê chi tiết</el-breadcrumb-item>
+    <el-breadcrumb-item
+      v-for="route in routes"
+      :key="route.name"
+      :to="route.path || ''"
+    >{{ route.name }}</el-breadcrumb-item>
   </el-breadcrumb>
 </template>
 
@@ -10,6 +12,24 @@
 import pathToRegexp from "path-to-regexp";
 
 export default {
+  props: {
+    routes: {
+      type: Array,
+      default: () => [
+        {
+          name: "Sách nói",
+          path: "/"
+        },
+        {
+          name: "Thống kê sách",
+          path: "/analysic-book"
+        },
+        {
+          name: "Thống kê chi tiết"
+        }
+      ]
+    }
+  },
   data() {
     return {
       levelList: null

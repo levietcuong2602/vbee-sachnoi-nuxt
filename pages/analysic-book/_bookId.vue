@@ -109,7 +109,7 @@
                 />
               </svg>
             </span>
-            <span>
+            <span v-if="isStartAudio" @click="isStartAudio = false">
               <svg
                 width="62"
                 height="62"
@@ -121,6 +121,20 @@
                   fill-rule="evenodd"
                   clip-rule="evenodd"
                   d="M26.1429 47H17V15H26.1429V47ZM35.2857 47V15H44.4285V47H35.2857Z"
+                  fill="black"
+                />
+              </svg>
+            </span>
+            <span v-else @click="isStartAudio = true">
+              <svg
+                width="62"
+                height="62"
+                viewBox="0 0 62 62"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24.6373 15.4432C22.9175 14.3488 20.667 15.5842 20.667 17.6227V44.3774C20.667 46.4159 22.9175 47.6512 24.6373 46.5568L45.6588 33.1795C47.254 32.1644 47.254 29.8357 45.6588 28.8206L24.6373 15.4432Z"
                   fill="black"
                 />
               </svg>
@@ -149,17 +163,52 @@
       </template>
       <div class="dialog-box">
         <div class="dialog-box__main">
-          <p>Các nguồn tin ở Washington và Bắc Kinh hôm nay cho biết Trung Quốc và Mỹ nhiều khả năng sẽ đạt được một thỏa thuận "đình chiến thương mại", dừng các biện pháp áp thêm thuế với nhau trước thềm cuộc gặp giữa Tổng thống Mỹ Donald Trump và Chủ tịch Trung Quốc Tập Cận Bình tại hội nghị thượng đỉnh G20 ở Osaka, Nhật Bản cuối tuần này. Tuy nhiên, giới phân tích cho rằng ngoài một "thỏa thuận ngừng bắn", hai bên sẽ khó đạt được bước đột phá nào khác nhằm giải quyết cuộc chiến tranh thương mại đã kéo dài suốt một năm qua. "Cái bắt tay hay nụ cười trong cuộc gặp của Tổng thống Trump và Chủ tịch Tập Cận Bình không giúp hai bên nhanh chóng kết thúc chiến tranh thương mại hay chấm dứt cuộc cạnh tranh chiến lược dài hạn", Tiến sĩ Stephen Nagy, Đại học Thiên Chúa giáo Quốc tế ở Nhật Bản, chia sẻ với VnExpress về cuộc gặp giữa lãnh đạo hai nước bên lề Hội nghị thượng đỉnh G20 diễn ra tại Osaka ngày 28-29/6. Tiến sĩ Nagy cho rằng có hai nguyên nhân chính khiến Mỹ và Trung Quốc sẽ không đạt được thỏa thuận thương mại nào tại hội nghị G20, thậm chí cả trong thời gian còn lại của 2019. Về phía Trung Quốc, các lãnh đạo nước này lo ngại bất kỳ một thỏa hiệp nào trước Mỹ cũng có thể gây nên sự phản đối trong nước, dẫn tới bất ổn cả về kinh tế và xã hội. Bắc Kinh sẽ không chấp nhận bất kỳ một thỏa thuận nào bị người dân trong nước coi là bất công. Còn với chính quyền Trump, một thỏa thuận thương mại không phải là "trò chơi cuối cùng" với Trung Quốc. Tổng thống Mỹ hiểu rằng chính sách cứng rắn của ông với Trung Quốc đang nhận được sự ủng hộ rộng rãi tại Mỹ, từ các nhà chính trị của hai đảng, cộng đồng doanh nhân và cả người dân. "Các sáng kiến như xây tường biên giới với Mexico hay triển vọng phi hạt nhân bán đảo Triều Tiên đều đang bị mất đà, trong khi Trump đang tìm kiếm một thắng lợi chính trị nhằm tăng cơ hội tái đắc cử tổng thống vào 2020", Nagy phân tích.</p>
+          <template v-for="pharse in pharses">
+            <button
+              v-if="checkTimeHightLight(pharse)"
+              :key="pharse.start"
+              class="highlight-btn"
+              @blur="hideContextMenu()"
+              @contextmenu.prevent="showContextMenu()"
+            >{{ pharse.text }}</button>
+            <span
+              v-else
+              :key="pharse.start"
+              class="highlight"
+              @click="jumpToPhare(pharse.start)"
+            >{{ pharse.text }}&nbsp;</span>
+          </template>
         </div>
         <div class="dialog-box__footer">Trang 107/129</div>
       </div>
       <div slot="footer">
         <el-button type="warning" @click="dialogDetailVisible = false">Trở lại</el-button>
       </div>
+      <ul class="context-menu">
+        <li class="context-menu-item">
+          <img
+            class="context-menu-icon"
+            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NS40IDQ1LjQiPjxwYXRoIGZpbGw9IiNmOTY5MGUiIGQ9Ik00MS4zIDE4LjZIMjYuOFY0YzAtMi0xLjgtNC00LTQtMi40IDAtNC4yIDItNC4yIDR2MTQuNkg0Yy0yIDAtNCAxLjgtNCA0IDAgMS4yLjUgMi4zIDEuMiAzIC44LjggMS44IDEuMyAzIDEuM2gxNC40djE0LjNjMCAxIC40IDIgMS4yIDMgLjcuNiAxLjggMSAzIDEgMi4yIDAgNC0xLjcgNC00VjI3aDE0LjVjMi4zIDAgNC0yIDQtNC4zcy0xLjgtNC00LTR6Ii8+PC9zdmc+"
+            width="12"
+          />
+          New register
+        </li>
+        <li class="contex-men-item">
+          <img
+            class="context-menu-icon"
+            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzkuMiAzMzkuMiI+PHBhdGggZmlsbD0iI2Y5NjkwZSIgZD0iTTI0Ny4yIDE2OS42bDg0LTg0YzUuMy01LjMgOC0xMS43IDgtMTkuNCAwLTcuNi0yLjctMTQtOC0xOS40TDI5Mi40IDhDMjg3IDIuNyAyODAuNiAwIDI3MyAwYy03LjcgMC0xNCAyLjctMTkuNSA4bC04NCA4NEw4NS44IDhDODAuMyAyLjcgNzQgMCA2Ni4yIDBjLTcuNiAwLTE0IDIuNy0xOS40IDhMOCA0Ni44Yy01LjMgNS40LTggMTEuOC04IDE5LjQgMCA3LjcgMi43IDE0IDggMTkuNWw4NCA4NC04NCA4My44QzIuNyAyNTkgMCAyNjUuMyAwIDI3M2MwIDcuNiAyLjcgMTQgOCAxOS40bDM4LjggMzguOGM1LjQgNS4zIDExLjggOCAxOS40IDggNy43IDAgMTQtMi43IDE5LjUtOGw4NC04NCA4My44IDg0YzUuNCA1LjMgMTEuOCA4IDE5LjUgOCA3LjYgMCAxNC0yLjcgMTkuNC04bDM4LjgtMzguOGM1LjMtNS40IDgtMTEuOCA4LTE5LjUgMC03LjctMi43LTE0LTgtMTkuNWwtODQtODR6Ii8+PC9zdmc+"
+            width="10"
+          />
+          Remove
+        </li>
+      </ul>
     </el-dialog>
   </div>
 </template>
 <script>
+import pharses from "@/data";
+import moment from "moment";
+
 export default {
   name: "BookDetail",
   data() {
@@ -202,7 +251,13 @@ export default {
           status: "1"
         }
       ],
-      dialogDetailVisible: false
+      dialogDetailVisible: false,
+      pharses,
+      time: "0:00:00.165",
+      isStartAudio: false,
+      // context-menu
+      contextMenuWidth: null,
+      contextMenuHeight: null
     };
   },
   methods: {
@@ -239,7 +294,66 @@ export default {
           return "";
           break;
       }
+    },
+    jumpToPhare(start) {
+      this.time = start;
+    },
+    convertTimeToMilliseconds(time) {
+      if (!/^\d{1,2}\:\d{1,2}\:\d{1,2}.\d{1,3}$/.test(time)) return null;
+
+      const date = time.split(".")[0].split(":");
+
+      var millisecond = parseInt(time.split(".")[1]);
+      const hours = parseInt(date[0]);
+      const minutes = parseInt(date[1]);
+      const seconds = parseInt(date[2]);
+
+      millisecond += seconds * 1000 + minutes * 60000 + hours * 3600000;
+
+      return millisecond;
+    },
+    showContextMenu: () => {
+      console.log(this);
+      var menu = document.getElementById("context-menu");
+      if (!this.contextMenuWidth || !this.contextMenuHeight) {
+        menu.style.visibility = "hidden";
+        menu.style.display = "block";
+        this.contextMenuWidth = menu.offsetWidth;
+        this.contextMenuHeight = menu.offsetHeight;
+        menu.removeAttribute("style");
+      }
+
+      if (this.contextMenuWidth + vm.$event.pageX >= window.innerWidth) {
+        menu.style.left = vm.$event.pageX - this.contextMenuWidth + "px";
+      } else {
+        menu.style.left = vm.$event.pageX + "px";
+      }
+
+      if (this.contextMenuHeight + vm.$event.pageY >= window.innerHeight) {
+        menu.style.top = vm.$event.pageY - this.contextMenuHeight + "px";
+      } else {
+        menu.style.top = vm.$event.pageY + "px";
+      }
+
+      menu.classList.add("active");
+    },
+    hideContextMenu: () => {
+      document.getElementById("context-menu").classList.remove("active");
     }
+  },
+  computed: {
+    checkTimeHightLight: function() {
+      return ({ start, end }) => {
+        const time = this.time;
+        return time >= start && time < end;
+      };
+    }
+  },
+  mounted() {
+    // this.timer = setInterval(() => {}, 500);
+    console.log(this.time);
+    var millisecond = this.convertTimeToMilliseconds(this.time);
+    console.log("timeStamp", millisecond);
   }
 };
 </script>
@@ -261,8 +375,8 @@ export default {
     }
   }
   .el-dialog__header {
-    .header-title {
-    }
+    // .header-title {
+    // }
     .header-title-option {
       display: flex;
       align-items: center;
@@ -316,11 +430,60 @@ export default {
         word-break: break-word;
         text-align: justify;
         border: 1px solid;
+        .highlight {
+          &:hover {
+            cursor: pointer;
+            background-color: #eee;
+          }
+        }
+        .highlight-btn {
+          border-radius: 4px;
+          border: 1px solid #ebef01;
+          background-color: #fff;
+          box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
       }
       .dialog-box__footer {
         text-align: center;
       }
     }
+  }
+
+  // context menu
+  #context-menu {
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    display: none;
+    list-style: none;
+    position: absolute;
+    z-index: 2147483647;
+    background-color: white;
+    border: 1px solid #ebebeb;
+    border-bottom-width: 0px;
+  }
+
+  #context-menu.active {
+    display: block;
+  }
+
+  .context-menu-icon {
+    top: 1px;
+    position: relative;
+    margin-right: 10px;
+  }
+
+  .context-menu-item {
+    display: flex;
+    cursor: pointer;
+    padding: 8px 15px;
+    align-items: center;
+    border-bottom: 1px solid #ebebeb;
+  }
+
+  .context-menu-item:hover {
+    background-color: #ebebeb;
   }
 }
 </style>

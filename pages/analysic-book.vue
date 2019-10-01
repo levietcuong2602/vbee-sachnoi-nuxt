@@ -1,6 +1,6 @@
 <template>
   <div class="analysic-book">
-    <Breadcrumb />
+    <Breadcrumb :routes="routes" />
     <div class="analysic-book__header">
       <div class="title">THỐNG KÊ SÁCH</div>
       <div class="options">
@@ -26,8 +26,51 @@ export default {
   },
   data() {
     return {
-      dateRange: []
+      dateRange: [],
+      routes: [
+        {
+          name: "Sách nói",
+          path: "/"
+        },
+        {
+          name: "Thống kê sách"
+        }
+      ]
     };
+  },
+  methods: {
+    updateRoutes() {
+      const { bookId } = this.$route.params;
+      if (bookId) {
+        this.routes = [
+          {
+            name: "Sách nói",
+            path: "/"
+          },
+          {
+            name: "Thống kê sách",
+            path: "/analysic-book"
+          },
+          {
+            name: "Thống kê chi tiết"
+          }
+        ];
+      } else {
+        this.routes = [
+          {
+            name: "Sách nói",
+            path: "/"
+          },
+          {
+            name: "Thống kê sách"
+          }
+        ];
+      }
+    }
+  },
+  mounted() {
+    // this.updateRoutes();
+    // console.log("routes: ", this.$route.path);
   }
 };
 </script>
