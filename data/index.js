@@ -1,4 +1,4 @@
-const pharses = [
+const phrases = [
   {
     text:
       "Công ty chúng tôi có một sáng kiến ​​chiến lược mới để tăng cường thâm nhập thị trường, tối đa hóa lòng trung thành thương hiệu và tăng cường tài sản vô hình.",
@@ -195,4 +195,4 @@ const pharses = [
     end: "0:01:50.457"
   }
 ];
-export default pharses;
+export default phrases;

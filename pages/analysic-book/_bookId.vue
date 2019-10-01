@@ -163,20 +163,20 @@
       </template>
       <div class="dialog-box">
         <div class="dialog-box__main">
-          <template v-for="pharse in pharses">
+          <template v-for="phrase in phrases">
             <button
-              v-if="checkTimeHightLight(pharse)"
-              :key="pharse.start"
+              v-if="checkTimeHightLight(phrase)"
+              :key="phrase.start"
               class="highlight-btn"
-              @blur="hideContextMenu()"
-              @contextmenu.prevent="showContextMenu()"
-            >{{ pharse.text }}</button>
+              @contextmenu.prevent="showContextMenu"
+              @click="jumpToPhare(phrase.start)"
+            >{{ phrase.text }}</button>
             <span
               v-else
-              :key="pharse.start"
+              :key="phrase.start"
               class="highlight"
-              @click="jumpToPhare(pharse.start)"
-            >{{ pharse.text }}&nbsp;</span>
+              @click="jumpToPhare(phrase.start)"
+            >{{ phrase.text }}&nbsp;</span>
           </template>
         </div>
         <div class="dialog-box__footer">Trang 107/129</div>
@@ -184,29 +184,37 @@
       <div slot="footer">
         <el-button type="warning" @click="dialogDetailVisible = false">Trở lại</el-button>
       </div>
-      <ul class="context-menu">
-        <li class="context-menu-item">
-          <img
-            class="context-menu-icon"
-            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NS40IDQ1LjQiPjxwYXRoIGZpbGw9IiNmOTY5MGUiIGQ9Ik00MS4zIDE4LjZIMjYuOFY0YzAtMi0xLjgtNC00LTQtMi40IDAtNC4yIDItNC4yIDR2MTQuNkg0Yy0yIDAtNCAxLjgtNCA0IDAgMS4yLjUgMi4zIDEuMiAzIC44LjggMS44IDEuMyAzIDEuM2gxNC40djE0LjNjMCAxIC40IDIgMS4yIDMgLjcuNiAxLjggMSAzIDEgMi4yIDAgNC0xLjcgNC00VjI3aDE0LjVjMi4zIDAgNC0yIDQtNC4zcy0xLjgtNC00LTR6Ii8+PC9zdmc+"
-            width="12"
-          />
-          New register
-        </li>
-        <li class="contex-men-item">
-          <img
-            class="context-menu-icon"
-            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzkuMiAzMzkuMiI+PHBhdGggZmlsbD0iI2Y5NjkwZSIgZD0iTTI0Ny4yIDE2OS42bDg0LTg0YzUuMy01LjMgOC0xMS43IDgtMTkuNCAwLTcuNi0yLjctMTQtOC0xOS40TDI5Mi40IDhDMjg3IDIuNyAyODAuNiAwIDI3MyAwYy03LjcgMC0xNCAyLjctMTkuNSA4bC04NCA4NEw4NS44IDhDODAuMyAyLjcgNzQgMCA2Ni4yIDBjLTcuNiAwLTE0IDIuNy0xOS40IDhMOCA0Ni44Yy01LjMgNS40LTggMTEuOC04IDE5LjQgMCA3LjcgMi43IDE0IDggMTkuNWw4NCA4NC04NCA4My44QzIuNyAyNTkgMCAyNjUuMyAwIDI3M2MwIDcuNiAyLjcgMTQgOCAxOS40bDM4LjggMzguOGM1LjQgNS4zIDExLjggOCAxOS40IDggNy43IDAgMTQtMi43IDE5LjUtOGw4NC04NCA4My44IDg0YzUuNCA1LjMgMTEuOCA4IDE5LjUgOCA3LjYgMCAxNC0yLjcgMTkuNC04bDM4LjgtMzguOGM1LjMtNS40IDgtMTEuOCA4LTE5LjUgMC03LjctMi43LTE0LTgtMTkuNWwtODQtODR6Ii8+PC9zdmc+"
-            width="10"
-          />
-          Remove
-        </li>
-      </ul>
     </el-dialog>
+    <ul id="context-menu">
+      <li class="context-menu-item" @blur="hideContextMenu" @click="addPhrases">
+        <img
+          class="context-menu-icon"
+          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NS40IDQ1LjQiPjxwYXRoIGZpbGw9IiNmOTY5MGUiIGQ9Ik00MS4zIDE4LjZIMjYuOFY0YzAtMi0xLjgtNC00LTQtMi40IDAtNC4yIDItNC4yIDR2MTQuNkg0Yy0yIDAtNCAxLjgtNCA0IDAgMS4yLjUgMi4zIDEuMiAzIC44LjggMS44IDEuMyAzIDEuM2gxNC40djE0LjNjMCAxIC40IDIgMS4yIDMgLjcuNiAxLjggMSAzIDEgMi4yIDAgNC0xLjcgNC00VjI3aDE0LjVjMi4zIDAgNC0yIDQtNC4zcy0xLjgtNC00LTR6Ii8+PC9zdmc+"
+          width="12"
+        />
+        Thêm mới
+      </li>
+      <li class="context-menu-item" @click="editPhrases">
+        <img
+          class="context-menu-icon"
+          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MjguOSA1MjguOSI+PHBhdGggZmlsbD0iI2Y5NjkwZSIgZD0iTTMyOSA4OWwxMDcuNSAxMDcuN0wxNjQgNDY5IDU2LjcgMzYxLjYgMzI5IDg5em0xODktMjUuOGwtNDgtNDhjLTE4LjQtMTguNS00OC41LTE4LjUtNjcgMGwtNDYgNDYgMTA3LjUgMTA3LjVMNTE4IDExNWMxNC41LTE0LjIgMTQuNS0zNy40IDAtNTEuOHpNLjQgNTEyLjdjLTIgOC44IDYgMTYuNyAxNC44IDE0LjZsMTIwLTI5TDI3LjUgMzkwLjUuMyA1MTIuNnoiLz48L3N2Zz4="
+          width="12"
+        />
+        Sửa
+      </li>
+      <li class="context-menu-item" @click="deletePhrases">
+        <img
+          class="context-menu-icon"
+          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzkuMiAzMzkuMiI+PHBhdGggZmlsbD0iI2Y5NjkwZSIgZD0iTTI0Ny4yIDE2OS42bDg0LTg0YzUuMy01LjMgOC0xMS43IDgtMTkuNCAwLTcuNi0yLjctMTQtOC0xOS40TDI5Mi40IDhDMjg3IDIuNyAyODAuNiAwIDI3MyAwYy03LjcgMC0xNCAyLjctMTkuNSA4bC04NCA4NEw4NS44IDhDODAuMyAyLjcgNzQgMCA2Ni4yIDBjLTcuNiAwLTE0IDIuNy0xOS40IDhMOCA0Ni44Yy01LjMgNS40LTggMTEuOC04IDE5LjQgMCA3LjcgMi43IDE0IDggMTkuNWw4NCA4NC04NCA4My44QzIuNyAyNTkgMCAyNjUuMyAwIDI3M2MwIDcuNiAyLjcgMTQgOCAxOS40bDM4LjggMzguOGM1LjQgNS4zIDExLjggOCAxOS40IDggNy43IDAgMTQtMi43IDE5LjUtOGw4NC04NCA4My44IDg0YzUuNCA1LjMgMTEuOCA4IDE5LjUgOCA3LjYgMCAxNC0yLjcgMTkuNC04bDM4LjgtMzguOGM1LjMtNS40IDgtMTEuOCA4LTE5LjUgMC03LjctMi43LTE0LTgtMTkuNWwtODQtODR6Ii8+PC9zdmc+"
+          width="10"
+        />
+        Xóa
+      </li>
+    </ul>
   </div>
 </template>
 <script>
-import pharses from "@/data";
+import phrases from "@/data";
 import moment from "moment";
 
 export default {
@@ -252,7 +260,7 @@ export default {
         }
       ],
       dialogDetailVisible: false,
-      pharses,
+      phrases,
       time: "0:00:00.165",
       isStartAudio: false,
       // context-menu
@@ -296,6 +304,7 @@ export default {
       }
     },
     jumpToPhare(start) {
+      console.log("start audio");
       this.time = start;
     },
     convertTimeToMilliseconds(time) {
@@ -312,8 +321,7 @@ export default {
 
       return millisecond;
     },
-    showContextMenu: () => {
-      console.log(this);
+    showContextMenu(vm) {
       var menu = document.getElementById("context-menu");
       if (!this.contextMenuWidth || !this.contextMenuHeight) {
         menu.style.visibility = "hidden";
@@ -323,22 +331,36 @@ export default {
         menu.removeAttribute("style");
       }
 
-      if (this.contextMenuWidth + vm.$event.pageX >= window.innerWidth) {
-        menu.style.left = vm.$event.pageX - this.contextMenuWidth + "px";
+      if (this.contextMenuWidth + vm.pageX >= window.innerWidth) {
+        menu.style.left = vm.pageX - this.contextMenuWidth + "px";
       } else {
-        menu.style.left = vm.$event.pageX + "px";
+        menu.style.left = vm.pageX + "px";
       }
 
-      if (this.contextMenuHeight + vm.$event.pageY >= window.innerHeight) {
-        menu.style.top = vm.$event.pageY - this.contextMenuHeight + "px";
+      if (this.contextMenuHeight + vm.pageY >= window.innerHeight) {
+        menu.style.top = vm.pageY - this.contextMenuHeight + "px";
       } else {
-        menu.style.top = vm.$event.pageY + "px";
+        menu.style.top = vm.pageY + "px";
       }
 
       menu.classList.add("active");
     },
     hideContextMenu: () => {
       document.getElementById("context-menu").classList.remove("active");
+    },
+    addPhrases() {
+      console.log("addPhrases");
+    },
+    editPhrases() {
+      console.log("editPhrases");
+    },
+    deletePhrases() {
+      console.log("deletePhrases");
+    },
+    onClickHideContextMenu() {
+      document.addEventListener("click", function(e) {
+        document.getElementById("context-menu").classList.remove("active");
+      });
     }
   },
   computed: {
@@ -350,10 +372,11 @@ export default {
     }
   },
   mounted() {
+    this.onClickHideContextMenu();
     // this.timer = setInterval(() => {}, 500);
-    console.log(this.time);
-    var millisecond = this.convertTimeToMilliseconds(this.time);
-    console.log("timeStamp", millisecond);
+    // console.log(this.time);
+    // var millisecond = this.convertTimeToMilliseconds(this.time);
+    // console.log("timeStamp", millisecond);
   }
 };
 </script>
