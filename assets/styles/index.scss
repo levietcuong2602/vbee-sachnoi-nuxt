@@ -64,3 +64,66 @@ div:focus {
 .app-container {
   padding: 20px;
 }
+
+.el-upload {
+  width: 100%;
+  .el-upload-dragger {
+    width: 100%;
+    border: 1px solid #d9d9d9;
+    background-color: #e8eeff;
+  }
+}
+
+.el-table__row {
+  .cell {
+    word-break: break-word;
+    word-wrap: break-word;
+  }
+}
+// convert-book step4
+.speed-voice {
+  .el-slider__input {
+    width: 40px;
+    input.el-input__inner {
+      padding: 0;
+    }
+  }
+  .el-slider__runway {
+    margin-right: 50px;
+    margin-left: 15px
+  }
+}
+
+// analysic book
+.analysic-book {
+  .el-range-separator {
+    width: 35px;
+  }
+  .analysic-book__main {
+    .analysic-book__scroll {
+      max-height: 500px;
+    }
+  }
+}
+
+.cost-item {
+  .cost-item__main {
+    .el-slider {
+      padding: 0px 10px;
+      .el-slider__runway {
+        .el-slider__bar {
+          width: 100%;
+          left: 0%;
+          background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
+          outline: none;
+          padding: 0px;
+          margin: 0px;
+        }
+        .el-slider__button {
+          background: red;
+          border: 2px solid red;
+        }
+      }
+    }
+  }
+}

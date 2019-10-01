@@ -1,8 +1,29 @@
-const state = () => ({});
+const state = () => ({
+  breadScrum: [
+    {
+      path: "/",
+      name: "Sách nói"
+    }
+  ]
+});
 
-const mutations = {};
+const mutations = {
+  PUSH_ROUTE(state, route) {
+    state.breadScrum.push(route);
+  },
+  POP_ROUTE(state) {
+    state.breadScrum.pop();
+  }
+};
 
-const actions = {};
+const actions = {
+  pushRoute({ commit }, { route }) {
+    commit("PUSH_ROUTE", { route });
+  },
+  popRoute({ commit }) {
+    commit("POP_ROUTE");
+  }
+};
 
 export default {
   state,
