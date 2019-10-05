@@ -1,7 +1,10 @@
 <template>
-  <div class="convert-book">
+  <div class="convert-book pt-3">
     <div class="main-wrapper">
-      <Breadcrumb />
+      <el-breadcrumb separator="-">
+        <el-breadcrumb-item>Sách nói</el-breadcrumb-item>
+        <el-breadcrumb-item>Chuyển sách nói</el-breadcrumb-item>
+      </el-breadcrumb>
       <div class="row">
         <div class="col-md-3 col-sm-6 col-12">
           <template v-if="currentStep === 1">
@@ -204,22 +207,14 @@
           </template>
         </div>
       </div>
-      <Step1Component v-if="currentStep === 1" />
-      <Step2Component v-else-if="currentStep === 2 " />
-      <Step3Component v-else-if="currentStep === 3 " />
-      <Step4Component v-else-if="currentStep === 4 " />
-      <div class="row mt-5 pb-5">
-        <div class="col text-right">
-          <el-button @click="currentStep--">Quay lại</el-button>
-          <el-button>Bỏ qua</el-button>
-          <el-button type="warning" @click="currentStep++">Tiếp tục</el-button>
-        </div>
-      </div>
+      <Step1Component v-if="currentStep === 1" @handleNextStep="handleChangeStep" />
+      <Step2Component v-else-if="currentStep === 2" @handleNextStep="handleChangeStep" />
+      <Step3Component v-else-if="currentStep === 3" @handleNextStep="handleChangeStep" />
+      <Step4Component v-else-if="currentStep === 4" @handleNextStep="handleChangeStep" />
     </div>
   </div>
 </template>
 <script>
-import Breadcrumb from "@/components/Breadcrumb";
 import Step1Component from "@/components/ConvertBook/Step1";
 import Step2Component from "@/components/ConvertBook/Step2";
 import Step3Component from "@/components/ConvertBook/Step3";
@@ -227,7 +222,6 @@ import Step4Component from "@/components/ConvertBook/Step4";
 export default {
   name: "ConvertBook",
   components: {
-    Breadcrumb,
     Step1Component,
     Step2Component,
     Step3Component,
@@ -237,6 +231,15 @@ export default {
     return {
       currentStep: 1
     };
+  },
+  methods: {
+    handleChangeStep(step) {
+      if (step < 1 || step > 4) {
+        this.currentStep = 1;
+      } else {
+        this.currentStep = step;
+      }
+    }
   }
 };
 </script>

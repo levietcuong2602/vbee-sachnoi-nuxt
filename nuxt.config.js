@@ -63,7 +63,11 @@ module.exports = {
   plugins: [
     "@/plugins/element-ui",
     "@/plugins/svg-icon",
-    "@/plugins/bootstrap-vue.js"
+    "@/plugins/bootstrap-vue.js",
+    {
+      src: "~/plugins/highcharts.js",
+      ssr: true
+    }
   ],
   /*
    ** Nuxt.js dev-modules

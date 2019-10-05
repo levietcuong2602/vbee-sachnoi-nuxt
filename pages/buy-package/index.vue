@@ -1,6 +1,9 @@
 <template>
   <div class="buy-package">
-    <Breadcrumb />
+    <el-breadcrumb separator="-">
+      <el-breadcrumb-item>Sách nói</el-breadcrumb-item>
+      <el-breadcrumb-item>Mua gói cước</el-breadcrumb-item>
+    </el-breadcrumb>
     <div class="buy-package__header">
       <ul class="nav nav-pills" role="tablist">
         <li class="nav-item">
@@ -36,9 +39,14 @@
             :nav="false"
             :dots="false"
             :responsive="options.responsive"
-            :loop="true"
+            :loop="false"
           >
-            <PackageData v-for="i in 10" :key="i" />
+            <PackageData
+              v-for="element in listPackages"
+              :key="element.id"
+              :packageInfo="element"
+              @changeSlider="changeTimeProcess"
+            />
           </carousel>
         </div>
         <div id="book-voice" class="container tab-pane fade">
@@ -50,7 +58,7 @@
             :responsive="options.responsive"
             :loop="true"
           >
-            <PackageData v-for="i in 10" :key="i+10" />
+            <!-- <PackageData v-for="i in 10" :key="i+10" /> -->
           </carousel>
         </div>
         <div id="paper-voice" class="container tab-pane fade">
@@ -62,7 +70,7 @@
             :responsive="options.responsive"
             :loop="true"
           >
-            <PackageData v-for="i in 10" :key="i+20" />
+            <!-- <PackageData v-for="i in 10" :key="i+20" /> -->
           </carousel>
         </div>
       </div>
@@ -140,8 +148,57 @@ export default {
             margin: 10
           }
         }
-      }
+      },
+      listPackages: [
+        {
+          id: "package_1",
+          name: "Gói S1",
+          price: 20000,
+          timeProcess: 100,
+          expiryDate: 7,
+          maxPage: 40
+        },
+        {
+          id: "package_2",
+          name: "Gói S7",
+          price: 300000,
+          timeProcess: 50,
+          expiryDate: 7,
+          maxPage: 450
+        },
+        {
+          id: "package_3",
+          name: "Gói S30",
+          price: 1250000,
+          timeProcess: 0,
+          expiryDate: 7,
+          maxPage: 1250
+        },
+        {
+          id: "package_4",
+          name: "Gói S30 MAX",
+          price: 8000000,
+          timeProcess: 0,
+          expiryDate: 7,
+          maxPage: 10000
+        },
+        {
+          id: "package_5",
+          name: "Gói S5",
+          price: 20000,
+          timeProcess: 100,
+          expiryDate: 7,
+          maxPage: 40
+        }
+      ]
     };
+  },
+  methods: {
+    changeTimeProcess(id, timeProcess) {
+      this.listPackages = this.listPackages.map(value =>
+        value.id === id ? { ...value, timeProcess } : value
+      );
+    }
   }
 };
 </script>

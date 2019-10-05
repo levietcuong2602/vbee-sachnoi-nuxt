@@ -106,6 +106,38 @@ div:focus {
   }
 }
 
+// analysic detail
+.book-detail__inner-dialog {
+  .el-dialog__header {
+    padding: 10px;
+    background: #409EFF;
+    color: #fff;
+
+    h5 {
+      margin: 0;
+    }
+    .el-dialog__headerbtn {
+      top: 10px;
+    }
+  }
+}
+
+// message box
+.book-detail__messagebox {
+  .el-message-box__btns {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+  }
+  .el-button {
+    margin-left: 10px;
+  }
+}
+
+// component package item
+$colorStart: #0dd260;
+$colorMiddle: #F2C94C;
+$colorEnd: #EB5757;
 .cost-item {
   .cost-item__main {
     .el-slider {
@@ -114,14 +146,60 @@ div:focus {
         .el-slider__bar {
           width: 100%;
           left: 0%;
-          background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
+          // background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
           outline: none;
           padding: 0px;
           margin: 0px;
         }
         .el-slider__button {
-          background: red;
-          border: 2px solid red;
+          // background: red;
+          // border: 2px solid red;
+        }
+      }
+    }
+  }
+}
+.package-class-1 {
+  .cost-item__main {
+    .el-slider {
+      .el-slider__runway {
+        background: $colorStart;
+        .el-slider__bar {
+          background: $colorStart;
+        }
+        .el-slider__button {
+          background: $colorStart;
+          // border: 2px solid red;
+        }
+      }
+    }
+  }
+}
+.package-class-2 {
+  .cost-item__main {
+    .el-slider {
+      .el-slider__runway {
+        background: $colorMiddle;
+        .el-slider__bar {
+          background: linear-gradient(90deg, #0DD260 0%, #F2C94C 98.7%);
+        }
+        .el-slider__button {
+          background: $colorMiddle;
+        }
+      }
+    }
+  }
+}
+.package-class-3 {
+  .cost-item__main {
+    .el-slider {
+      .el-slider__runway {
+        background: $colorEnd;
+        .el-slider__bar {
+          background: linear-gradient(90deg, #0DD260 0%, #F2C94C 49.35%, #EB5757 98.7%);
+        }
+        .el-slider__button {
+          background: $colorEnd;
         }
       }
     }
