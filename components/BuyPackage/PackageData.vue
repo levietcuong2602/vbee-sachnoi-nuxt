@@ -1,17 +1,17 @@
 <template>
-  <div class="cost-item">
+  <div :class="['cost-item', getClassWrap()]">
     <div class="cost-item__header">
-      <div class="cost-item__title">Gói S1</div>
-      <div class="cost-item__money">20.000</div>
+      <div class="cost-item__title">{{ packageInfo.name }}</div>
+      <div class="cost-item__money">{{ packageInfo.price }}</div>
       <div class="cost-item__unit">VNĐ</div>
     </div>
     <div class="cost-item__main">
       <p>Thời gian chờ xử lý mỗi 50 trang</p>
-      <el-slider :step="50" show-stops :max="100" :marks="marks"></el-slider>
+      <el-slider :step="50" :max="100" :marks="getMarks()" @change="handleChange" v-model="slider"></el-slider>
       <!-- <RangeSlider /> -->
       <p>Hạn sử dụng 1 ngày</p>
       <el-divider></el-divider>
-      <p>Tối đa 40 trang</p>
+      <p>Tối đa {{ packageInfo.maxPage }} trang</p>
       <el-divider></el-divider>
       <p>Hỗ trợ trực tiếp 24/7</p>
       <el-divider></el-divider>
@@ -23,37 +23,145 @@
   </div>
 </template>
 <script>
-import RangeSlider from "@/components/RangeSlider";
-
 export default {
   name: "CostFeeItem",
-  components: {
-    RangeSlider
+  props: {
+    packageInfo: {
+      type: Object,
+      required: true
+    }
   },
   data() {
     return {
-      marks: {
-        0: {
-          label: "15 phút",
-          style: {
-            top: "-50px"
-          }
-        },
-        50: {
-          label: "1 giờ",
-          style: {
-            top: "-50px"
-          }
-        },
-        100: {
-          label: "24 giờ",
-          style: {
-            top: "-50px",
-            minWidth: "40px"
-          }
-        }
-      }
+      marks: this.getMarks(),
+      slider: this.packageInfo.timeProcess
     };
+  },
+  watch: {
+    slider: function(value) {
+      if (value === 0) {
+        this.marks = {
+          0: {
+            label: "15 phút",
+            style: {
+              top: "-50px"
+            }
+          },
+          50: {
+            label: "1 giờ",
+            style: {
+              top: "-50px"
+            }
+          },
+          100: {
+            label: "24 giờ",
+            style: {
+              top: "-50px",
+              minWidth: "40px"
+            }
+          }
+        };
+      } else if (value === 50) {
+        this.marks = {
+          50: {
+            label: "1 giờ",
+            style: {
+              top: "-50px"
+            }
+          },
+          100: {
+            label: "24 giờ",
+            style: {
+              top: "-50px",
+              minWidth: "40px"
+            }
+          }
+        };
+      } else if (value === 100) {
+        this.marks = {
+          100: {
+            label: "24 giờ",
+            style: {
+              top: "-50px",
+              minWidth: "40px"
+            }
+          }
+        };
+      }
+    }
+  },
+  methods: {
+    getClassWrap() {
+      if (this.slider === 0) {
+        return "package-class-1";
+      }
+      if (this.slider === 50) {
+        return "package-class-2";
+      }
+      if (this.slider === 100) {
+        return "package-class-3";
+      }
+    },
+    handleChange() {
+      this.$emit("changeSlider", {
+        id: this.packageInfo.id,
+        timeProcess: this.slider
+      });
+    },
+    getMarks() {
+      if (this.slider === 0) {
+        return {
+          0: {
+            label: "15 phút",
+            style: {
+              top: "-50px"
+            }
+          },
+          50: {
+            label: "1 giờ",
+            style: {
+              top: "-50px"
+            }
+          },
+          100: {
+            label: "24 giờ",
+            style: {
+              top: "-50px",
+              minWidth: "40px"
+            }
+          }
+        };
+      } else if (this.slider === 50) {
+        return {
+          50: {
+            label: "1 giờ",
+            style: {
+              top: "-50px"
+            }
+          },
+          100: {
+            label: "24 giờ",
+            style: {
+              top: "-50px",
+              minWidth: "40px"
+            }
+          }
+        };
+      } else if (this.slider === 100) {
+        return {
+          100: {
+            label: "24 giờ",
+            style: {
+              top: "-50px",
+              minWidth: "40px"
+            }
+          }
+        };
+      }
+    }
+  },
+  mounted() {
+    console.log(this.slider);
   }
 };
 </script>
@@ -79,18 +187,6 @@ export default {
   }
   .cost-item__main {
     padding: 0px 25px;
-    .el-slider {
-      .el-slider__runway {
-        .el-slider__bar {
-          width: 100%;
-          left: 0%;
-          background: linear-gradient(to right, green 0%, yellow 50%, red 100%);
-          outline: none;
-          padding: 0px;
-          margin: 0px;
-        }
-      }
-    }
   }
   .cost-item__footer {
     .el-button {
