@@ -3,7 +3,8 @@ import { getToken, setToken, removeToken } from "@/utils/auth";
 const state = () => ({
   token: getToken(),
   name: "",
-  avatar: ""
+  avatar: "",
+  userId: "1"
 });
 
 const mutations = {

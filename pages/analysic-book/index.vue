@@ -28,9 +28,13 @@
             :header-cell-style="{background: '#EAECED'}"
           >
             <el-table-column type="index" width="50"></el-table-column>
-            <el-table-column property="bookName" label="Tên sách" width="220"></el-table-column>
-            <el-table-column property="timeRequest" label="Ngày gửi yêu cầu"></el-table-column>
-            <el-table-column property="headerNumber" label="Tổng số phần/chương"></el-table-column>
+            <el-table-column property="title" label="Tên sách" width="320"></el-table-column>
+            <el-table-column label="Ngày gửi yêu cầu">
+              <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
+            </el-table-column>
+            <el-table-column label="Tổng số phần/chương">
+              <template slot-scope="scope">{{ scope.row.chapter_ids.length }}</template>
+            </el-table-column>
             <el-table-column property="status" label="Trạng thái"></el-table-column>
             <el-table-column label="Thao tác" align="center">
               <span>
@@ -86,31 +90,63 @@
         </el-scrollbar>
       </div>
       <div class="analysic-book__footer">
-        <el-pagination layout="prev, pager, next" :total="50"></el-pagination>
+        <el-pagination
+          layout="prev, pager, next"
+          :total="total"
+          @current-change="handleCurrentChange"
+        ></el-pagination>
       </div>
     </div>
   </div>
 </template>
 <script>
+import { mapGetters } from "vuex";
+import axios from "axios";
+import moment from "moment";
+
 export default {
   name: "AnalysicBook",
+  computed: { ...mapGetters(["userId"]) },
   data() {
     return {
-      tableData: [
-        {
-          bookName: "Tôi thấy hoa vàng trên cỏ xanh",
-          timeRequest: "17:20:24 - 19/04/2019",
-          headerNumber: 1,
-          status: "100% thành công"
-        }
-      ],
-      dateRange: []
+      tableData: [],
+      dateRange: [],
+      limit: 10,
+      pageCurrent: 1,
+      total: 0
     };
   },
   methods: {
     gotoDetailBook() {
       this.$router.push("/analysic-book/1");
+    },
+    async getBooks() {
+      const { data, status } = await axios({
+        method: "GET",
+        type: "GET",
+        url: `http://localhost:8888/api/v1/books?limit=${this.limit}&user_id=${this.userId}&page_num=${this.pageCurrent}`
+      });
+
+      if (status === 200) {
+        const { limit, total, pageNum } = data;
+        this.pageCurrent = pageNum;
+        this.limit = limit;
+        this.total = total;
+        this.tableData = data.data;
+      }
+    },
+    formatTimeRequest(time) {
+      const date = new Date(time);
+      return moment(date.valueOf()).format("h:mm:ss - MM/DD/YYYY");
+    },
+    handleCurrentChange(pageNum) {
+      this.pageCurrent = pageNum;
+      console.log(pageNum);
+      this.getBooks();
     }
+  },
+  mounted() {
+    this.getBooks();
   }
 };
 </script>
