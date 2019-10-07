@@ -13,8 +13,9 @@
           range-separator="đến"
           start-placeholder="Bắt đầu"
           end-placeholder="Kết thúc"
-        ></el-date-picker>
-        <el-button class="search">Tra cứu</el-button>
+          format="dd/MM/yyyy"
+        >></el-date-picker>
+        <el-button class="search" @click="getBooks()">Tra cứu</el-button>
       </div>
     </div>
     <div class="analysic-book__index">
@@ -121,15 +122,22 @@ export default {
       this.$router.push("/analysic-book/1");
     },
     async getBooks() {
+      const start = moment(new Date(this.dateRange[0]).valueOf()).format(
+        "DD/MM/YYYY"
+      );
+      const end = moment(new Date(this.dateRange[1]).valueOf()).format(
+        "DD/MM/YYYY"
+      );
+
       const { data, status } = await axios({
         method: "GET",
         type: "GET",
-        url: `http://localhost:8888/api/v1/books?limit=${this.limit}&user_id=${this.userId}&page_num=${this.pageCurrent}`
+        url: `http://localhost:8888/api/v1/books?limit=${this.limit}&user_id=${this.userId}&page_num=${this.pageCurrent}&startDate=${start}&endDate=${end}`
       });
 
       if (status === 200) {
-        const { limit, total, pageNum } = data;
-        this.pageCurrent = pageNum;
+        const { limit, total, page_num } = data;
+        this.pageCurrent = page_num;
         this.limit = limit;
         this.total = total;
         this.tableData = data.data;
@@ -141,11 +149,17 @@ export default {
     },
     handleCurrentChange(pageNum) {
       this.pageCurrent = pageNum;
-      console.log(pageNum);
       this.getBooks();
+    },
+    initDateRangeDefault() {
+      var date = new Date();
+      var start = new Date(date.getFullYear(), date.getMonth(), 1);
+      var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      this.dateRange = [start, end];
     }
   },
   mounted() {
+    this.initDateRangeDefault();
     this.getBooks();
   }
 };
