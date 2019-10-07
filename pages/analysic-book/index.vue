@@ -122,12 +122,16 @@ export default {
       this.$router.push("/analysic-book/1");
     },
     async getBooks() {
-      const start = moment(new Date(this.dateRange[0]).valueOf()).format(
-        "DD/MM/YYYY"
-      );
-      const end = moment(new Date(this.dateRange[1]).valueOf()).format(
-        "DD/MM/YYYY"
-      );
+      let start = null;
+      let end = null;
+      if (this.dateRange) {
+        start = moment(new Date(this.dateRange[0]).valueOf()).format(
+          "DD/MM/YYYY"
+        );
+        end = moment(new Date(this.dateRange[1]).valueOf()).format(
+          "DD/MM/YYYY"
+        );
+      }
 
       const { data, status } = await axios({
         method: "GET",
