@@ -5,278 +5,290 @@
       <el-breadcrumb-item>Thống kê sách</el-breadcrumb-item>
       <el-breadcrumb-item>Thống kê sách chi tiết</el-breadcrumb-item>
     </el-breadcrumb>
-    <div class="analysic-book__header">
-      <div class="title">THỐNG KÊ SÁCH</div>
-      <div class="options">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="đến"
-          start-placeholder="Bắt đầu"
-          end-placeholder="Kết thúc"
-        ></el-date-picker>
-        <el-button class="search">Tra cứu</el-button>
-      </div>
-    </div>
-    <div class="book-detail">
-      <div class="book-detail__header">
-        <div class="title">
-          <span>Tên sách:</span>
-          <span>
-            <strong>Đắc nhân tâm</strong>
-          </span>
-        </div>
-        <div class="download">
-          <strong>
-            <a href="#">Tải xuống toàn bộ</a>
-          </strong>
+    <template v-if="bookInfo">
+      <div class="analysic-book__header">
+        <div class="title">THỐNG KÊ SÁCH</div>
+        <div class="options">
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="đến"
+            start-placeholder="Bắt đầu"
+            end-placeholder="Kết thúc"
+            format="dd/MM/yyyy"
+          ></el-date-picker>
+          <el-button class="search" @click="getChapterList">Tra cứu</el-button>
         </div>
       </div>
-      <div class="book-detail__main">
-        <el-scrollbar wrap-class="book-detail__scroll">
-          <el-table
-            ref="singleTable"
-            :data="tableData"
-            highlight-current-row
-            style="width: 100%"
-            :header-cell-style="{background: '#EAECED'}"
-          >
-            <el-table-column type="index" width="50"></el-table-column>
-            <el-table-column property="headerNumber" label="Tên phần/chương" width="220"></el-table-column>
-            <el-table-column property="timeRequest" label="Ngày gửi yêu cầu"></el-table-column>
-            <el-table-column property="timeResponse" label="Ngày trả file"></el-table-column>
-            <el-table-column property="length" label="Độ dài"></el-table-column>
-            <el-table-column property="status" label="Trạng thái">
-              <template slot-scope="scope">
-                <strong
-                  :class="getClassStatus(scope.row.status)"
-                >{{getTextStatus(scope.row.status)}}</strong>
-              </template>
-            </el-table-column>
-            <el-table-column label="Thao tác" align="center">
-              <template slot-scope="scope">
-                <span v-if="scope.row.status == 1">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
-                      d="M15 10H19L12 17L5 10H9V4H15V10ZM5 21V19H19V21H5Z"
-                      fill="#2593FB"
-                    />
-                  </svg>
-                </span>
-                <span v-else>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
-                      d="M15 10H19L12 17L5 10H9V4H15V10ZM5 21V19H19V21H5Z"
-                      fill="#9C9C9C"
-                    />
-                  </svg>
-                </span>
-                <span @click="dialogDetailVisible = !dialogDetailVisible">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
-                      d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM13 9V7H11V9H13ZM13 17V11H11V17H13ZM4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12Z"
-                      fill="#3C4858"
-                    />
-                  </svg>
-                </span>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-scrollbar>
-      </div>
-      <!-- dialog detail -->
-      <el-dialog :visible.sync="dialogDetailVisible" width="90%">
-        <template slot="title">
-          <div class="header-title">[CHI TIẾT]</div>
-          <div class="header-title-option">
-            <div class="header-title-controll">
-              <span>
-                <svg
-                  width="46"
-                  height="46"
-                  viewBox="0 0 46 46"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M15.3333 11.5H11.5V34.5H15.3333V11.5ZM34.5 34.5L18.2083 23L34.5 11.5V34.5Z"
-                    fill="black"
-                  />
-                </svg>
-              </span>
-              <span v-if="isStartAudio" @click="isStartAudio = false">
-                <svg
-                  width="46"
-                  height="46"
-                  viewBox="0 0 62 62"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M26.1429 47H17V15H26.1429V47ZM35.2857 47V15H44.4285V47H35.2857Z"
-                    fill="black"
-                  />
-                </svg>
-              </span>
-              <span v-else @click="isStartAudio = true">
-                <svg
-                  width="46"
-                  height="46"
-                  viewBox="0 0 62 62"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M24.6373 15.4432C22.9175 14.3488 20.667 15.5842 20.667 17.6227V44.3774C20.667 46.4159 22.9175 47.6512 24.6373 46.5568L45.6588 33.1795C47.254 32.1644 47.254 29.8357 45.6588 28.8206L24.6373 15.4432Z"
-                    fill="black"
-                  />
-                </svg>
-              </span>
-              <span>
-                <svg
-                  width="46"
-                  height="46"
-                  viewBox="0 0 46 46"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M27.7917 23L11.5 34.5V11.5L27.7917 23ZM34.5 34.5H30.6667V11.5H34.5V34.5Z"
-                    fill="black"
-                  />
-                </svg>
-              </span>
-            </div>
-            <div class="header-title-search">
-              <el-input size="small" placeholder="Tìm kiếm"></el-input>
-            </div>
+      <div class="book-detail">
+        <div class="book-detail__header">
+          <div class="title">
+            <span>Tên sách:</span>
+            <span>
+              <strong>Đắc nhân tâm</strong>
+            </span>
           </div>
-        </template>
-        <div class="dialog-box">
-          <div class="dialog-box__main">
-            <template v-for="(phrase, index) in phrases">
-              <button
-                v-if="currentPhrase === index"
-                :key="phrase.start"
-                class="highlight-btn"
-                @contextmenu.prevent="showContextMenu"
-                @click="jumpToPhare(phrase, index)"
-              >{{ phrase.text }}</button>
-              <span
-                v-else
-                :key="phrase.start"
-                class="highlight"
-                @click="jumpToPhare(phrase, index)"
-              >{{ phrase.text }}&nbsp;</span>
-            </template>
+          <div class="download">
+            <strong>
+              <a href="#">Tải xuống toàn bộ</a>
+            </strong>
           </div>
-          <div class="dialog-box__footer">Trang 107/129</div>
         </div>
-        <div slot="footer">
-          <el-button type="warning" @click="dialogDetailVisible = false">Trở lại</el-button>
+        <div class="book-detail__main">
+          <el-scrollbar wrap-class="book-detail__scroll">
+            <el-table
+              ref="singleTable"
+              :data="chapterBooks"
+              highlight-current-row
+              style="width: 100%"
+              :header-cell-style="{background: '#EAECED'}"
+            >
+              <el-table-column type="index" width="50"></el-table-column>
+              <el-table-column property="title" label="Tên phần/chương" width="220"></el-table-column>
+              <el-table-column label="Ngày gửi yêu cầu">
+                <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
+              </el-table-column>
+              <el-table-column label="Ngày trả file">
+                <template slot-scope="scope">{{ formatTimeRequest(scope.row.updated_at) }}</template>
+              </el-table-column>
+              <el-table-column label="Độ dài">
+                <template slot-scope="scope">{{toHHMMSS(scope.row.duration)}}</template>
+              </el-table-column>
+              <el-table-column property="status" label="Trạng thái">
+                <!-- <template slot-scope="scope">
+                  <strong
+                    :class="getClassStatus(scope.row.status)"
+                >{{getTextStatus(scope.row.status)}}</strong>-->
+                <!-- </template> -->
+              </el-table-column>
+              <el-table-column label="Thao tác" align="center">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.status == 1">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M15 10H19L12 17L5 10H9V4H15V10ZM5 21V19H19V21H5Z"
+                        fill="#2593FB"
+                      />
+                    </svg>
+                  </span>
+                  <span v-else>
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M15 10H19L12 17L5 10H9V4H15V10ZM5 21V19H19V21H5Z"
+                        fill="#9C9C9C"
+                      />
+                    </svg>
+                  </span>
+                  <span @click="dialogDetailVisible = !dialogDetailVisible">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM13 9V7H11V9H13ZM13 17V11H11V17H13ZM4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12Z"
+                        fill="#3C4858"
+                      />
+                    </svg>
+                  </span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-scrollbar>
         </div>
-      </el-dialog>
+        <!-- dialog detail -->
+        <el-dialog :visible.sync="dialogDetailVisible" width="90%">
+          <template slot="title">
+            <div class="header-title">[CHI TIẾT]</div>
+            <div class="header-title-option">
+              <div class="header-title-controll">
+                <span>
+                  <svg
+                    width="46"
+                    height="46"
+                    viewBox="0 0 46 46"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M15.3333 11.5H11.5V34.5H15.3333V11.5ZM34.5 34.5L18.2083 23L34.5 11.5V34.5Z"
+                      fill="black"
+                    />
+                  </svg>
+                </span>
+                <span v-if="isStartAudio" @click="isStartAudio = false">
+                  <svg
+                    width="46"
+                    height="46"
+                    viewBox="0 0 62 62"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M26.1429 47H17V15H26.1429V47ZM35.2857 47V15H44.4285V47H35.2857Z"
+                      fill="black"
+                    />
+                  </svg>
+                </span>
+                <span v-else @click="isStartAudio = true">
+                  <svg
+                    width="46"
+                    height="46"
+                    viewBox="0 0 62 62"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M24.6373 15.4432C22.9175 14.3488 20.667 15.5842 20.667 17.6227V44.3774C20.667 46.4159 22.9175 47.6512 24.6373 46.5568L45.6588 33.1795C47.254 32.1644 47.254 29.8357 45.6588 28.8206L24.6373 15.4432Z"
+                      fill="black"
+                    />
+                  </svg>
+                </span>
+                <span>
+                  <svg
+                    width="46"
+                    height="46"
+                    viewBox="0 0 46 46"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M27.7917 23L11.5 34.5V11.5L27.7917 23ZM34.5 34.5H30.6667V11.5H34.5V34.5Z"
+                      fill="black"
+                    />
+                  </svg>
+                </span>
+              </div>
+              <div class="header-title-search">
+                <el-input size="small" placeholder="Tìm kiếm"></el-input>
+              </div>
+            </div>
+          </template>
+          <div class="dialog-box">
+            <div class="dialog-box__main">
+              <template v-for="(phrase, index) in phrases">
+                <button
+                  v-if="currentPhrase === index"
+                  :key="phrase.start"
+                  class="highlight-btn"
+                  @contextmenu.prevent="showContextMenu"
+                  @click="jumpToPhare(phrase, index)"
+                >{{ phrase.text }}</button>
+                <span
+                  v-else
+                  :key="phrase.start"
+                  class="highlight"
+                  @click="jumpToPhare(phrase, index)"
+                >{{ phrase.text }}&nbsp;</span>
+              </template>
+            </div>
+            <div class="dialog-box__footer">Trang 107/129</div>
+          </div>
+          <div slot="footer">
+            <el-button type="warning" @click="dialogDetailVisible = false">Trở lại</el-button>
+          </div>
+        </el-dialog>
 
-      <!-- inner dialog -->
-      <el-dialog
-        class="book-detail__inner-dialog"
-        width="40%"
-        :visible.sync="innerVisible"
-        append-to-body
-      >
-        <template slot="title">
-          <h5 class="text-center m-0">{{ titleInnerDialog }}</h5>
-        </template>
-        <!-- body inner dialog -->
-        <div class="body-inner">
-          <el-input
-            type="textarea"
-            :rows="4"
-            placeholder="Vui lòng nhập vào đây ..."
-            v-model="tempPhrase"
-          ></el-input>
-        </div>
-        <!-- end body inner dialog -->
-        <div slot="footer">
-          <el-button type="primary" @click="handlePhrases">Xác nhận</el-button>
-          <el-button type="danger" @click="innerVisible = false">Bỏ qua</el-button>
-        </div>
-      </el-dialog>
-      <!-- end inner dialog -->
-      <!-- context menu -->
-      <ul id="context-menu">
-        <li class="context-menu-item">
-          <img
-            class="context-menu-icon"
-            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NS40IDQ1LjQiPjxwYXRoIGZpbGw9IiNmOTY5MGUiIGQ9Ik00MS4zIDE4LjZIMjYuOFY0YzAtMi0xLjgtNC00LTQtMi40IDAtNC4yIDItNC4yIDR2MTQuNkg0Yy0yIDAtNCAxLjgtNCA0IDAgMS4yLjUgMi4zIDEuMiAzIC44LjggMS44IDEuMyAzIDEuM2gxNC40djE0LjNjMCAxIC40IDIgMS4yIDMgLjcuNiAxLjggMSAzIDEgMi4yIDAgNC0xLjcgNC00VjI3aDE0LjVjMi4zIDAgNC0yIDQtNC4zcy0xLjgtNC00LTR6Ii8+PC9zdmc+"
-            width="12"
-          />
-          Thêm mới
-          <ul>
-            <li
-              class="context-menu-item"
-              @click="handleChangeOption('ADD_BEFORE_PHRASE')"
-            >Thêm vào đầu</li>
-            <li
-              class="context-menu-item"
-              @click="handleChangeOption('ADD_AFTER_PHRASE')"
-            >Thêm vào cuối</li>
-          </ul>
-        </li>
-        <li class="context-menu-item" @click="handleChangeOption('EDIT_PHRASE')">
-          <img
-            class="context-menu-icon"
-            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MjguOSA1MjguOSI+PHBhdGggZmlsbD0iI2Y5NjkwZSIgZD0iTTMyOSA4OWwxMDcuNSAxMDcuN0wxNjQgNDY5IDU2LjcgMzYxLjYgMzI5IDg5em0xODktMjUuOGwtNDgtNDhjLTE4LjQtMTguNS00OC41LTE4LjUtNjcgMGwtNDYgNDYgMTA3LjUgMTA3LjVMNTE4IDExNWMxNC41LTE0LjIgMTQuNS0zNy40IDAtNTEuOHpNLjQgNTEyLjdjLTIgOC44IDYgMTYuNyAxNC44IDE0LjZsMTIwLTI5TDI3LjUgMzkwLjUuMyA1MTIuNnoiLz48L3N2Zz4="
-            width="12"
-          />
-          Sửa
-        </li>
-        <li class="context-menu-item" @click="deletePhrases">
-          <img
-            class="context-menu-icon"
-            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzkuMiAzMzkuMiI+PHBhdGggZmlsbD0iI2Y5NjkwZSIgZD0iTTI0Ny4yIDE2OS42bDg0LTg0YzUuMy01LjMgOC0xMS43IDgtMTkuNCAwLTcuNi0yLjctMTQtOC0xOS40TDI5Mi40IDhDMjg3IDIuNyAyODAuNiAwIDI3MyAwYy03LjcgMC0xNCAyLjctMTkuNSA4bC04NCA4NEw4NS44IDhDODAuMyAyLjcgNzQgMCA2Ni4yIDBjLTcuNiAwLTE0IDIuNy0xOS40IDhMOCA0Ni44Yy01LjMgNS40LTggMTEuOC04IDE5LjQgMCA3LjcgMi43IDE0IDggMTkuNWw4NCA4NC04NCA4My44QzIuNyAyNTkgMCAyNjUuMyAwIDI3M2MwIDcuNiAyLjcgMTQgOCAxOS40bDM4LjggMzguOGM1LjQgNS4zIDExLjggOCAxOS40IDggNy43IDAgMTQtMi43IDE5LjUtOGw4NC04NCA4My44IDg0YzUuNCA1LjMgMTEuOCA4IDE5LjUgOCA3LjYgMCAxNC0yLjcgMTkuNC04bDM4LjgtMzguOGM1LjMtNS40IDgtMTEuOCA4LTE5LjUgMC03LjctMi43LTE0LTgtMTkuNWwtODQtODR6Ii8+PC9zdmc+"
-            width="10"
-          />
-          Xóa
-        </li>
-      </ul>
-      <!-- end context menu -->
-    </div>
+        <!-- inner dialog -->
+        <el-dialog
+          class="book-detail__inner-dialog"
+          width="40%"
+          :visible.sync="innerVisible"
+          append-to-body
+        >
+          <template slot="title">
+            <h5 class="text-center m-0">{{ titleInnerDialog }}</h5>
+          </template>
+          <!-- body inner dialog -->
+          <div class="body-inner">
+            <el-input
+              type="textarea"
+              :rows="4"
+              placeholder="Vui lòng nhập vào đây ..."
+              v-model="tempPhrase"
+            ></el-input>
+          </div>
+          <!-- end body inner dialog -->
+          <div slot="footer">
+            <el-button type="primary" @click="handlePhrases">Xác nhận</el-button>
+            <el-button type="danger" @click="innerVisible = false">Bỏ qua</el-button>
+          </div>
+        </el-dialog>
+        <!-- end inner dialog -->
+        <!-- context menu -->
+        <ul id="context-menu">
+          <li class="context-menu-item">
+            <img
+              class="context-menu-icon"
+              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NS40IDQ1LjQiPjxwYXRoIGZpbGw9IiNmOTY5MGUiIGQ9Ik00MS4zIDE4LjZIMjYuOFY0YzAtMi0xLjgtNC00LTQtMi40IDAtNC4yIDItNC4yIDR2MTQuNkg0Yy0yIDAtNCAxLjgtNCA0IDAgMS4yLjUgMi4zIDEuMiAzIC44LjggMS44IDEuMyAzIDEuM2gxNC40djE0LjNjMCAxIC40IDIgMS4yIDMgLjcuNiAxLjggMSAzIDEgMi4yIDAgNC0xLjcgNC00VjI3aDE0LjVjMi4zIDAgNC0yIDQtNC4zcy0xLjgtNC00LTR6Ii8+PC9zdmc+"
+              width="12"
+            />
+            Thêm mới
+            <ul>
+              <li
+                class="context-menu-item"
+                @click="handleChangeOption('ADD_BEFORE_PHRASE')"
+              >Thêm vào đầu</li>
+              <li
+                class="context-menu-item"
+                @click="handleChangeOption('ADD_AFTER_PHRASE')"
+              >Thêm vào cuối</li>
+            </ul>
+          </li>
+          <li class="context-menu-item" @click="handleChangeOption('EDIT_PHRASE')">
+            <img
+              class="context-menu-icon"
+              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MjguOSA1MjguOSI+PHBhdGggZmlsbD0iI2Y5NjkwZSIgZD0iTTMyOSA4OWwxMDcuNSAxMDcuN0wxNjQgNDY5IDU2LjcgMzYxLjYgMzI5IDg5em0xODktMjUuOGwtNDgtNDhjLTE4LjQtMTguNS00OC41LTE4LjUtNjcgMGwtNDYgNDYgMTA3LjUgMTA3LjVMNTE4IDExNWMxNC41LTE0LjIgMTQuNS0zNy40IDAtNTEuOHpNLjQgNTEyLjdjLTIgOC44IDYgMTYuNyAxNC44IDE0LjZsMTIwLTI5TDI3LjUgMzkwLjUuMyA1MTIuNnoiLz48L3N2Zz4="
+              width="12"
+            />
+            Sửa
+          </li>
+          <li class="context-menu-item" @click="deletePhrases">
+            <img
+              class="context-menu-icon"
+              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzkuMiAzMzkuMiI+PHBhdGggZmlsbD0iI2Y5NjkwZSIgZD0iTTI0Ny4yIDE2OS42bDg0LTg0YzUuMy01LjMgOC0xMS43IDgtMTkuNCAwLTcuNi0yLjctMTQtOC0xOS40TDI5Mi40IDhDMjg3IDIuNyAyODAuNiAwIDI3MyAwYy03LjcgMC0xNCAyLjctMTkuNSA4bC04NCA4NEw4NS44IDhDODAuMyAyLjcgNzQgMCA2Ni4yIDBjLTcuNiAwLTE0IDIuNy0xOS40IDhMOCA0Ni44Yy01LjMgNS40LTggMTEuOC04IDE5LjQgMCA3LjcgMi43IDE0IDggMTkuNWw4NCA4NC04NCA4My44QzIuNyAyNTkgMCAyNjUuMyAwIDI3M2MwIDcuNiAyLjcgMTQgOCAxOS40bDM4LjggMzguOGM1LjQgNS4zIDExLjggOCAxOS40IDggNy43IDAgMTQtMi43IDE5LjUtOGw4NC04NCA4My44IDg0YzUuNCA1LjMgMTEuOCA4IDE5LjUgOCA3LjYgMCAxNC0yLjcgMTkuNC04bDM4LjgtMzguOGM1LjMtNS40IDgtMTEuOCA4LTE5LjUgMC03LjctMi43LTE0LTgtMTkuNWwtODQtODR6Ii8+PC9zdmc+"
+              width="10"
+            />
+            Xóa
+          </li>
+        </ul>
+        <!-- end context menu -->
+      </div>
+    </template>
+    <div class="container" v-else>Không tìm thấy thông tin sách</div>
   </div>
 </template>
 <script>
 import phrases from "@/data";
 import moment from "moment";
+import axios from "axios";
+import { mapGetters } from "vuex";
 
 const OPTIONS_TYPE = {
   ADD_BEFORE_PHRASE: 0,
@@ -288,7 +300,7 @@ export default {
   name: "BookDetail",
   data() {
     return {
-      tableData: [
+      chapterBooks: [
         {
           headerNumber: "Phần 1: Mở đầu",
           timeRequest: "17:20:24 - 19/04/2019",
@@ -336,6 +348,9 @@ export default {
       currentOption: -1,
       currentPhrase: 0,
       dateRange: [],
+      bookInfo: null,
+      limit: 10,
+      pageCurrent: 1,
       // context-menu
       contextMenuWidth: null,
       contextMenuHeight: null
@@ -559,9 +574,87 @@ export default {
           });
           break;
       }
+    },
+    async getBookInfo() {
+      try {
+        const { bookId } = this.$route.params;
+        const { status, data } = await axios({
+          type: "GET",
+          method: "GET",
+          url: `http://localhost:8888/api/v1/books/${bookId}`
+        });
+
+        if (status !== 200) {
+          this.bookInfo = null;
+          return;
+        }
+        const { result } = data;
+        this.bookInfo = result;
+      } catch (error) {
+        console.log(error.message);
+        this.bookInfo = null;
+      }
+    },
+    async getChapterList() {
+      try {
+        const { bookId } = this.$route.params;
+
+        let start = null;
+        let end = null;
+        if (this.dateRange) {
+          start = new Date(this.dateRange[0]).valueOf();
+          end = new Date(this.dateRange[1]).valueOf();
+        }
+        const { status, data } = await axios({
+          type: "GET",
+          method: "GET",
+          url: `http://localhost:8888/api/v1/chapters?limit=${this.limit}&book_id=${bookId}&page_num=${this.pageCurrent}&start_time=${start}&end_time=${end}`
+        });
+
+        if (status !== 200) {
+          this.chapterBooks = [];
+          return;
+        }
+        const {
+          result: {
+            pager: { limit, total_count, page_num }
+          }
+        } = data;
+
+        this.pageCurrent = page_num;
+        this.limit = limit;
+        this.total = total_count;
+        this.chapterBooks = data.result.data;
+      } catch (error) {
+        console.log(error.message);
+
+        this.pageCurrent = 0;
+        this.total = 0;
+        this.chapterBooks = [];
+      }
+    },
+    formatTimeRequest(time) {
+      const date = new Date(time);
+      return moment(date.valueOf()).format("h:mm:ss - MM/DD/YYYY");
+    },
+    toHHMMSS(seconds) {
+      if (seconds) {
+        return moment()
+          .startOf("day")
+          .seconds(seconds)
+          .format("HH:mm:ss");
+      }
+      return "-";
+    },
+    initDateRangeDefault() {
+      var date = new Date();
+      var start = new Date(date.getFullYear(), date.getMonth(), 1);
+      var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      this.dateRange = [start, end];
     }
   },
   computed: {
+    ...mapGetters(["userId"]),
     checkTimeHightLight: function() {
       return ({ start, end }) => {
         const time = this.time;
@@ -574,6 +667,9 @@ export default {
   },
   mounted() {
     this.onClickHideContextMenu();
+    this.initDateRangeDefault();
+    this.getBookInfo();
+    this.getChapterList();
   }
 };
 </script>

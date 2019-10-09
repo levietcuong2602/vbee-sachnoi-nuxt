@@ -27,6 +27,7 @@
             highlight-current-row
             style="width: 100%"
             :header-cell-style="{background: '#EAECED'}"
+            v-loading="loading"
           >
             <el-table-column type="index" width="50"></el-table-column>
             <el-table-column property="title" label="Tên sách" width="320"></el-table-column>
@@ -38,59 +39,61 @@
             </el-table-column>
             <el-table-column property="status" label="Trạng thái"></el-table-column>
             <el-table-column label="Thao tác" align="center">
-              <span>
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 16.5L16 12L10 7.5V16.5ZM4 12C4 16.41 7.59 20 12 20C16.41 20 20 16.41 20 12C20 7.59 16.41 4 12 4C7.59 4 4 7.59 4 12Z"
-                    fill="#0DD260"
-                  />
-                </svg>
-              </span>
-              <span>
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M15 10H19L12 17L5 10H9V4H15V10ZM5 21V19H19V21H5Z"
-                    fill="#2593FB"
-                  />
-                </svg>
-              </span>
-              <span @click="gotoDetailBook">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM13 9V7H11V9H13ZM13 17V11H11V17H13ZM4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12Z"
-                    fill="#3C4858"
-                  />
-                </svg>
-              </span>
+              <template slot-scope="scope">
+                <span>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 16.5L16 12L10 7.5V16.5ZM4 12C4 16.41 7.59 20 12 20C16.41 20 20 16.41 20 12C20 7.59 16.41 4 12 4C7.59 4 4 7.59 4 12Z"
+                      fill="#0DD260"
+                    />
+                  </svg>
+                </span>
+                <span>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M15 10H19L12 17L5 10H9V4H15V10ZM5 21V19H19V21H5Z"
+                      fill="#2593FB"
+                    />
+                  </svg>
+                </span>
+                <span @click="gotoDetailBook(scope.row.id)">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM13 9V7H11V9H13ZM13 17V11H11V17H13ZM4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12Z"
+                      fill="#3C4858"
+                    />
+                  </svg>
+                </span>
+              </template>
             </el-table-column>
           </el-table>
         </el-scrollbar>
       </div>
-      <div class="analysic-book__footer">
+      <div class="analysic-book__footer" v-if="total > limit">
         <el-pagination
           layout="prev, pager, next"
           :total="total"
@@ -114,37 +117,51 @@ export default {
       dateRange: [],
       limit: 10,
       pageCurrent: 1,
-      total: 0
+      total: 0,
+      loading: true
     };
   },
   methods: {
-    gotoDetailBook() {
-      this.$router.push("/analysic-book/1");
+    gotoDetailBook(bookId) {
+      this.$router.push("/analysic-book/" + bookId);
     },
     async getBooks() {
-      let start = null;
-      let end = null;
-      if (this.dateRange) {
-        start = moment(new Date(this.dateRange[0]).valueOf()).format(
-          "DD/MM/YYYY"
-        );
-        end = moment(new Date(this.dateRange[1]).valueOf()).format(
-          "DD/MM/YYYY"
-        );
-      }
+      try {
+        let start = null;
+        let end = null;
+        if (this.dateRange) {
+          start = new Date(this.dateRange[0]).valueOf();
+          end = new Date(this.dateRange[1]).valueOf();
+        }
+        const { data, status } = await axios({
+          method: "GET",
+          type: "GET",
+          url: `http://localhost:8888/api/v1/books?limit=${this.limit}&user_id=${this.userId}&page_num=${this.pageCurrent}&start_time=${start}&end_time=${end}`
+        });
 
-      const { data, status } = await axios({
-        method: "GET",
-        type: "GET",
-        url: `http://localhost:8888/api/v1/books?limit=${this.limit}&user_id=${this.userId}&page_num=${this.pageCurrent}&startDate=${start}&endDate=${end}`
-      });
+        if (status !== 200) {
+          this.tableData = [];
+          this.loading = false;
+          return;
+        }
+        const {
+          result: {
+            pager: { limit, total_count, page_num }
+          }
+        } = data;
 
-      if (status === 200) {
-        const { limit, total, page_num } = data;
         this.pageCurrent = page_num;
         this.limit = limit;
-        this.total = total;
-        this.tableData = data.data;
+        this.total = total_count;
+        this.tableData = data.result.data;
+        this.loading = false;
+      } catch (error) {
+        console.log(error.message);
+
+        this.tableData = [];
+        this.pageCurrent = 1;
+        this.total = 0;
+        this.loading = false;
       }
     },
     formatTimeRequest(time) {
