@@ -617,11 +617,11 @@ export default {
         }
         const {
           result: {
-            pager: { limit, total_count, page_num }
+            pager: { limit, total_count, current_page_num }
           }
         } = data;
 
-        this.pageCurrent = page_num;
+        this.pageCurrent = current_page_num;
         this.limit = limit;
         this.total = total_count;
         this.chapterBooks = data.result.data;
