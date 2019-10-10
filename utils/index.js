@@ -2,6 +2,8 @@
  * Created by PanJiaChen on 16/11/18.
  */
 
+ const moment = require('moment');
+
 /**
  * Parse the time to string
  * @param {(Object|string|number)} time
@@ -10,20 +12,20 @@
  */
 export function parseTime(time, cFormat) {
   if (arguments.length === 0) {
-    return null
+    return null;
   }
-  const format = cFormat || '{y}-{m}-{d} {h}:{i}:{s}'
-  let date
-  if (typeof time === 'object') {
-    date = time
+  const format = cFormat || "{y}-{m}-{d} {h}:{i}:{s}";
+  let date;
+  if (typeof time === "object") {
+    date = time;
   } else {
-    if ((typeof time === 'string') && (/^[0-9]+$/.test(time))) {
-      time = parseInt(time)
+    if (typeof time === "string" && /^[0-9]+$/.test(time)) {
+      time = parseInt(time);
     }
-    if ((typeof time === 'number') && (time.toString().length === 10)) {
-      time = time * 1000
+    if (typeof time === "number" && time.toString().length === 10) {
+      time = time * 1000;
     }
-    date = new Date(time)
+    date = new Date(time);
   }
   const formatObj = {
     y: date.getFullYear(),
@@ -33,17 +35,19 @@ export function parseTime(time, cFormat) {
     i: date.getMinutes(),
     s: date.getSeconds(),
     a: date.getDay()
-  }
+  };
   const time_str = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result, key) => {
-    let value = formatObj[key]
+    let value = formatObj[key];
     // Note: getDay() returns 0 on Sunday
-    if (key === 'a') { return ['日', '一', '二', '三', '四', '五', '六'][value ] }
-    if (result.length > 0 && value < 10) {
-      value = '0' + value
+    if (key === "a") {
+      return ["日", "一", "二", "三", "四", "五", "六"][value];
     }
-    return value || 0
-  })
-  return time_str
+    if (result.length > 0 && value < 10) {
+      value = "0" + value;
+    }
+    return value || 0;
+  });
+  return time_str;
 }
 
 /**
@@ -52,40 +56,40 @@ export function parseTime(time, cFormat) {
  * @returns {string}
  */
 export function formatTime(time, option) {
-  if (('' + time).length === 10) {
-    time = parseInt(time) * 1000
+  if (("" + time).length === 10) {
+    time = parseInt(time) * 1000;
   } else {
-    time = +time
+    time = +time;
   }
-  const d = new Date(time)
-  const now = Date.now()
+  const d = new Date(time);
+  const now = Date.now();
 
-  const diff = (now - d) / 1000
+  const diff = (now - d) / 1000;
 
   if (diff < 30) {
-    return '刚刚'
+    return "刚刚";
   } else if (diff < 3600) {
     // less 1 hour
-    return Math.ceil(diff / 60) + '分钟前'
+    return Math.ceil(diff / 60) + "分钟前";
   } else if (diff < 3600 * 24) {
-    return Math.ceil(diff / 3600) + '小时前'
+    return Math.ceil(diff / 3600) + "小时前";
   } else if (diff < 3600 * 24 * 2) {
-    return '1天前'
+    return "1天前";
   }
   if (option) {
-    return parseTime(time, option)
+    return parseTime(time, option);
   } else {
     return (
       d.getMonth() +
       1 +
-      '月' +
+      "月" +
       d.getDate() +
-      '日' +
+      "日" +
       d.getHours() +
-      '时' +
+      "时" +
       d.getMinutes() +
-      '分'
-    )
+      "分"
+    );
   }
 }
 
@@ -94,9 +98,9 @@ export function formatTime(time, option) {
  * @returns {Object}
  */
 export function param2Obj(url) {
-  const search = url.split('?')[1]
+  const search = url.split("?")[1];
   if (!search) {
-    return {}
+    return {};
   }
   return JSON.parse(
     '{"' +
@@ -104,7 +108,30 @@ export function param2Obj(url) {
         .replace(/"/g, '\\"')
         .replace(/&/g, '","')
         .replace(/=/g, '":"')
-        .replace(/\+/g, ' ') +
+        .replace(/\+/g, " ") +
       '"}'
-  )
+  );
+}
+
+/**
+ * @param {Number} num
+ * @returns num format number
+ */
+export function formatNumber(num) {
+  return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+}
+
+export function formatTimeRequest(time) {
+  const date = new Date(time);
+  return moment(date.valueOf()).format("h:mm:ss - MM/DD/YYYY");
+}
+
+export function toHHMMSS(seconds) {
+  if (seconds) {
+    return moment()
+      .startOf("day")
+      .seconds(seconds)
+      .format("HH:mm:ss");
+  }
+  return "-";
 }
