@@ -1,29 +1,34 @@
 <template>
   <div>
     <div class="step1">
-      <div class="row mt-5">
-        <div class="col-md-2 col-sm-4 col-6">
-          <label for>Tên sách (*)</label>
-          <el-input placeholder="Tên sách" v-model="bookName"></el-input>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6">
-          <label for>Tác giả</label>
-          <el-input placeholder="Tác giả" v-model="authorName"></el-input>
-        </div>
-        <div class="col-md-2 col-sm-4 col-6">
-          <label for>Năm xuất bản</label>
-          <el-date-picker v-model="publicYear" type="year" placeholder="Năm xuất bản"></el-date-picker>
-        </div>
-      </div>
+      <el-form
+        class="row mt-5"
+        label-position="top"
+        label-width="100px"
+        :model="bookInfo"
+        :rules="rules"
+        status-icon
+        ref="ruleForm"
+      >
+        <el-form-item label="Tên sách" class="col-md-2 col-sm-4 col-6" prop="name">
+          <el-input v-model="bookInfo.name" placeholder="Nhập tên sách" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="Tác giả" class="col-md-2 col-sm-4 col-6" prop="author">
+          <el-input v-model="bookInfo.author" placeholder="Nhập tên tác giả"></el-input>
+        </el-form-item>
+        <el-form-item label="Năm xuất bản" class="col-md-2 col-sm-4 col-6">
+          <el-date-picker v-model="yearTime" type="year" placeholder="Năm xuất bản"></el-date-picker>
+        </el-form-item>
+      </el-form>
       <div class="row mt-3">
         <el-upload
           class="col-12"
           drag
-          action="https://jsonplaceholder.typicode.com/posts/"
-          :on-preview="handlePreview"
-          :on-remove="handleRemove"
+          action="http://localhost:8888/api/v1/upload"
           :file-list="fileBooks"
-          multiple
+          :on-change="onChangeUpload"
+          :on-success="onUploadSuccess"
+          accept=".docx, .txt"
         >
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">
@@ -62,25 +67,119 @@
   </div>
 </template>
 <script>
+import { mapGetters } from "vuex";
 export default {
   name: "Step1",
   data() {
+    var validateName = (rule, value, callback) => {
+      if (value === "") {
+        callback(new Error("Vui lòng nhập tên sách"));
+      }
+      callback();
+    };
     return {
-      bookName: "",
-      authorName: "",
-      publicYear: "",
-      fileBooks: []
+      bookInfo: {
+        name: "",
+        author: "",
+        publicYear: ""
+      },
+      yearTime: "",
+      fileBooks: [],
+      errors: "",
+      rules: {
+        name: [{ validator: validateName, trigger: "blur" }]
+      },
+      errors: null
     };
   },
+  computed: {
+    ...mapGetters(["contentBook"])
+  },
+  watch: {
+    yearTime: function(time) {
+      const date = new Date(time);
+      this.bookInfo.publicYear = date.getFullYear();
+    }
+  },
   methods: {
-    handleRemove(file, fileList) {
-      console.log(file, fileList);
+    onChangeUpload(file, fileList) {
+      this.fileBooks = [file];
     },
-    handlePreview(file) {
-      console.log(file);
+    onUploadSuccess(res, file) {
+      const { status, content } = res;
+      if (status === 1) {
+        const { name } = file;
+
+        this.$store.dispatch("book/loadContentBook", content);
+
+        this.$message({
+          type: "success",
+          message: `upload file ${name} is successfull`,
+          offset: 100
+        });
+      } else {
+        this.$message({
+          type: "error",
+          message: `upload file ${name} is fail`,
+          offset: 100
+        });
+      }
     },
     gotoNextStep(step) {
+      this.$refs["ruleForm"].validate(valid => {
+        if (!valid) {
+          this.errors = "Bạn cần nhập trường tên sách!";
+          return false;
+        }
+        this.errors = null;
+        return true;
+      });
+      if (this.errors) {
+        this.$message({
+          type: "error",
+          message: this.errors,
+          offset: 100
+        });
+        return;
+      }
+
+      this.checkEmpty();
+
+      if (this.errors) {
+        this.$message({
+          type: "error",
+          message: this.errors,
+          offset: 100
+        });
+        return;
+      }
+      this.$store.dispatch("book/loadInfoBook", this.bookInfo);
       this.$emit("handleNextStep", step);
+    },
+    checkEmpty() {
+      const {
+        bookInfo: { name }
+      } = this;
+      if (!name) {
+        this.errors = "Bạn cần nhập trường tên sách!";
+        return;
+      }
+
+      const {
+        fileBooks: { length }
+      } = this;
+      if (length <= 0) {
+        this.errors = "Bạn cần upload file sách!";
+        return;
+      }
+
+      const { contentBook } = this;
+      if (!contentBook) {
+        this.errors = "Nội dung sách không tồn tại!";
+        return;
+      }
+
+      this.errors = null;
     }
   }
 };

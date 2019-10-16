@@ -611,24 +611,19 @@ export default {
           url: `http://localhost:8888/api/v1/chapters?limit=${this.limit}&book_id=${bookId}&page_num=${this.pageCurrent}&start_time=${start}&end_time=${end}`
         });
 
-        if (status !== 200) {
-          this.chapterBooks = [];
-          return;
-        }
-        const {
-          result: {
-            pager: { limit, total_count, current_page_num }
-          }
-        } = data;
+        if (status === 200) {
+          const {
+            result: {
+              pager: { limit, total_count, current_page_num }
+            }
+          } = data;
 
-        this.pageCurrent = current_page_num;
-        this.limit = limit;
-        this.total = total_count;
-        this.chapterBooks = data.result.data;
+          this.pageCurrent = current_page_num;
+          this.total = total_count;
+          this.chapterBooks = data.result.data;
+        }
       } catch (error) {
         console.log(error.message);
-
-        this.pageCurrent = 0;
         this.total = 0;
         this.chapterBooks = [];
       }

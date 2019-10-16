@@ -8,26 +8,6 @@
         </el-breadcrumb>
       </div>
       <div class="box-select-time">
-        <!--<div class="box-select-user">
-        <el-select
-                v-model="nameFiller"
-                filterable
-                clearable
-                remote
-                reserve-keyword
-                placeholder="Nhập tên người dùng"
-                :remote-method="remoteMethod"
-                :loading="loading"
-                @change="filterByUser()">
-          <el-option
-                  v-for="item in options"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value">
-          </el-option>
-        </el-select>
-
-        </div>-->
         <div class="select-time">
           <el-date-picker
             v-model="date_range"
@@ -75,7 +55,7 @@
             <p class="detail-value">
               {{item.value}}
               <br />
-              <span class="increase-percent">{{item.increase}}</span>
+              <span class="increase-percent">tăng {{item.increase}} %</span>
             </p>
           </div>
         </div>
@@ -298,7 +278,9 @@
   </div>
 </template>
 <script>
+import axios from "axios";
 import { convertDate } from "@/utils/convert";
+import { mapGetters } from "vuex";
 export default {
   name: "AnalysicDetail",
   data() {
@@ -308,29 +290,7 @@ export default {
       nameFiller: [],
       list: [],
       loading: false,
-      listUser: [
-        "Alabama",
-        "Alaska",
-        "Arizona",
-        "Arkansas",
-        "California",
-        "Colorado",
-        "Connecticut",
-        "Delaware",
-        "Florida",
-        "Georgia",
-        "Hawaii",
-        "Idaho",
-        "Illinois",
-        "Indiana",
-        "Iowa",
-        "Kansas",
-        "Kentucky",
-        "Louisiana",
-        "Maine",
-        "Maryland",
-        "Massachusetts"
-      ],
+      statisticsCharacter: [],
       statistic_request_detail: [
         {
           title: "Tổng số trang sách đã yêu cầu:",
@@ -562,160 +522,26 @@ export default {
         ).id;
       }
     },
-    // onGetListUser() {
-    //   this.$store.dispatch('getListUser').then(response => {
-    //     var arrResultData = response.data;
-    //     this.arrDataUsers = arrResultData;
-    //     var arrListUser = [];
-    //     arrResultData.forEach(function (item) {
-    //       if (item.name !== null) {
-    //         arrListUser.push(item.name);
-    //       }
-    //     });
-    //     this.list = arrListUser.map(item => {
-    //       return { value: item, label: item };
-    //     });
-    //   });
-    // },
-    onGetStaticOverView() {
-      // this.handleSetUserId();
-      // this.$store.dispatch('getStaticOverView', this.listQuery).then(response => {
-      //   this.overview = { ...response };
-      //   if (response.requestCountSuccess === 0) {
-      //     this.overview.percentSuccess = 0;
-      //   } else {
-      //     this.overview.percentSuccess = ((response.requestCountSuccess / response.requestCountTotal) * 100).toFixed(0);
-      //   }
-      // });
-    },
-    onGetTotalUser() {
-      // this.handleSetUserId();
-      // this.$store.dispatch('getTotalUser', this.listQuery).then(response => {
-      //   const categories = [];
-      //   const data = [];
-      //   response.map((value) => {
-      //     categories.push(value.ngay);
-      //     data.push([value.total]);
-      //   });
-      //   this.chartOptionsBookTitle.xAxis.categories = categories;
-      //   this.chartOptionsBookTitle.series[0].data = data;
-      // });
-    },
-    onGetTotalRequest() {
-      this.handleSetUserId();
-      // this.$store.dispatch("getTotalRequest", this.listQuery).then(response => {
-      //   const objCountFail = {
-      //     name: "Thất bại",
-      //     color: "#ff0000",
-      //     data: [...response.requestCountFail]
-      //   };
-      //   const objCountProcessing = {
-      //     name: "Đang xử lý",
-      //     color: "#FDB62F",
-      //     data: [...response.requestCountProcessing]
-      //   };
-      //   const objCountSuccess = {
-      //     name: "Thành công",
-      //     color: "#0DD260",
-      //     data: [...response.requestCountSuccess]
-      //   };
-      //   const objCountWaiting = {
-      //     name: "Chờ xử lý",
-      //     color: "#838383",
-      //     data: [...response.requestCountWaiting]
-      //   };
-      //   const series = [
-      //     objCountFail,
-      //     objCountProcessing,
-      //     objCountSuccess,
-      //     objCountWaiting
-      //   ];
-      //   this.chartOptionsRequest.xAxis.categories = response.categories;
-      //   this.chartOptionsRequest.series = series;
-      // });
-    },
-    onGetTotalMoneyChange() {
-      // this.handleSetUserId();
-      // this.$store.dispatch('getTotalMoneyChange', this.listQuery).then(response => {
-      //   const categories = [];
-      //   const data = [];
-      //   if (response.length > 0) {
-      //     response.map(value => {
-      //       categories.push(value.ngay);
-      //       data.push(value.total);
-      //     });
-      //   }
-      //   const series = [{
-      //     name: 'Số tiền nạp',
-      //     color: '#0DD260',
-      //     data: data,
-      //   }];
-      //   this.chartOptionsMoney.xAxis.categories = categories;
-      //   this.chartOptionsMoney.series = series;
-      // });
-    },
-    onGetTotalSummary() {
-      /* this.$store.dispatch('getTotalSummary', this.listQuery).then(response => {
-        const summary = [{
-          title: 'Tổng số trang sách đã yêu cầu: ',
-          value: `${this.formatNumber(response.totalPageRequest)} đ`,
-          increase: `Tăng ${this.formatNumber(response.increaseTotalMoney)} %`,
-        },
-        {
-          title: 'Tổng số giao dịch:',
-          value: this.formatNumber(response.countOrder),
-          increase: `Tăng ${this.formatNumber(response.increaseCountOrder)} %`,
-        },
-        {
-          title: 'Tổng số chiến dịch:',
-          value: this.formatNumber(response.totalRequest),
-          increase: `Tăng ${this.formatNumber(response.increaseTotalRequest)} %`,
-        },
-        {
-          title: 'Tỷ lệ chiết khấu kinh doanh:',
-          value: `${response.fee} %`,
-        },
-        {
-          title: 'Số tiền chiết khấu đại diện kinh doanh:',
-          value: `${this.formatNumber(response.moneyFee)} đ`,
-        },
-        {
-          title: 'Doanh thu sau chiết khấu:',
-          value: `${this.formatNumber(response.moneyAfterFee)} đ`,
+    async getStatisticsCharacters() {
+      try {
+        const year = new Date().getFullYear();
+        const month = new Date().getMonth() + 1;
 
-        }];
-        this.statistic_request_detail = summary;
-      });*/
+        const { data, status } = await axios({
+          method: "GET",
+          url: `http://localhost:8888/api/v1/statistics/characters/month?month=${month}&year=${year}&user_id=${this.userId}`
+        });
+        if (status === 200) {
+          const { result } = data;
+          this.statisticsCharacter = result;
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
     },
-    // filterByUser() {
-    //   this.onGetStaticOverView();
-    //   this.onGetTotalUser();
-    //   this.onGetTotalRequest();
-    //   this.onGetTotalMoneyChange();
-    //   this.onGetTotalSummary();
-    // },
+    async getStatisticsRequests() {},
+    async getStatisticsBooks() {},
     convertDate
-    // remoteMethod(query) {
-    //   if (query !== '') {
-    //     this.loading = true;
-    //     setTimeout(() => {
-    //       this.loading = false;
-    //       this.options = this.list.filter(item => {
-    //         return item.label.toLowerCase()
-    //           .indexOf(query.toLowerCase()) > -1;
-    //       });
-    //     }, 100);
-    //   } else {
-    //     this.options = [];
-    //   }
-    // },
-  },
-  created() {
-    this.onGetStaticOverView();
-    this.onGetTotalUser();
-    this.onGetTotalRequest();
-    this.onGetTotalMoneyChange();
-    this.onGetTotalSummary();
   },
   watch: {
     title(newValue) {
@@ -747,12 +573,21 @@ export default {
       } else {
         this.listQuery = { ...{ start_date: null, end_date: null } };
       }
-      this.onGetStaticOverView();
-      this.onGetTotalUser();
-      this.onGetTotalRequest();
-      this.onGetTotalMoneyChange();
-      this.onGetTotalSummary();
+
+      // this.onGetStaticOverView();
+      // this.onGetTotalUser();
+      // this.onGetTotalRequest();
+      // this.onGetTotalMoneyChange();
+      // this.onGetTotalSummary();
     }
+  },
+  computed: {
+    ...mapGetters(["userId"])
+  },
+  mounted() {
+    this.getStatisticsCharacters();
+    this.getStatisticsRequests();
+    this.getStatisticsBooks();
   }
 };
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div class="buy-package">
-    <el-breadcrumb separator="-">
+    <el-breadcrumb class="pt-3" separator="-">
       <el-breadcrumb-item>Sách nói</el-breadcrumb-item>
       <el-breadcrumb-item>Mua gói cước</el-breadcrumb-item>
     </el-breadcrumb>
@@ -43,7 +43,7 @@
           >
             <PackageData
               v-for="element in listPackages"
-              :key="element.id"
+              :key="element.id.toString()"
               :packageInfo="element"
               @changeSlider="changeTimeProcess"
             />
@@ -101,12 +101,7 @@
   </div>
 </template>
 <script>
-// const carousel = () => {
-//   if (typeof window !== "undefined" && typeof document !== "undefined") {
-//     return import("vue-owl-carousel");
-//   }
-//   return null;
-// };
+import axios from "axios";
 let carousel;
 if (process.client) {
   carousel = require("vue-owl-carousel");
@@ -148,57 +143,50 @@ export default {
             margin: 10
           }
         }
-      },
-      listPackages: [
-        {
-          id: "package_1",
-          name: "Gói S1",
-          price: 20000,
-          timeProcess: 100,
-          expiryDate: 7,
-          maxPage: 40
-        },
-        {
-          id: "package_2",
-          name: "Gói S7",
-          price: 300000,
-          timeProcess: 50,
-          expiryDate: 7,
-          maxPage: 450
-        },
-        {
-          id: "package_3",
-          name: "Gói S30",
-          price: 1250000,
-          timeProcess: 0,
-          expiryDate: 7,
-          maxPage: 1250
-        },
-        {
-          id: "package_4",
-          name: "Gói S30 MAX",
-          price: 8000000,
-          timeProcess: 0,
-          expiryDate: 7,
-          maxPage: 10000
-        },
-        {
-          id: "package_5",
-          name: "Gói S5",
-          price: 20000,
-          timeProcess: 100,
-          expiryDate: 7,
-          maxPage: 40
-        }
-      ]
+      }
     };
   },
   methods: {
     changeTimeProcess(id, timeProcess) {
-      this.listPackages = this.listPackages.map(value =>
-        value.id === id ? { ...value, timeProcess } : value
-      );
+      // this.listPackages = this.listPackages.map(value =>
+      //   value.id === id ? { ...value, timeProcess } : value
+      // );
     }
+  },
+  async asyncData({ params }) {
+    const { status, data } = await axios({
+      type: "GET",
+      method: "GET",
+      url: "http://localhost:8888/api/v1/packages"
+    });
+    if (status === 200) {
+      const result = {};
+      const { results } = data;
+      for (const item of results) {
+        const { code, id, amount, processing_time } = item;
+        if (result[code] === undefined) {
+          result[code] = {
+            ...item,
+            id: [id],
+            amount: [amount],
+            processing_time: [processing_time]
+          };
+        } else {
+          result[code].id.unshift(id);
+          result[code].amount.unshift(amount);
+          result[code].processing_time.unshift(processing_time);
+        }
+      }
+      const listPackages = [];
+      for (const item in result) {
+        if (result.hasOwnProperty(item)) {
+          const pkg = result[item];
+          listPackages.push(pkg);
+        }
+      }
+      return { listPackages };
+    }
+    return { listPackages: [] };
   }
 };
 </script>

@@ -9,7 +9,7 @@
         start-placeholder="Bắt đầu"
         end-placeholder="Kết thúc"
       ></el-date-picker>
-      <el-button type="warning">Tìm kiếm giao dịch</el-button>
+      <el-button type="warning" @click="handleSearch">Tìm kiếm giao dịch</el-button>
       <el-button>
         <i class="el-icon-refresh"></i>
         Cập nhật
@@ -46,7 +46,7 @@
         </el-table>
       </el-scrollbar>
     </div>
-    <div class="payment-history__footer">
+    <div class="payment-history__footer" v-if="total > 0">
       <el-pagination
         layout="prev, pager, next"
         :total="total"
@@ -102,11 +102,10 @@ export default {
         }
         const {
           result: {
-            pager: { limit, total_count, current_page_num }
+            pager: { total_count, current_page_num }
           }
         } = data;
 
-        this.limit = limit;
         this.total = total_count;
         this.pageCurrent = current_page_num;
         this.tableData = data.result.data;
@@ -130,7 +129,10 @@ export default {
       this.dateRange = [start, end];
     },
     formatTimeRequest,
-    formatNumber
+    formatNumber,
+    handleSearch() {
+      this.getTransactions();
+    }
   },
   mounted() {
     this.initDateRangeDefault();

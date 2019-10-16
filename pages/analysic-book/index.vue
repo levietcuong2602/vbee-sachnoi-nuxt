@@ -146,12 +146,11 @@ export default {
         }
         const {
           result: {
-            pager: { limit, total_count, current_page_num }
+            pager: { total_count, current_page_num }
           }
         } = data;
 
         this.pageCurrent = current_page_num;
-        this.limit = limit;
         this.total = total_count;
         this.tableData = data.result.data;
         this.loading = false;

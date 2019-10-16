@@ -2,20 +2,26 @@
   <div :class="['cost-item', getClassWrap()]">
     <div class="cost-item__header">
       <div class="cost-item__title">{{ packageInfo.name }}</div>
-      <div class="cost-item__money">{{ packageInfo.price }}</div>
+      <div class="cost-item__money">{{ getPricePackage() }}</div>
       <div class="cost-item__unit">VNĐ</div>
     </div>
     <div class="cost-item__main">
       <p>Thời gian chờ xử lý mỗi 50 trang</p>
-      <el-slider :step="50" :max="100" :marks="getMarks()" @change="handleChange" v-model="slider"></el-slider>
+      <el-slider
+        :step="50"
+        :max="100"
+        :marks="getMarks(slider)"
+        @change="handleChange"
+        v-model="slider"
+      ></el-slider>
       <!-- <RangeSlider /> -->
-      <p>Hạn sử dụng 1 ngày</p>
+      <p>Hạn sử dụng {{ packageInfo.number_expire_day }} ngày</p>
       <el-divider></el-divider>
-      <p>Tối đa {{ packageInfo.maxPage }} trang</p>
+      <p>Tối đa {{ formatNumber(packageInfo.max_page) }} trang</p>
       <el-divider></el-divider>
-      <p>Hỗ trợ trực tiếp 24/7</p>
+      <p>{{ packageInfo.support_description }}</p>
       <el-divider></el-divider>
-      <p>Định dạng .mp3 .wav</p>
+      <p>Định dạng {{ packageInfo.support_format }}</p>
     </div>
     <div class="cost-item__footer">
       <el-button type="warning" round>Mua ngay</el-button>
@@ -23,6 +29,17 @@
   </div>
 </template>
 <script>
+import { formatNumber } from "@/utils";
+const SliderTime = {
+  0: 0.25,
+  50: 1,
+  100: 24
+};
+const TimeSlider = {
+  0.25: 0,
+  1: 50,
+  24: 100
+};
 export default {
   name: "CostFeeItem",
   props: {
@@ -33,12 +50,25 @@ export default {
   },
   data() {
     return {
-      marks: this.getMarks(),
-      slider: this.packageInfo.timeProcess
+      timeSlider: [],
+      marks: this.getMarks(0),
+      slider: 0
     };
   },
-  watch: {
-    slider: function(value) {
+  methods: {
+    getClassWrap() {
+      const slider = this.slider;
+      if (slider === 0) {
+        return "package-class-1";
+      }
+      if (slider === 50) {
+        return "package-class-2";
+      }
+      if (slider === 100) {
+        return "package-class-3";
+      }
+    },
+    handleChange(value) {
       if (value === 0) {
         this.marks = {
           0: {
@@ -88,28 +118,19 @@ export default {
           }
         };
       }
-    }
-  },
-  methods: {
-    getClassWrap() {
-      if (this.slider === 0) {
-        return "package-class-1";
+
+      if (!this.timeSlider.includes(value)) {
+        this.slider = this.timeSlider[0];
+      } else {
+        this.slider = value;
       }
-      if (this.slider === 50) {
-        return "package-class-2";
-      }
-      if (this.slider === 100) {
-        return "package-class-3";
-      }
+      // this.$emit("changeSlider", {
+      //   id: this.packageInfo.id,
+      //   timeProcess: this.slider
+      // });
     },
-    handleChange() {
-      this.$emit("changeSlider", {
-        id: this.packageInfo.id,
-        timeProcess: this.slider
-      });
-    },
-    getMarks() {
-      if (this.slider === 0) {
+    getMarks(slider) {
+      if (slider === 0) {
         return {
           0: {
             label: "15 phút",
@@ -131,7 +152,7 @@ export default {
             }
           }
         };
-      } else if (this.slider === 50) {
+      } else if (slider === 50) {
         return {
           50: {
             label: "1 giờ",
@@ -147,7 +168,7 @@ export default {
             }
           }
         };
-      } else if (this.slider === 100) {
+      } else if (slider === 100) {
         return {
           100: {
             label: "24 giờ",
@@ -158,10 +179,28 @@ export default {
           }
         };
       }
+    },
+    convertTimeSlider(processingTime = []) {
+      this.timeSlider = processingTime.map(time => TimeSlider[time]);
+    },
+    formatNumber,
+    getPricePackage() {
+      if (this.packageInfo) {
+        const { amount } = this.packageInfo;
+        const index = this.timeSlider.indexOf(this.slider);
+        if (index < 0) {
+          return "";
+        }
+        const price = amount[index];
+        return this.formatNumber(price);
+      }
+      return "";
     }
   },
   mounted() {
-    console.log(this.slider);
+    const { processing_time } = this.packageInfo;
+    this.convertTimeSlider(processing_time);
+    this.slider = this.timeSlider[0];
   }
 };
 </script>
@@ -192,6 +231,9 @@ export default {
     .el-button {
       min-width: 150px;
     }
+  }
+  .el-divider {
+    margin: 5px;
   }
 }
 </style>
