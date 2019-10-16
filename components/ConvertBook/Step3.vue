@@ -40,36 +40,11 @@
           </div>
         </div>
         <div class="col-md-6 col-sm-12 box-right" v-if="isExtend">
-          <div class="step3 preview-option">
-            <div class="box-introduct" v-if="isIntroduction">
-              <div class="box-introduct__header">
-                <div class="title-introduct text-center w-100">
-                  <h5 class="title text-center m-0">HƯỚNG DẪN TÁCH CHƯƠNG</h5>
-                  <i>(không bắt buộc)</i>
-                </div>
-              </div>
-              <div class="box-introduct__main">
-                <p>- Muốn tách file audio thành từng phần/chương, hệ thống sẽ căn cứ vào việc chủ động gắn thẻ vào trước từ đầu tiên của trang bắt đầu và sau từ cuối cùng của trang kết thúc từng phần/chương, với mã thẻ: &lt;C[số thứ tự của chương]> hoặc &lt;P[số thứ tự của phần]></p>
-                <p>Ví dụ: Phần/chương 1 của bạn từ trang 1 tới trang 20, bạn gắn thẻ &lt;C1> hoặc &lt;P1> vào trước từ bắt đầu của trang 1 và sau từ cuối của trang 20. Tương tự với các phần/chương sau.</p>
-                <p>- Click “Bắt đầu tách phần/chương” để đặt tên cho các phân đoạn đã tách. Click “Bỏ qua” nếu không có nhu cầu tách file.</p>
-                <p>- Vui lòng xem clip hướng dẫn dưới đây để hiểu rõ hơn.</p>
-              </div>
-              <div class="box-introduct__footer">
-                <div class="embed-responsive embed-responsive-16by9">
-                  <video width="450" controls src="https://youtu.be/YC6NCr6_HbA"></video>
-                  <!-- <iframe class="embed-responsive-item" src="https://youtu.be/YC6NCr6_HbA" allowfullscreen></iframe> -->
-                </div>
-                <div class="text-center">
-                  <a href="#" @click.prevent="isIntroduction = false">Bắt đầu tách phân/chương</a>
-                </div>
-              </div>
-            </div>
-            <div class="box-step3" v-else>
-              <div class="box-step3__header">
-                <div class="title-step3">
-                  <h5>TÁCH FILE AUDIO THÀNH TỪNG PHẦN</h5>
-                  <i>(không bắt buộc)</i>
-                </div>
+          <div class="preview-option">
+            <div class="box-header">
+              <span class="title">Kiểm tra cách đọc</span>
+              <div class="search">
+                <el-input placeholder="Tìm kiếm từ" v-model="wordSearch"></el-input>
                 <svg
                   width="24"
                   height="24"
@@ -86,25 +61,35 @@
                   />
                 </svg>
               </div>
-              <div class="box-step3__main">
-                <el-scrollbar wrap-class="preview-book__scroll">
-                  <el-table :data="tableWord" height="500" style="width: 100%">
-                    <el-table-column prop="order" label="STT" width="50"></el-table-column>
-                    <el-table-column prop="header" label="Tên phần/chương" width="200"></el-table-column>
-                    <el-table-column prop="startPage" label="Trang bắt đầu" width="120"></el-table-column>
-                    <el-table-column
-                      prop="endPage"
-                      label="Trang kết thúc"
-                      width="120"
-                      align="center"
-                    ></el-table-column>
-                  </el-table>
-                </el-scrollbar>
-              </div>
-              <div class="box-step3__footer">
-                <el-pagination layout="prev, pager, next" :total="50"></el-pagination>
-                <a href="#" class="btn-save">Lưu thay đổi</a>
-              </div>
+            </div>
+            <div class="box-main">
+              <el-scrollbar wrap-class="preview-book__scroll">
+                <el-table :data="tableWord" height="500" style="width: 100%">
+                  <el-table-column prop="word" label="Từ" width="70"></el-table-column>
+                  <el-table-column prop="pronOld" label="Cách đọc cũ" width="100"></el-table-column>
+                  <el-table-column label="Cách đọc chuẩn" prop="pronRegular" width="120">
+                    <template slot-scope="scope">
+                      <el-input placeholder="Cách đọc chuẩn" v-model="scope.row.pronRegular"></el-input>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="Nghe thử" width="90" align="center">
+                    <i v-if="true" class="el-icon-video-play"></i>
+                    <i v-else class="el-icon-video-pause"></i>
+                  </el-table-column>
+                  <el-table-column label width="100" align="center">
+                    <i class="el-icon-arrow-left"></i>
+                    <span>20/40</span>
+                    <i class="el-icon-arrow-right"></i>
+                  </el-table-column>
+                  <el-table-column label="Sửa tất cả" align="center">
+                    <el-checkbox></el-checkbox>
+                  </el-table-column>
+                </el-table>
+              </el-scrollbar>
+            </div>
+            <div class="box-footer">
+              <el-pagination layout="prev, pager, next" :total="50"></el-pagination>
+              <a href="#" class="btn-save">Lưu thay đổi</a>
             </div>
           </div>
         </div>
@@ -113,19 +98,29 @@
     <div class="row mt-5 pb-5">
       <div class="col text-right">
         <el-button @click="gotoNextStep(2)">Quay lại</el-button>
-        <el-button>Bỏ qua</el-button>
         <el-button type="warning" @click="gotoNextStep(4)">Tiếp tục</el-button>
       </div>
     </div>
   </div>
 </template>
 <script>
+// import Step3Component from "./Step3";
 export default {
-  name: "Step3",
+  name: "Step2",
+  components: {
+    // Step3Component
+  },
   data() {
     return {
-      isIntroduction: true,
-      isExtend: true
+      isExtend: true,
+      wordSearch: "",
+      tableWord: [
+        {
+          word: "Trump",
+          pronOld: "trum",
+          pronRegular: "trăm"
+        }
+      ]
     };
   },
   methods: {
@@ -140,5 +135,4 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import "./styles/_step2.scss";
-@import "./styles/_step3.scss";
 </style>
