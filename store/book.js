@@ -1,5 +1,5 @@
 const state = () => ({
-  id: "",
+  id: null,
   content: "",
   name: "",
   author: "",

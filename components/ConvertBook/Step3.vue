@@ -14,9 +14,7 @@
           <div class="box-main">
             <div class="preview-book">
               <el-scrollbar wrap-class="preview-book__scroll">
-                <p
-                  class="content"
-                >Các nguồn tin ở Washington và Bắc Kinh hôm nay cho biết Trung Quốc và Mỹ nhiều khả năng sẽ đạt được một thỏa thuận "đình chiến thương mại", dừng các biện pháp áp thêm thuế với nhau trước thềm cuộc gặp giữa Tổng thống Mỹ Dnald Trump và Chủ tịch Trung Quốc Tập Cận Bình tại hội nghị thượng đỉnh G20 ở Osaka, Nhật Bản cuối tuần này. Tuy nhiên, giới phân tích cho rằng ngoài một "thỏa thuận ngừng bắn", hai bên sẽ khó đạt được bước đột phá nào khác nhằm giải quyết cuộc chiến tranh thương mại đã kéo dài suốt một năm qua. "Cái bắt tay hay nụ cười trong cuộc gặp của Tổng thống Dnald Trump và Chủ tịch Tập Cận Bình không giúp hai bên nhanh chóng kết thúc chiến tranh thương mại hay chấm dứt cuộc cạnh tranh chiến lược dài hạn", Tiến sĩ Stephen Nagy, Đại học Thiên Chúa giáo Quốc tế ở Nhật Bản, chia sẻ với VnExpress về cuộc gặp giữa lãnh đạo hai nước bên lề Hội nghị thượng đỉnh G20 diễn ra tại Osaka ngày 28-29/6. Tiến sĩ Nagy cho rằng có hai nguyên nhân chính khiến Mỹ và Trung Quốc sẽ không đạt được thỏa thuận thương mại nào jại HộI nghị G20, thậm chí cả trong thời gian còn lại của 2019. Về phía Trung Quốc, các lánh đảo nước này lo ngại bất kỳ một thỏa hiệp nào trước Mỹ cũng có thể gây nên sự phản đối trong nước, dẫn tới bất ổn cả về kinh tế và xã hội. Bắc Kinh sẽ không chấp nhận bất kỳ một thỏa thuận nào bị người dân trong nước coi là bất công. Còn với chính quyền Dnald Trump, một thỏa thuận thương mại không phải là "trò chơi cuối cùng" với Trung Quốc. Tổng thống Mỹ hiểu rằng chính sách cứng rắn của ông với Trung Quốc đang nhận được sự ủng hộ rộng rãi tại Mỹ, từ các nhà chính trị của hai đảng, cộng đồng doanh nhân và cả người dân. "Các sáng kiến như xây tường biên giới với Mexico hay triển vọng phi hạt nhân</p>
+                <el-input class="content" type="textarea" :value="segmentPage"></el-input>
               </el-scrollbar>
             </div>
             <div class="preview-pager">Trang 24/29</div>
@@ -120,7 +118,8 @@ export default {
           pronOld: "trum",
           pronRegular: "trăm"
         }
-      ]
+      ],
+      segmentPage: ""
     };
   },
   methods: {

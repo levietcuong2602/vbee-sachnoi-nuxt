@@ -123,8 +123,12 @@ export function pagination({ characters, limit, pageNum }) {
 }
 
 export function detachChapter(content) {
-  const regex = RegExp(/<c[0-9]+>|<C[0-9]+>|<\/c[0-9]+>|<\/C[0-9]+>/g);
-  const regexChapter = RegExp(/<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>/g);
+  const regex = RegExp(
+    /<c[0-9]+>|<C[0-9]+>|<\/c[0-9]+>|<\/C[0-9]+>|<c>|<\/C>|<C>|<\/c>/g
+  );
+  const regexChapter = RegExp(
+    /<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>|<h>|<\/H>|<H>|<\/h>/g
+  );
   if (!regex.test(content)) {
     return [];
   }
@@ -138,21 +142,21 @@ export function detachChapter(content) {
       let pages = getPageSentences(chapter, 3000);
       pageStart = pageEnd;
       pageEnd = pageStart + pages.length;
-      var header = null;
+      var title = null;
       if (regexChapter.test(chapter)) {
         const indexOfStart = chapter.indexOf("<h1>");
         const indexOfEnd = chapter.indexOf("</h1>");
         if (indexOfStart !== -1 && indexOfEnd !== -1) {
-          header = chapter.substr(indexOfStart, indexOfEnd + 5);
-          chapter = chapter.replace(header, "");
-          header = header.replace(/<h[0-9]+>|<\/h[0-9]+>/gi, "");
+          title = chapter.substr(indexOfStart, indexOfEnd + 5);
+          chapter = chapter.replace(title, "");
+          title = title.replace(/<h[0-9]+>|<\/h[0-9]+>/gi, "");
         }
       }
       return {
         content: chapter,
         start: pageStart,
         end: pageEnd - 1,
-        header
+        title
       };
     });
 
