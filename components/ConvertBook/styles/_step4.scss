@@ -194,6 +194,7 @@
             text-align: left;
             font-weight: bold;
             padding-right: 10px;
+            margin-bottom: 0px;
           }
         }
       }
@@ -220,6 +221,7 @@
         }
         .select-dictionary {
           display: flex;
+          align-items: center;
           .el-select {
             width: 160px;
             .el-input__inner {

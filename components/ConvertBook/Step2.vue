@@ -283,7 +283,9 @@ export default {
       this.detachFile = true;
       this.updateOriginBook();
       // check tag
-      const regex = RegExp(/<c[0-9]+>|<C[0-9]+>|<\/c[0-9]+>|<\/C[0-9]+>/g);
+      const regex = RegExp(
+        /<c[0-9]+>|<C[0-9]+>|<\/c[0-9]+>|<\/C[0-9]+>|<c>|<C>|<\/c>|<\/C>/g
+      );
       if (!regex.test(this.contentBook)) {
         this.messageNotify =
           "Bạn chưa tạo thẻ để tách phần/chương. Muốn tiếp tục tạo sách không cần tách file?";
@@ -333,7 +335,8 @@ export default {
           console.log("save book infomation error");
           this.$notify.error({
             title: "Lỗi",
-            message: "Lưu thông tin sách thất bại"
+            message: "Lưu thông tin sách thất bại",
+            offset: 50
           });
           this.isSaveBook = false;
           return;
@@ -350,7 +353,8 @@ export default {
         console.log(error.message);
         this.$notify.error({
           title: "Lỗi",
-          message: "Lưu thông tin sách thất bại"
+          message: "Lưu thông tin sách thất bại",
+          offset: 50
         });
         this.isSaveBook = false;
       }
@@ -388,7 +392,8 @@ export default {
           console.log("save chapters infomation error");
           this.$notify.error({
             title: "Lỗi",
-            message: "Lưu thông tin chương thất bại"
+            message: "Lưu thông tin chương thất bại",
+            offset: 50
           });
           this.isSaveChapter = false;
           return;
@@ -410,7 +415,8 @@ export default {
         console.log(error.message);
         this.$notify.error({
           title: "Lỗi",
-          message: "Lưu thông tin chương thất bại"
+          message: "Lưu thông tin chương thất bại",
+          offset: 50
         });
         this.isSaveChapter = false;
       }

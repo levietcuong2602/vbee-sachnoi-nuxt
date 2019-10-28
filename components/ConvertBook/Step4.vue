@@ -8,46 +8,36 @@
               class="title-select-voice el-col-lg-4 el-col-md-4 el-col-sm-6 el-col-xs-8"
             >Chọn giọng:</span>
             <el-radio-group
-              v-model="voiceSelect"
               class="el-col-lg-20 el-col-md-20 el-col-sm-18 el-col-xs-16"
+              v-model="voiceSelect"
+              @change="hanleChangeVoice"
             >
-              <el-radio :label="1" class="el-col-lg-8 el-col-md-8 el-col-sm-12 el-col-xs-24">
-                Mạnh Dũng
-                (Nam Hà Nội)
-              </el-radio>
-              <el-radio :label="4" class="el-col-lg-8 el-col-md-8 el-col-sm-12 el-col-xs-24">
-                Lan Trinh (Nữ
-                Sài Gòn)
-              </el-radio>
-              <el-radio :label="5" class="el-col-lg-8 el-col-md-8 el-col-sm-12 el-col-xs-24">
-                Thảo Trinh (Nữ
-                Sài Gòn)
-              </el-radio>
+              <el-radio
+                v-for="voice in voices"
+                :key="voice.value"
+                :label="voice.value"
+                class="el-col-lg-8 el-col-md-8 el-col-sm-12 el-col-xs-24"
+              >{{ voice.label }}</el-radio>
             </el-radio-group>
           </div>
           <div class="format-quality-file">
             <div class="format-quality el-col-lg-8 el-col-md-8 el-col-sm-24 el-col-xs-24">
-              <div class="title-format-quality el-col-lg-8 el-col-md-8 el-col-sm-6 el-col-xs-8">
+              <div class="title-format-quality el-col-lg-8 el-col-md-8 el-col-sm-8s el-col-xs-8">
                 <span>Chất lượng:</span>
               </div>
               <el-radio-group
                 v-model="qualitySelect"
-                class="el-col-lg-14 el-col-md-14 el-col-sm-18 el-col-xs-14"
+                class="el-col-lg-16 el-col-md-16 el-col-sm-16 el-col-xs-16"
+                @change="handleChangeBitRate"
               >
                 <el-radio
-                  :label="128000"
+                  :label="128"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
-                >
-                  128
-                  kbps
-                </el-radio>
+                >128 kbps</el-radio>
                 <el-radio
-                  :label="320000"
+                  :label="320"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
-                >
-                  320
-                  kbps
-                </el-radio>
+                >320 kbps</el-radio>
               </el-radio-group>
             </div>
             <div class="speed-voice el-col-lg-9 el-col-md-9 el-col-sm-24 el-col-xs-24">
@@ -90,9 +80,14 @@
           <div class="select_music">
             <div class="turn-on-music el-col-lg-5 el-col-md-5 el-col-sm-6 el-col-xs-24">
               <span>Nhạc nền:</span>
-              <el-switch v-model="backgroundMusic" active-color="#2593FB" inactive-color="#c4c4c4"></el-switch>
-              <span v-show="backgroundMusic" style="padding-left: 10px">Bật</span>
-              <span v-show="!backgroundMusic" style="padding-left: 10px">Tắt</span>
+              <el-switch
+                v-model="backgroundMusic"
+                active-color="#2593FB"
+                inactive-color="#c4c4c4"
+                @change="handlChangeUsedSoundBackground"
+              ></el-switch>
+              <span v-if="backgroundMusic" style="padding-left: 10px">Bật</span>
+              <span v-else style="padding-left: 10px">Tắt</span>
             </div>
             <div class="btn-select-library el-col-lg-5 el-col-md-5 el-col-sm-7 el-col-xs-12">
               <el-button
@@ -136,6 +131,7 @@
               <p class="el-col-md-12 el-col-sm-12 el-col-xs-12">Âm lượng nhạc:</p>
               <el-slider
                 v-model="volume"
+                @change="handleChangeSoundBackgroundVolumn"
                 :disabled="false"
                 class="el-col-md-12 el-col-sm-12 el-col-xs-12"
                 :min="0"
@@ -146,15 +142,11 @@
           </div>
           <div class="dictionary">
             <div class="title-dictionary el-col-md-5 el-col-sm-6 el-col-xs-24">
-              <p>
-                Từ điển cách đọc:
-                <span></span>
-              </p>
-              <h6>
-                <i>(không bắt buộc)</i>
-              </h6>
+              <p>Từ điển cách đọc:</p>
+              <i>(không bắt buộc)</i>
             </div>
             <div class="select-dictionary el-col-md-5 el-col-sm-7 el-col-xs-12">
+              <i class="el-icon-question"></i>
               <el-select v-model="dictionary_select" placeholder="Từ điển chung">
                 <el-option
                   v-for="item in dictionarySelect"
@@ -280,7 +272,7 @@
     <div class="row mt-5 pb-5">
       <div class="col text-right">
         <el-button @click="gotoNextStep(3)">Quay lại</el-button>
-        <el-button type="warning" @click="gotoNextStep(5)">Gửi yêu cầu</el-button>
+        <el-button type="warning" @click="handleSendRequest">Gửi yêu cầu</el-button>
       </div>
     </div>
   </div>
@@ -288,6 +280,8 @@
 <script>
 import { getToken } from "@/utils/auth";
 import Pagination from "@/components/Pagination";
+import { mapGetters } from "vuex";
+import axios from "axios";
 
 export default {
   name: "Step4",
@@ -297,10 +291,24 @@ export default {
   data() {
     return {
       voiceSelect: "",
+      voices: [
+        {
+          value: "hn_male_xuantin_vdts_48k-hsmm",
+          label: "Giọng nam Hà Nội (Mạnh Dũng)"
+        },
+        {
+          value: "sg_female_xuanhong_vdts_48k-hsmm",
+          label: "Giọng nữ Sài Gòn (Lan Trinh)"
+        },
+        {
+          value: "sg_female_thaotrinh_dialog_48k-hsmm",
+          label: "Giọng nữ Sài gòn (Thảo Trinh)"
+        }
+      ],
       qualitySelect: "",
       extendSelect: "",
-      backgroundMusic: "",
-      speedVoice: "",
+      backgroundMusic: false,
+      speedVoice: 0.5,
       nameAudio: "",
       dialogConfirmDeleteMusic: false,
       uploadHeader: {
@@ -325,6 +333,11 @@ export default {
       autoScroll: false,
       paginationLayout: "total, prev, pager, next"
     };
+  },
+  watch: {
+    speedVoice: function(value) {
+      this.$store.dispatch("book/updateRate", value);
+    }
   },
   methods: {
     removeBackgroundMusic() {
@@ -385,6 +398,66 @@ export default {
     getAudioTemplate() {},
     gotoNextStep(step) {
       this.$emit("handleNextStep", step);
+    },
+    hanleChangeVoice(value) {
+      this.voiceSelect = value;
+      this.$store.dispatch("book/updateVoiceBook", value);
+    },
+    handleChangeBitRate(value) {
+      this.qualitySelect = value;
+      this.$store.dispatch("book/updateBitRate", value);
+    },
+    handlChangeUsedSoundBackground(value) {
+      this.backgroundMusic = value;
+      this.$store.dispatch("book/updateUsedSoundBackground", value);
+    },
+    handleChangeSoundBackgroundVolumn(value) {
+      this.volume = value;
+      this.$store.dispatch("book/updateSoundBackgroundVolumn", value);
+    },
+    handleSendRequest() {
+      // update property book
+      this.onUpdatePropertyBook();
+      // convert book return file audio
+    },
+    async onUpdatePropertyBook() {
+      const {
+        id,
+        voice,
+        bitRate,
+        rate,
+        usedSoundBackground,
+        soundBackground,
+        soundBackgroundVolumn
+      } = this.book;
+
+      const { data, status: statusCode } = await axios({
+        method: "PUT",
+        url: `${this.domain}books/${id}`,
+        data: {
+          bit_rate: bitRate,
+          rate,
+          used_sound_background: usedSoundBackground,
+          sound_background_volumn: soundBackgroundVolumn
+        }
+      });
+
+      if (statusCode !== 200) {
+        this.$notify.error({
+          title: "Lỗi",
+          message: "Cập nhật thông tin sách thất bại",
+          offset: 50
+        });
+        return;
+      }
+      const { status } = data;
+      if (status === 1) {
+        this.$notify.success({
+          title: "Thành công",
+          message: "Cập nhật thông tin sách thành công",
+          offset: 50
+        });
+      }
     }
   },
   computed: {
@@ -417,11 +490,8 @@ export default {
       }
       me.dictionary_select = arr[0];
       return arr;
-    }
-  },
-  mounted() {
-    // console.log("dictionarySelect", this.dictionarySelect);
-    // console.log("disableUpload", this.disableUpload());
+    },
+    ...mapGetters(["book", "domain"])
   }
 };
 </script>
