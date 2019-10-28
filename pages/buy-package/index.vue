@@ -31,52 +31,73 @@
     </div>
     <div class="buy-package__main mt-3">
       <!-- Tab panes -->
-      <div class="tab-content">
+      <div class="tab-content" id="tab-content">
         <div id="cost-fee" class="container tab-pane active">
-          <carousel
-            :items="4"
-            :margin="10"
-            :nav="false"
-            :dots="false"
-            :responsive="options.responsive"
-            :loop="false"
-          >
-            <PackageData
-              v-for="element in listPackages"
-              :key="element.id.toString()"
-              :packageInfo="element"
-              @changeSlider="changeTimeProcess"
-            />
-          </carousel>
+          <client-only>
+            <carousel
+              :items="4"
+              :margin="10"
+              :nav="false"
+              :dots="false"
+              :responsive="options.responsive"
+              :loop="false"
+            >
+              <PackageData
+                v-for="element in listPackages"
+                :key="element.id.toString()"
+                :packageInfo="element"
+                @changeSlider="changeTimeProcess"
+                @showConfirmDialog="onShowConfirmDialog"
+              />
+            </carousel>
+          </client-only>
         </div>
         <div id="book-voice" class="container tab-pane fade">
-          <carousel
-            :items="4"
-            :margin="10"
-            :nav="false"
-            :dots="false"
-            :responsive="options.responsive"
-            :loop="true"
-          >
-            <!-- <PackageData v-for="i in 10" :key="i+10" /> -->
-          </carousel>
+          <client-only>
+            <carousel
+              :items="4"
+              :margin="10"
+              :nav="false"
+              :dots="false"
+              :responsive="options.responsive"
+              :loop="false"
+            >
+              <PackageData
+                v-for="element in listPackages"
+                :key="element.id.toString()"
+                :packageInfo="element"
+                @changeSlider="changeTimeProcess"
+                @showConfirmDialog="onShowConfirmDialog"
+              />
+            </carousel>
+          </client-only>
         </div>
         <div id="paper-voice" class="container tab-pane fade">
-          <carousel
-            :items="4"
-            :margin="10"
-            :nav="false"
-            :dots="false"
-            :responsive="options.responsive"
-            :loop="true"
-          >
-            <!-- <PackageData v-for="i in 10" :key="i+20" /> -->
-          </carousel>
+          <client-only>
+            <carousel
+              :items="4"
+              :margin="10"
+              :nav="false"
+              :dots="false"
+              :responsive="options.responsive"
+              :loop="false"
+            >
+              <PackageData
+                v-for="element in listPackages"
+                :key="element.id.toString()"
+                :packageInfo="element"
+                @changeSlider="changeTimeProcess"
+                @showConfirmDialog="onShowConfirmDialog"
+              />
+            </carousel>
+          </client-only>
         </div>
       </div>
     </div>
     <div class="buy-package__footer mt-5">
-      <p>Chú thích:</p>
+      <p>
+        <strong>Chú thích:</strong>
+      </p>
       <ul>
         <li>
           <span>Các gói cước sẽ được tự động gia hạn định kỳ</span>
@@ -98,6 +119,22 @@
       </ul>
       <span>* Các cước phí trên đã bao gồm phí VAT</span>
     </div>
+
+    <!-- dialog -->
+    <el-dialog :visible.sync="dialogVisible" width="38%">
+      <h5 slot="title" class="text-center">Xác nhận mua gói cước</h5>
+      <p class="text-center">
+        Quý khách đang sử dụng
+        <strong>{{ 'TTS1' }}</strong>. Gói
+        cước cũ sẽ bị
+        <strong>HỦY</strong> khi đăng ký mới
+      </p>
+      <p class="text-center">Bạn có chắc chắn muốn thực hiện thao tác này?</p>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="onBuyPackage">Đồng ý</el-button>
+        <el-button type="danger" @click="dialogVisible = false">Huỷ bỏ</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -143,7 +180,8 @@ export default {
             margin: 10
           }
         }
-      }
+      },
+      dialogVisible: false
     };
   },
   methods: {
@@ -151,7 +189,24 @@ export default {
       // this.listPackages = this.listPackages.map(value =>
       //   value.id === id ? { ...value, timeProcess } : value
       // );
+    },
+    onShowConfirmDialog() {
+      this.dialogVisible = true;
+    },
+    onBuyPackage() {
+      this.dialogVisible = false;
+    },
+    onJqueryTabpane() {
+      $("#tab-content").on("shown.bs.tab", function() {
+        $(".carousel-inner > .active").removeClass("active");
+        var $tp = $(".tab-pane:visible");
+        $tp.find(".item:first").addClass("active");
+        scrollTo($tp, 40);
+      });
     }
+  },
+  mounted() {
+    this.onJqueryTabpane();
   },
   async asyncData({ params }) {
     try {

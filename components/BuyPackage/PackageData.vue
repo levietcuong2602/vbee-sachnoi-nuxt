@@ -24,7 +24,7 @@
       <p>Định dạng {{ packageInfo.support_format }}</p>
     </div>
     <div class="cost-item__footer">
-      <el-button type="warning" round>Mua ngay</el-button>
+      <el-button type="warning" round @click="handleBuyPackage">Mua ngay</el-button>
     </div>
   </div>
 </template>
@@ -195,6 +195,9 @@ export default {
         return this.formatNumber(price);
       }
       return "";
+    },
+    handleBuyPackage() {
+      this.$emit("showConfirmDialog");
     }
   },
   mounted() {
