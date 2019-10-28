@@ -17,7 +17,14 @@
                 <el-input class="content" type="textarea" :value="segmentPage"></el-input>
               </el-scrollbar>
             </div>
-            <div class="preview-pager">Trang 24/29</div>
+            <div class="preview-pager">
+              <el-pagination
+                layout="prev, pager, next"
+                :page-count="bufferPages.length"
+                :current-page="currentPage"
+                @current-change="handleChangePage"
+              ></el-pagination>
+            </div>
           </div>
           <div class="no-extend" v-if="!isExtend">
             <svg
@@ -67,7 +74,11 @@
                   <el-table-column prop="pronOld" label="Cách đọc cũ" width="100"></el-table-column>
                   <el-table-column label="Cách đọc chuẩn" prop="pronRegular" width="120">
                     <template slot-scope="scope">
-                      <el-input placeholder="Cách đọc chuẩn" v-model="scope.row.pronRegular"></el-input>
+                      <el-input
+                        placeholder="Cách đọc chuẩn"
+                        v-model="scope.row.pronRegular"
+                        @input="handleCheckChange"
+                      ></el-input>
                     </template>
                   </el-table-column>
                   <el-table-column label="Nghe thử" width="90" align="center">
@@ -87,7 +98,7 @@
             </div>
             <div class="box-footer">
               <el-pagination layout="prev, pager, next" :total="50"></el-pagination>
-              <a href="#" class="btn-save">Lưu thay đổi</a>
+              <a href="#" class="btn-save" @click.prevent="onSaveChange">Lưu thay đổi</a>
             </div>
           </div>
         </div>
@@ -95,19 +106,35 @@
     </div>
     <div class="row mt-5 pb-5">
       <div class="col text-right">
-        <el-button @click="gotoNextStep(2)">Quay lại</el-button>
+        <el-button @click="handleSkip">Quay lại</el-button>
         <el-button type="warning" @click="gotoNextStep(4)">Tiếp tục</el-button>
       </div>
     </div>
+
+    <!-- dialog -->
+    <el-dialog :visible.sync="dialogNextVisible" width="40%" center>
+      <h5>Đồng ý lưu các thay đổi về chỉnh sửa cách đọc?</h5>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary">Xác nhận</el-button>
+        <el-button type="danger" @click="dialogNextVisible = false">Bỏ qua</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog :visible.sync="dialogSkipVisible" width="40%" center>
+      <h5>Nếu không tiếp tục chuyển cuốn sách này thành audio, bạn sẽ bị trừ tiền bằng 30% chi phí tổng số trang sách của cuốn này.</h5>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogSkipVisible = false">Chuyển đổi tiếp</el-button>
+        <el-button type="danger" @click="gotoBackStep">Vẫn quay lại</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
-// import Step3Component from "./Step3";
+import { mapGetters } from "vuex";
+import { getPageSentences } from "@/utils/convert";
 export default {
-  name: "Step2",
-  components: {
-    // Step3Component
-  },
+  name: "Step3",
+  computed: { ...mapGetters(["book"]) },
   data() {
     return {
       isExtend: true,
@@ -119,16 +146,62 @@ export default {
           pronRegular: "trăm"
         }
       ],
-      segmentPage: ""
+      segmentPage: "",
+      bufferPages: [],
+      limitPage: 3000,
+      currentPage: 1,
+      dialogNextVisible: false,
+      dialogSkipVisible: false,
+      isCheckChange: false
     };
   },
   methods: {
     handleCheckIsExtend() {
       this.isExtend = !this.isExtend;
     },
+    handleChangePage(page) {
+      this.currentPage = page;
+      this.segmentPage = this.bufferPages[page - 1];
+    },
+    handleSkip() {
+      this.dialogSkipVisible = true;
+    },
+    handleCheckChange() {
+      console.log("check change");
+      this.isCheckChange = true;
+    },
+    getPageSentences,
     gotoNextStep(step) {
+      if (this.isCheckChange) {
+        this.dialogNextVisible = true;
+        return;
+      }
       this.$emit("handleNextStep", step);
-    }
+    },
+    gotoBackStep() {
+      this.$emit("handleNextStep", 2);
+    },
+    loadBufferPages() {
+      const { chapters } = this.book;
+      console.log("chapters: ", chapters);
+      const pages = [];
+      chapters.forEach(chapter => {
+        const { content, title } = chapter;
+        const page = this.getPageSentences(
+          title + "\n" + content,
+          this.limitPage
+        );
+        pages.push(...page);
+      });
+
+      this.bufferPages = pages;
+      this.segmentPage = this.bufferPages[0];
+      console.log("buffer-pages", pages);
+    },
+    onSaveChange() {}
+  },
+  mounted() {
+    this.loadBufferPages();
   }
 };
 </script>

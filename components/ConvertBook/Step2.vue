@@ -170,7 +170,7 @@ if (process.client) {
 import axios from "axios";
 
 export default {
-  name: "Step3",
+  name: "Step2",
   components: { VueEditor },
   data() {
     return {

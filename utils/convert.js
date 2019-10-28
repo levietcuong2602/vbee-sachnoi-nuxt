@@ -97,6 +97,9 @@ export function getPageSentences(characters, limit) {
   if (pageLength > 0) {
     pages.push(sentences.slice(start, i).join(" "));
   }
+  if (totalSentence <= 0) {
+    pages = [characters];
+  }
   return pages;
 }
 
