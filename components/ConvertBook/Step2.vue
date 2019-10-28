@@ -29,6 +29,7 @@
                 @current-change="handleChangePage"
               ></el-pagination>
             </div>
+            <div class="preview-pager">Trang 24/29</div>
           </div>
           <div class="no-extend" v-if="!isExtend">
             <svg
