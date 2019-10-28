@@ -154,37 +154,41 @@ export default {
     }
   },
   async asyncData({ params }) {
-    const { status, data } = await axios({
-      type: "GET",
-      method: "GET",
-      url: "http://localhost:8888/api/v1/packages"
-    });
-    if (status === 200) {
-      const result = {};
-      const { results } = data;
-      for (const item of results) {
-        const { code, id, amount, processing_time } = item;
-        if (result[code] === undefined) {
-          result[code] = {
-            ...item,
-            id: [id],
-            amount: [amount],
-            processing_time: [processing_time]
-          };
-        } else {
-          result[code].id.unshift(id);
-          result[code].amount.unshift(amount);
-          result[code].processing_time.unshift(processing_time);
+    try {
+      const { status, data } = await axios({
+        type: "GET",
+        method: "GET",
+        url: "http://localhost:8888/api/v1/packages"
+      });
+      if (status === 200) {
+        const result = {};
+        const { results } = data;
+        for (const item of results) {
+          const { code, id, amount, processing_time } = item;
+          if (result[code] === undefined) {
+            result[code] = {
+              ...item,
+              id: [id],
+              amount: [amount],
+              processing_time: [processing_time]
+            };
+          } else {
+            result[code].id.unshift(id);
+            result[code].amount.unshift(amount);
+            result[code].processing_time.unshift(processing_time);
+          }
         }
-      }
-      const listPackages = [];
-      for (const item in result) {
-        if (result.hasOwnProperty(item)) {
-          const pkg = result[item];
-          listPackages.push(pkg);
+        const listPackages = [];
+        for (const item in result) {
+          if (result.hasOwnProperty(item)) {
+            const pkg = result[item];
+            listPackages.push(pkg);
+          }
         }
+        return { listPackages };
       }
-      return { listPackages };
+    } catch (error) {
+      console.log(error.message);
     }
     return { listPackages: [] };
   }

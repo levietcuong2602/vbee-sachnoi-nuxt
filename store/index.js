@@ -4,7 +4,8 @@ const state = () => ({
       path: "/",
       name: "Sách nói"
     }
-  ]
+  ],
+  domainServiceUrl: "http://localhost:8888/api/v1/"
 });
 
 const mutations = {

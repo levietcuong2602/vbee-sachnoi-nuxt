@@ -60,6 +60,13 @@ div:focus {
   }
 }
 
+.el-dialog__wrapper {
+  .el-dialog__body {
+    word-break: break-word;
+    text-align: center;
+  }
+}
+
 // main-container global css
 .app-container {
   padding: 20px;
@@ -80,7 +87,21 @@ div:focus {
     word-wrap: break-word;
   }
 }
-// convert-book step4
+// convert book step 2
+.convert-book {
+  .preview-book {
+    .el-scrollbar__view {
+      height: 650px;
+      .el-textarea__inner {
+        height: 100%;
+      }
+      .quillWrapper {
+        height: 650px;
+      }
+    }
+  }
+}
+// convert-book step 4
 .speed-voice {
   .el-slider__input {
     width: 40px;

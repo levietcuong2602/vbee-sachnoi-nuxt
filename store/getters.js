@@ -9,6 +9,9 @@ const getters = {
   contentBook: state => state.book.content,
   nameBook: state => state.book.name,
   authorBook: state => state.book.author,
-  publicYearBook: state => state.book.publicYear
+  publicYearBook: state => state.book.publicYear,
+  chapterBook: state => state.book.chapters,
+  book: state => state.book,
+  domain: state => state.domainServiceUrl
 };
 export default getters;

@@ -64,6 +64,7 @@ module.exports = {
     "@/plugins/element-ui",
     "@/plugins/svg-icon",
     "@/plugins/bootstrap-vue.js",
+    "@/plugins/performance-nuxt.js",
     {
       src: "~/plugins/highcharts.js",
       ssr: true

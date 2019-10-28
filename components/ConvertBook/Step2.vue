@@ -14,12 +14,21 @@
           <div class="box-main">
             <div class="preview-book">
               <el-scrollbar wrap-class="preview-book__scroll">
-                <p
-                  class="content"
-                >Các nguồn tin ở Washington và Bắc Kinh hôm nay cho biết Trung Quốc và Mỹ nhiều khả năng sẽ đạt được một thỏa thuận "đình chiến thương mại", dừng các biện pháp áp thêm thuế với nhau trước thềm cuộc gặp giữa Tổng thống Mỹ Dnald Trump và Chủ tịch Trung Quốc Tập Cận Bình tại hội nghị thượng đỉnh G20 ở Osaka, Nhật Bản cuối tuần này. Tuy nhiên, giới phân tích cho rằng ngoài một "thỏa thuận ngừng bắn", hai bên sẽ khó đạt được bước đột phá nào khác nhằm giải quyết cuộc chiến tranh thương mại đã kéo dài suốt một năm qua. "Cái bắt tay hay nụ cười trong cuộc gặp của Tổng thống Dnald Trump và Chủ tịch Tập Cận Bình không giúp hai bên nhanh chóng kết thúc chiến tranh thương mại hay chấm dứt cuộc cạnh tranh chiến lược dài hạn", Tiến sĩ Stephen Nagy, Đại học Thiên Chúa giáo Quốc tế ở Nhật Bản, chia sẻ với VnExpress về cuộc gặp giữa lãnh đạo hai nước bên lề Hội nghị thượng đỉnh G20 diễn ra tại Osaka ngày 28-29/6. Tiến sĩ Nagy cho rằng có hai nguyên nhân chính khiến Mỹ và Trung Quốc sẽ không đạt được thỏa thuận thương mại nào jại HộI nghị G20, thậm chí cả trong thời gian còn lại của 2019. Về phía Trung Quốc, các lánh đảo nước này lo ngại bất kỳ một thỏa hiệp nào trước Mỹ cũng có thể gây nên sự phản đối trong nước, dẫn tới bất ổn cả về kinh tế và xã hội. Bắc Kinh sẽ không chấp nhận bất kỳ một thỏa thuận nào bị người dân trong nước coi là bất công. Còn với chính quyền Dnald Trump, một thỏa thuận thương mại không phải là "trò chơi cuối cùng" với Trung Quốc. Tổng thống Mỹ hiểu rằng chính sách cứng rắn của ông với Trung Quốc đang nhận được sự ủng hộ rộng rãi tại Mỹ, từ các nhà chính trị của hai đảng, cộng đồng doanh nhân và cả người dân. "Các sáng kiến như xây tường biên giới với Mexico hay triển vọng phi hạt nhân</p>
+                <el-input class="content" type="textarea" v-model="segmentPage"></el-input>
+                <!-- <client-only>
+                  <VueEditor v-model.lazy="segmentPage" @input="handleEditContent"></VueEditor>
+                </client-only>-->
               </el-scrollbar>
             </div>
-            <div class="preview-pager">Trang 24/29</div>
+            <div class="preview-pager">
+              <el-pagination
+                :page-count="totalPage"
+                :pager-count="5"
+                layout="prev, pager, next, jumper"
+                :current-page="currentPage"
+                @current-change="handleChangePage"
+              ></el-pagination>
+            </div>
           </div>
           <div class="no-extend" v-if="!isExtend">
             <svg
@@ -41,7 +50,7 @@
         </div>
         <div class="col-md-6 col-sm-12 box-right" v-if="isExtend">
           <div class="step3 preview-option">
-            <div class="box-introduct" v-if="isIntroduction">
+            <div class="box-introduct" v-if="!detachFile">
               <div class="box-introduct__header">
                 <div class="title-introduct text-center w-100">
                   <h5 class="title text-center m-0">HƯỚNG DẪN TÁCH CHƯƠNG</h5>
@@ -52,14 +61,15 @@
                 <p>
                   - Muốn tách file audio thành từng phần/chương, hệ thống sẽ căn cứ vào việc chủ động gắn thẻ vào trước từ đầu tiên của trang bắt đầu và sau từ cuối cùng của trang kết thúc từng phần/chương, với mã thẻ:
                   <br />
-                  <strong>&lt;C[số thứ tự của chương]></strong> hoặc
-                  <strong>&lt;P[số thứ tự của phần]></strong>
+                  <strong>&lt;C[số thứ tự của chương]></strong>
+                  <!-- hoặc <strong>&lt;P[số thứ tự của phần]></strong> -->
                 </p>
                 <br />
                 <p>
                   Ví dụ: Phần/chương 1 của bạn từ trang 1 tới trang 20, bạn gắn thẻ
-                  <strong>&lt;C1></strong> hoặc
-                  <strong>&lt;P1></strong> vào trước từ bắt đầu của trang 1 và sau từ cuối của trang 20. Tương tự với các phần/chương sau.
+                  <strong>&lt;C1></strong>
+                  <!-- hoặc <strong>&lt;P1></strong>  -->
+                  vào trước từ bắt đầu của trang 1 và sau từ cuối của trang 20. Tương tự với các phần/chương sau.
                 </p>
                 <br />
                 <p>- Click “Bắt đầu tách phần/chương” để đặt tên cho các phân đoạn đã tách. Click “Bỏ qua” nếu không có nhu cầu tách file.</p>
@@ -72,9 +82,9 @@
                   <video width="450" controls src="https://youtu.be/YC6NCr6_HbA"></video>
                   <!-- <iframe class="embed-responsive-item" src="https://youtu.be/YC6NCr6_HbA" allowfullscreen></iframe> -->
                 </div>
-                <div class="text-center">
+                <!-- <div class="text-center">
                   <a href="#" @click.prevent="isIntroduction = false">Bắt đầu tách phân/chương</a>
-                </div>
+                </div>-->
               </div>
             </div>
             <div class="box-step3" v-else>
@@ -101,21 +111,23 @@
               </div>
               <div class="box-step3__main">
                 <el-scrollbar wrap-class="preview-book__scroll">
-                  <el-table :data="tableWord" height="500" style="width: 100%">
-                    <el-table-column prop="order" label="STT" width="50"></el-table-column>
-                    <el-table-column prop="header" label="Tên phần/chương" width="200"></el-table-column>
-                    <el-table-column prop="startPage" label="Trang bắt đầu" width="120"></el-table-column>
-                    <el-table-column
-                      prop="endPage"
-                      label="Trang kết thúc"
-                      width="120"
-                      align="center"
-                    ></el-table-column>
+                  <el-table :data="chapters" height="500" style="width: 100%">
+                    <el-table-column type="index" label="STT" width="50"></el-table-column>
+                    <el-table-column prop="header" label="Tên phần/chương" width="200">
+                      <template slot-scope="scope">
+                        <el-input
+                          v-model="scope.row.header"
+                          :value="'Chương ' + scope.row + scope.row.header"
+                        ></el-input>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="start" label="Trang bắt đầu" width="120"></el-table-column>
+                    <el-table-column prop="end" label="Trang kết thúc" width="120" align="center"></el-table-column>
                   </el-table>
                 </el-scrollbar>
               </div>
               <div class="box-step3__footer">
-                <el-pagination layout="prev, pager, next" :total="50"></el-pagination>
+                <el-pagination layout="prev, pager, next" :page-count="chapters.length"></el-pagination>
                 <a href="#" class="btn-save">Lưu thay đổi</a>
               </div>
             </div>
@@ -127,37 +139,208 @@
       <div class="col text-right">
         <el-button @click="gotoNextStep(1)">Quay lại</el-button>
         <el-button>Bỏ qua</el-button>
-        <el-button type="warning" @click="gotoNextStep(3)">Tiếp tục</el-button>
+        <el-button v-if="detachFile" type="warning" @click="gotoNextStep(3)">Tiếp tục</el-button>
+        <el-button v-else type="warning" @click="handleBeforeDetachFile">Tiếp tục</el-button>
       </div>
     </div>
+
+    <!-- dialog -->
+    <el-dialog :visible.sync="dialogNotifyVisible" width="40%" center>
+      <h5>Một số chương chưa được đặt tên, bạn có muốn tiếp tục không?</h5>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="danger" @click="dialogNotifyVisible = false">Bỏ qua tách file</el-button>
+        <el-button type="primary" @click="handleDetachFile">Tiếp tục tách file</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
+import {
+  getPageSentences,
+  pagination,
+  getTotalCharacters,
+  detachChapter
+} from "@/utils/convert";
+
+if (process.client) {
+  var { VueEditor } = require("vue2-editor");
+}
+import axios from "axios";
+
 export default {
   name: "Step3",
+  components: { VueEditor },
   data() {
     return {
-      isIntroduction: true,
-      isExtend: true
+      isExtend: true,
+      segmentPage: "",
+      bufferPages: [],
+      totalPage: 0,
+      currentPage: 1,
+      limitPage: 3000,
+      minReload: 2990,
+      maxReload: 3010,
+      detachFile: false,
+      chapters: [],
+      dialogNotifyVisible: false
     };
   },
   computed: {
-    ...mapGetters(["nameBook", "authorBook", "publicYearBook", "contentBook"])
+    ...mapGetters(["contentBook", "book", "userId", "domain"])
+  },
+  watch: {
+    segmentPage: function(content) {
+      this.handleEditContent(content);
+    }
   },
   methods: {
+    gotoNextStep(step) {
+      const isCheckEmpty = this.checkEmptyChapterName();
+      if (isCheckEmpty) {
+        this.dialogNotifyVisible = true;
+      }
+      return;
+
+      this.handleDetachFile();
+      this.$emit("handleNextStep", step);
+    },
+    getPageSentences,
+    pagination,
+    getTotalCharacters,
+    detachChapter,
+    loadSegmentPage() {
+      const isHasBuffer = this.bufferPages.length > 0;
+
+      if (isHasBuffer) {
+        const index = this.currentPage - 1;
+
+        this.segmentPage = this.bufferPages[index];
+        this.totalPage = this.bufferPages.length;
+      } else {
+        const {
+          pager: { lastPageNum, currentPageNum },
+          data
+        } = this.pagination({
+          characters: this.contentBook,
+          limit: this.limitPage,
+          pageNum: this.currentPage
+        });
+
+        this.segmentPage = data;
+        this.totalPage = lastPageNum;
+      }
+    },
+    loadBufferPages() {
+      this.bufferPages = this.getPageSentences(
+        this.contentBook,
+        this.limitPage
+      );
+    },
+    updateOriginBook() {
+      const content = this.bufferPages.join(" ");
+      this.$store.dispatch("book/updateContentBook", content);
+    },
     handleCheckIsExtend() {
       this.isExtend = !this.isExtend;
     },
-    gotoNextStep(step) {
-      this.$emit("handleNextStep", step);
+    updateBufferPage() {
+      const { currentPage, totalPage, bufferPages } = this;
+      const startIndex = currentPage <= 1 ? 0 : currentPage - 2;
+      const endIndex = startIndex + 2 >= totalPage ? totalPage : startIndex + 2;
+
+      const contentUpdate = bufferPages.slice(startIndex, endIndex);
+      const itemUpdate = this.getPageSentences(contentUpdate, this.limitPage);
+
+      this.bufferPages.splice(startIndex, endIndex - startIndex, ...itemUpdate);
+    },
+    handleChangePage(page) {
+      this.currentPage = page;
+      this.loadSegmentPage();
+    },
+    handleEditContent: function(content) {
+      const index = this.currentPage - 1;
+      const contentCurrent = content ? content.replace(/<p>|<\/p>/gi, "") : "";
+      this.bufferPages[index] = contentCurrent;
+
+      const { minReload, maxReload } = this;
+      const segmentLength = this.getTotalCharacters(contentCurrent);
+
+      if (segmentLength <= minReload || segmentLength >= maxReload) {
+        this.$nextTick(function() {
+          this.updateOriginBook();
+          this.loadBufferPages();
+        });
+        this.loadSegmentPage();
+      }
+    },
+    handleBeforeDetachFile() {
+      this.detachFile = true;
+      this.updateOriginBook();
+
+      this.$nextTick(() => {
+        this.chapters = this.detachChapter(this.contentBook);
+        console.log(this.chapters);
+      });
+    },
+    handleDetachFile() {
+      this.dialogNotifyVisible = false;
+      // create book and chapter
+      this.saveBookInfo();
+    },
+    checkEmptyChapterName() {
+      const { chapters } = this;
+      for (const chapter of chapters) {
+        if (!chapter.header) {
+          return true;
+        }
+      }
+      return false;
+    },
+    async saveBookInfo() {
+      try {
+        const { name, publicYear, author } = this.book;
+        const userId = this.userId;
+        const serviceUrl = this.domain;
+        const { status, data } = await axios({
+          method: "POST",
+          url: serviceUrl + "books",
+          data: {
+            user_id: userId,
+            title: name,
+            author,
+            public_year: publicYear,
+            status: "INIT"
+          }
+        });
+        if (status !== 200) {
+          console.log("save book infomation error");
+          return;
+        }
+        if (data.status === 1) {
+          const {
+            result: { id }
+          } = data;
+          this.$store.dispatch("book/updateIdBook", id);
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    },
+    async saveChaptersInfo() {
+      const { id } = this.book;
+      const userId = this.userId;
+      const chapters = this.chapters.map(chapter => {
+        return {
+          bookId: id,
+          userId
+        };
+      });
     }
   },
   mounted() {
-    console.log("nameBook: ", this.nameBook);
-    console.log("authorBook: ", this.authorBook);
-    console.log("publicYearBook: ", this.publicYearBook);
-    console.log("contentBook: ", this.contentBook);
+    this.loadBufferPages();
+    this.loadSegmentPage();
   }
 };
 </script>

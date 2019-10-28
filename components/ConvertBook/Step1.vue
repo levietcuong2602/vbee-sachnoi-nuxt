@@ -28,6 +28,7 @@
           :file-list="fileBooks"
           :on-change="onChangeUpload"
           :on-success="onUploadSuccess"
+          :on-remove="onRemoveFile"
           accept=".docx, .txt"
         >
           <i class="el-icon-upload"></i>
@@ -93,7 +94,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["contentBook"])
+    ...mapGetters(["contentBook", "book"])
   },
   watch: {
     yearTime: function(time) {
@@ -110,20 +111,29 @@ export default {
       if (status === 1) {
         const { name } = file;
 
-        this.$store.dispatch("book/loadContentBook", content);
-
-        this.$message({
-          type: "success",
+        this.$store.dispatch("book/updateContentBook", content);
+        this.$notify({
+          title: "Thành công",
           message: `upload file ${name} is successfull`,
+          type: "success",
           offset: 100
         });
       } else {
-        this.$message({
+        const { message } = res;
+
+        this.fileBooks = [];
+        this.$store.dispatch("book/updateContentBook", "");
+        this.$notify({
+          title: "Lỗi",
+          message,
           type: "error",
-          message: `upload file ${name} is fail`,
           offset: 100
         });
       }
+    },
+    onRemoveFile(file, fileList) {
+      this.fileBooks = [];
+      this.$store.dispatch("book/updateContentBook", "");
     },
     gotoNextStep(step) {
       this.$refs["ruleForm"].validate(valid => {
@@ -135,10 +145,11 @@ export default {
         return true;
       });
       if (this.errors) {
-        this.$message({
-          type: "error",
+        this.$notify({
+          title: "Lỗi",
           message: this.errors,
-          offset: 100
+          type: "error",
+          offset: 50
         });
         return;
       }
@@ -146,14 +157,18 @@ export default {
       this.checkEmpty();
 
       if (this.errors) {
-        this.$message({
-          type: "error",
+        this.$notify({
+          title: "error",
           message: this.errors,
+          type: "error",
           offset: 100
         });
         return;
       }
-      this.$store.dispatch("book/loadInfoBook", this.bookInfo);
+      this.$store.dispatch("book/updateInfoBook", {
+        ...this.bookInfo,
+        file: this.fileBooks[0]
+      });
       this.$emit("handleNextStep", step);
     },
     checkEmpty() {
@@ -161,7 +176,7 @@ export default {
         bookInfo: { name }
       } = this;
       if (!name) {
-        this.errors = "Bạn cần nhập trường tên sách!";
+        this.errors = "Trường tên sách không được bỏ trống";
         return;
       }
 
@@ -169,17 +184,24 @@ export default {
         fileBooks: { length }
       } = this;
       if (length <= 0) {
-        this.errors = "Bạn cần upload file sách!";
+        this.errors = "Bạn cần tải file sách lên";
         return;
       }
 
       const { contentBook } = this;
       if (!contentBook) {
-        this.errors = "Nội dung sách không tồn tại!";
+        this.errors = "Nội dung sách của bạn không tồn tại!";
         return;
       }
 
       this.errors = null;
+    }
+  },
+  mounted() {
+    if (this.book) {
+      const { name, author, publicYear, file } = this.book;
+      if (file) this.fileBooks = [file];
+      this.bookInfo = { name, author, publicYear };
     }
   }
 };
