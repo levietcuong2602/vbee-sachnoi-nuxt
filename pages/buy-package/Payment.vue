@@ -207,8 +207,10 @@
                   class="form-control"
                   placeholder="Số điện thoại"
                   v-model="userInfo.phoneNumber"
+                  @keyup="handleCheckPhone"
+                  @blur="handleCheckPhone"
                 />
-                <p class="has-danger" v-show="error.errorPhoneNumber">{{ error.messageErrorPhone }}</p>
+                <i class="has-danger" v-show="error.errorPhoneNumber">{{ error.messageErrorPhone }}</i>
               </div>
             </div>
             <div class="row info-customer">
@@ -216,7 +218,12 @@
                 <p>Email</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <input class="form-control" v-model="userInfo.email" />
+                <input
+                  class="form-control"
+                  v-model="userInfo.email"
+                  placeholder="Nhập email của bạn"
+                  @blur="handleCheckEmail"
+                />
                 <p class="has-danger" v-show="error.errorEmail">{{ error.messageErrorEmail }}</p>
               </div>
             </div>
@@ -225,7 +232,7 @@
                 <p>Tỉnh thành</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <el-select placeholder="Select">
+                <el-select placeholder="Select" v-model="userInfo.city">
                   <el-option :value="null">--Chọn thành phố--</el-option>
                   <el-option
                     v-for="item in listCitys"
@@ -241,19 +248,20 @@
                 <p>Ghi chú bổ sung</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <textarea class="form-control"></textarea>
+                <textarea class="form-control" v-model="userInfo.note"></textarea>
               </div>
             </div>
             <div
               class="row info-customer"
               style="display: flex; justify-content: flex-end; align-items: center"
             >
-              <div class="col-sm-9 col-xs-12 input-info-customer">
+              <div class="col-sm-9 col-xs-12 input-info-customer" v-show="false">
                 <el-switch></el-switch>
                 <label style="margin-bottom: 0">Xuất hóa đơn công ty</label>
               </div>
             </div>
 
+            <!-- dành cho tài khoản doanh nghiệp -->
             <!-- <div v-show="orders.is_company">
               <div class="row info-customer">
                 <div class="title col-sm-3 col-xs-12">
@@ -308,7 +316,7 @@
               </div>
             </div>-->
             <div class="proceed-payment">
-              <el-button :class="btnProceedPaymentClass" @click="gotoStepTwo" round>
+              <el-button :class="btnProceedPaymentClass" @click="gotoStep3" round>
                 Tiến hành thanh toán
                 <svg
                   width="12"
@@ -378,102 +386,291 @@
               <p class="box-change-p hidden-xs-only">Vui lòng chọn hình thức thanh toán phù hợp</p>
             </div>
           </div>
-          <div class="content-step content-step-3" v-show="currentStep === 2">
-            <!-- <el-tabs tab-position="left" v-model="activeName">
-              <div class="proceed-payment">
-                <el-button :class="btnProceedPaymentClass" @click="onSave" round>
-                  Xác nhận đơn hàng
-                  <svg
-                    width="14"
-                    height="12"
-                    viewBox="0 0 14 12"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M6.86785 5.56634L1.48124 0.179651C1.24155 -0.0598835 0.853074 -0.0598835 0.613501 0.179651L0.179651 0.613501C-0.0598836 0.853191 -0.0598836 1.24178 0.179651 1.48116L4.69836 6.00007L0.17965 10.5183C-0.0598841 10.7582 -0.0598842 11.147 0.17965 11.3863L0.6135 11.8202C0.853074 12.06 1.24155 12.06 1.48124 11.8202L6.86785 6.43345C7.10762 6.19399 7.10762 5.80587 6.86785 5.56634Z"
-                      :fill="fillSvgAct"
-                    />
-                    <path
-                      d="M12.8678 5.56634L7.48124 0.179651C7.24155 -0.0598835 6.85307 -0.0598835 6.6135 0.179651L6.17965 0.613501C5.94012 0.853191 5.94012 1.24178 6.17965 1.48116L10.6984 6.00007L6.17965 10.5183C5.94012 10.7582 5.94012 11.147 6.17965 11.3863L6.6135 11.8202C6.85307 12.06 7.24155 12.06 7.48124 11.8202L12.8678 6.43345C13.1076 6.19399 13.1076 5.80587 12.8678 5.56634Z"
-                      :fill="fillSvgAct"
-                    />
-                  </svg>
-                </el-button>
+          <div class="content-step content-step-3" v-show="currentStep === 3">
+            <div style="margin: 15px 0">
+              <el-radio v-model="typePayment" label="1">Thanh toán bằng thẻ ATM</el-radio>
+              <el-radio v-model="typePayment" label="2">Trừ tiền điện thoại trực tiếp</el-radio>
+            </div>
+
+            <div class="bypackage-atm" v-show="typePayment === '1'">
+              <el-tabs tab-position="left" v-model="tabMethodPayment">
+                <div class="proceed-payment">
+                  <el-button :class="btnProceedPaymentClass" @click="onSave" round>
+                    Xác nhận đơn hàng
+                    <svg
+                      width="14"
+                      height="12"
+                      viewBox="0 0 14 12"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M6.86785 5.56634L1.48124 0.179651C1.24155 -0.0598835 0.853074 -0.0598835 0.613501 0.179651L0.179651 0.613501C-0.0598836 0.853191 -0.0598836 1.24178 0.179651 1.48116L4.69836 6.00007L0.17965 10.5183C-0.0598841 10.7582 -0.0598842 11.147 0.17965 11.3863L0.6135 11.8202C0.853074 12.06 1.24155 12.06 1.48124 11.8202L6.86785 6.43345C7.10762 6.19399 7.10762 5.80587 6.86785 5.56634Z"
+                        :fill="fillSvgAct"
+                      />
+                      <path
+                        d="M12.8678 5.56634L7.48124 0.179651C7.24155 -0.0598835 6.85307 -0.0598835 6.6135 0.179651L6.17965 0.613501C5.94012 0.853191 5.94012 1.24178 6.17965 1.48116L10.6984 6.00007L6.17965 10.5183C5.94012 10.7582 5.94012 11.147 6.17965 11.3863L6.6135 11.8202C6.85307 12.06 7.24155 12.06 7.48124 11.8202L12.8678 6.43345C13.1076 6.19399 13.1076 5.80587 12.8678 5.56634Z"
+                        :fill="fillSvgAct"
+                      />
+                    </svg>
+                  </el-button>
+                </div>
+                <el-tab-pane
+                  v-for="item in methodOfPayments"
+                  :name="item.activeName"
+                  :key="item.id"
+                >
+                  <div class="left-tab-panel" slot="label">
+                    <img class="img-tab-panel" :src="item.icon" alt />
+                    <div class="custom-hide">
+                      <div v-html="item.name"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="more-info-head col-12">
+                      <p>{{item.description}}</p>
+                    </div>
+                    <div class="accept_order col-12">
+                      <AcceptOder :data="overView"></AcceptOder>
+                    </div>
+                    <div v-show="item.is_bank === 1" class="box-select-banks col-12">
+                      <ListBank :banks="listBanks" :bank_id.sync="orders.bank_id" />
+                    </div>
+                    <div class="info-banks-transfer col-12">
+                      <div v-html="item.content"></div>
+                      <p>
+                        <span style="font-weight: bold">Nội dung chuyển khoản:</span>
+                        {{}}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="proceed-payment">
+                    <el-button :class="btnProceedPaymentClass" @click="onSave" round>
+                      Xác nhận đơn hàng
+                      <svg
+                        width="14"
+                        height="12"
+                        viewBox="0 0 14 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M6.86785 5.56634L1.48124 0.179651C1.24155 -0.0598835 0.853074 -0.0598835 0.613501 0.179651L0.179651 0.613501C-0.0598836 0.853191 -0.0598836 1.24178 0.179651 1.48116L4.69836 6.00007L0.17965 10.5183C-0.0598841 10.7582 -0.0598842 11.147 0.17965 11.3863L0.6135 11.8202C0.853074 12.06 1.24155 12.06 1.48124 11.8202L6.86785 6.43345C7.10762 6.19399 7.10762 5.80587 6.86785 5.56634Z"
+                          :fill="fillSvgAct"
+                        />
+                        <path
+                          d="M12.8678 5.56634L7.48124 0.179651C7.24155 -0.0598835 6.85307 -0.0598835 6.6135 0.179651L6.17965 0.613501C5.94012 0.853191 5.94012 1.24178 6.17965 1.48116L10.6984 6.00007L6.17965 10.5183C5.94012 10.7582 5.94012 11.147 6.17965 11.3863L6.6135 11.8202C6.85307 12.06 7.24155 12.06 7.48124 11.8202L12.8678 6.43345C13.1076 6.19399 13.1076 5.80587 12.8678 5.56634Z"
+                          :fill="fillSvgAct"
+                        />
+                      </svg>
+                    </el-button>
+                  </div>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+            <div class="bypackage-live" v-show="typePayment === '2'">
+              <div class="box-input-phone">
+                <div class="title-step-3 el-col-lg-8">
+                  <p style="text-align: right">
+                    Số điện thoại:
+                    <span style="color: red">(*)</span>
+                  </p>
+                </div>
+
+                <div class="el-col-lg-16">
+                  <input
+                    :class="inputClass"
+                    v-model="phonePayment"
+                    @keyup="changeError"
+                    placeholder="Nhập số điện thoại"
+                  />
+                  <p class="has-error" v-if="error_phone_not_match">* {{error_text_phone_match}}</p>
+                  <div v-if="!isTruePhone" class="proceed-payment">
+                    <el-button
+                      :class="btnProceedPaymentClass"
+                      @click="onNextStep"
+                      round
+                      :v-loading="loading"
+                      :disabled="loading"
+                    >
+                      Xác nhận đơn hàng
+                      <svg
+                        width="14"
+                        height="12"
+                        viewBox="0 0 14 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M6.86785 5.56634L1.48124 0.179651C1.24155 -0.0598835 0.853074 -0.0598835 0.613501 0.179651L0.179651 0.613501C-0.0598836 0.853191 -0.0598836 1.24178 0.179651 1.48116L4.69836 6.00007L0.17965 10.5183C-0.0598841 10.7582 -0.0598842 11.147 0.17965 11.3863L0.6135 11.8202C0.853074 12.06 1.24155 12.06 1.48124 11.8202L6.86785 6.43345C7.10762 6.19399 7.10762 5.80587 6.86785 5.56634Z"
+                          :fill="fillSvgAct"
+                        />
+                        <path
+                          d="M12.8678 5.56634L7.48124 0.179651C7.24155 -0.0598835 6.85307 -0.0598835 6.6135 0.179651L6.17965 0.613501C5.94012 0.853191 5.94012 1.24178 6.17965 1.48116L10.6984 6.00007L6.17965 10.5183C5.94012 10.7582 5.94012 11.147 6.17965 11.3863L6.6135 11.8202C6.85307 12.06 7.24155 12.06 7.48124 11.8202L12.8678 6.43345C13.1076 6.19399 13.1076 5.80587 12.8678 5.56634Z"
+                          :fill="fillSvgAct"
+                        />
+                      </svg>
+                    </el-button>
+                  </div>
+                </div>
               </div>
-              <el-tab-pane v-for="(item, i) in listPaymentMethod" :name="item.active_name" :key="i">
-                <div class="left-tab-panel" slot="label" @click="orders.method_payment = item.id">
-                  <img class="img-tab-panel" :src="item.icon" alt />
-                  <div class="custom-hide">
-                    <div v-html="item.name"></div>
+            </div>
+
+            <div v-if="isTruePhone" class="box-input-otp">
+              <div class="resend-otp">
+                <div class="el-col-lg-16">
+                  <p>Hệ thống đã gửi mã OTP đến số điện thoại trên.</p>
+                  <p>
+                    <el-button
+                      class="btn-resend-otp"
+                      @click="resendOtp"
+                      :disabled="counting"
+                    >Gửi lại</el-button>
+                    <countdown v-if="counting" :time="60000" @end="handleCountdownEnd">
+                      <template slot-scope="props">( {{ props.totalSeconds }} s)</template>
+                    </countdown>
+                  </p>
+                </div>
+              </div>
+              <div class="el-row">
+                <div class="title-step-3 el-col-lg-8">
+                  <p style="text-align: right">Mã OTP</p>
+                </div>
+                <div class="el-col-lg-16">
+                  <input
+                    :class="inputOTPClass"
+                    :disabled="disableOtp"
+                    v-model="otpCode"
+                    @keyup="onInputOTP"
+                    @keyup.enter="onAcceptOtp"
+                    autocomplete="off"
+                  />
+                  <p class="has-error" v-if="errorOTPCode">* {{error_text_otp_match}}</p>
+                  <div class="proceed-payment">
+                    <el-button
+                      :class="btnProceedPaymentClass"
+                      @click="onAcceptOtp"
+                      :disabled="disableConfirmOTP"
+                      round
+                      :v-loading="loading"
+                    >
+                      Xác nhận
+                      <svg
+                        width="14"
+                        height="12"
+                        viewBox="0 0 14 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M6.86785 5.56634L1.48124 0.179651C1.24155 -0.0598835 0.853074 -0.0598835 0.613501 0.179651L0.179651 0.613501C-0.0598836 0.853191 -0.0598836 1.24178 0.179651 1.48116L4.69836 6.00007L0.17965 10.5183C-0.0598841 10.7582 -0.0598842 11.147 0.17965 11.3863L0.6135 11.8202C0.853074 12.06 1.24155 12.06 1.48124 11.8202L6.86785 6.43345C7.10762 6.19399 7.10762 5.80587 6.86785 5.56634Z"
+                          :fill="fillSvgAct"
+                        />
+                        <path
+                          d="M12.8678 5.56634L7.48124 0.179651C7.24155 -0.0598835 6.85307 -0.0598835 6.6135 0.179651L6.17965 0.613501C5.94012 0.853191 5.94012 1.24178 6.17965 1.48116L10.6984 6.00007L6.17965 10.5183C5.94012 10.7582 5.94012 11.147 6.17965 11.3863L6.6135 11.8202C6.85307 12.06 7.24155 12.06 7.48124 11.8202L12.8678 6.43345C13.1076 6.19399 13.1076 5.80587 12.8678 5.56634Z"
+                          :fill="fillSvgAct"
+                        />
+                      </svg>
+                    </el-button>
                   </div>
                 </div>
-                <div>
-                  <div class="more-info-head col-12">
-                    <p>{{item.description}}</p>
+              </div>
+            </div>
+            <el-dialog :visible.sync="dialogAccepOTP" :close-on-click-modal="false" width="500px">
+              <div>
+                <p class="title-dialog">Chúc mừng</p>
+                <p class="title-dialog">Giao dịch của bạn đã thành công</p>
+                <div class="box-order">
+                  <div class="line-order">
+                    <div>
+                      <p>
+                        <b>Mã đơn hàng:</b>
+                      </p>
+                    </div>
+                    <div>
+                      <b>{{ }}</b>
+                    </div>
                   </div>
-                  <div class="accept_order col-12">
-                    <AcceptOder :data="overView"></AcceptOder>
+                  <div class="line-order">
+                    <div>
+                      <p>
+                        <b>Tên gói:</b>
+                      </p>
+                    </div>
+                    <div>
+                      <b>{{ }}</b>
+                    </div>
                   </div>
-                  <div v-show="item.is_bank === 1" class="box-select-banks col-12">
-                    <ListBank :banks="listBanks" :bankId.sync="orders.bank_id" />
+                  <div class="line-order">
+                    <div>
+                      <p>
+                        <b>Hạn sử dụng (ngày):</b>
+                      </p>
+                    </div>
+                    <div>
+                      <b>{{ }} ngày</b>
+                    </div>
                   </div>
-                  <div class="info-banks-transfer col-12">
-                    <div v-html="item.content"></div>
-                    <p>
-                      <span style="font-weight: bold">Nội dung chuyển khoản:</span>
-                      {{orders.trad_code}}
-                    </p>
+                  <div class="line-order">
+                    <div>
+                      <p>
+                        <b>Giá cước:</b>
+                      </p>
+                    </div>
+                    <div>
+                      <b style="font-size: 21px;" class="money-fee-mb">{{}} VNĐ</b>
+                    </div>
                   </div>
                 </div>
-              </el-tab-pane>
-            </el-tabs>-->
+              </div>
+              <span slot="footer" class="dialog-footer" style="padding: 0 !important;"></span>
+            </el-dialog>
           </div>
         </div>
       </div>
-      <div class="el-col-lg-7 el-col-md-7 el-col-sm-24 el-col-xs-24 box-cart-info-right">
-        <h3>Đơn hàng của quý khách</h3>
-        <div class="buy-fee">
-          <div class="buy-fee-line">
-            <p>Tên gói:</p>
-            <p>
-              <b>{{ currentPackage.packageName ? currentPackage.packageName : 'không xác định' }}</b>
-            </p>
-          </div>
-          <div class="buy-fee-line">
-            <p>Thời gian xử lý:</p>
-            <p>
-              <b>{{ currentPackage.processingTime ? convertTimeToString(currentPackage.processingTime) : 'không xác định' }}</b>
-            </p>
-          </div>
-          <div class="buy-fee-line">
-            <p>Hạn sử dụng:</p>
-            <p>
-              <b>{{ currentPackage.numberExpireDay ? currentPackage.numberExpireDay + ' ngày' : 'không xác định' }}</b>
-            </p>
-          </div>
-          <div class="buy-fee-line">
-            <p>Số lượng:</p>
-            <p>
-              <b>{{ currentPackage.packageName ? '1 gói' : 'không xác định' }}</b>
-            </p>
-          </div>
-          <div class="buy-fee-line">
-            <p>Giá cước:</p>
-            <p>
-              <b>{{ currentPackage.amount ? formatNumber(currentPackage.amount) + ' VNĐ' : 'không xác định' }}</b>
-            </p>
-          </div>
-          <hr />
-          <div class="buy-fee-line">
-            <p>Thành tiền</p>
-            <p v-if="currentPackage.amount">
-              <b style="font-size: 28px;" class="money-fee-mb">
-                {{ formatNumber(currentPackage.amount) }}
-                VNĐ
-              </b>
-            </p>
-          </div>
+    </div>
+    <div class="el-col-lg-7 el-col-md-7 el-col-sm-24 el-col-xs-24 box-cart-info-right">
+      <h3>Đơn hàng của quý khách</h3>
+      <div class="buy-fee">
+        <div class="buy-fee-line">
+          <p>Tên gói:</p>
+          <p>
+            <b>{{ currentPackage.packageName ? currentPackage.packageName : 'không xác định' }}</b>
+          </p>
+        </div>
+        <div class="buy-fee-line">
+          <p>Thời gian xử lý:</p>
+          <p>
+            <b>{{ currentPackage.processingTime ? convertTimeToString(currentPackage.processingTime) : 'không xác định' }}</b>
+          </p>
+        </div>
+        <div class="buy-fee-line">
+          <p>Hạn sử dụng:</p>
+          <p>
+            <b>{{ currentPackage.numberExpireDay ? currentPackage.numberExpireDay + ' ngày' : 'không xác định' }}</b>
+          </p>
+        </div>
+        <div class="buy-fee-line">
+          <p>Số lượng:</p>
+          <p>
+            <b>{{ currentPackage.packageName ? '1 gói' : 'không xác định' }}</b>
+          </p>
+        </div>
+        <div class="buy-fee-line">
+          <p>Giá cước:</p>
+          <p>
+            <b>{{ currentPackage.amount ? formatNumber(currentPackage.amount) + ' VNĐ' : 'không xác định' }}</b>
+          </p>
+        </div>
+        <hr />
+        <div class="buy-fee-line">
+          <p>Thành tiền</p>
+          <p v-if="currentPackage.amount">
+            <b style="font-size: 28px;" class="money-fee-mb">
+              {{ formatNumber(currentPackage.amount) }}
+              VNĐ
+            </b>
+          </p>
         </div>
       </div>
     </div>
@@ -481,16 +678,20 @@
 </template>
 
 <script>
-import { formatNumber, changeToSlug } from "@/utils/convert";
-import { setStringPackage, setTradCode } from "@/utils/package";
 import ListBank from "@/components/BuyPackage/ListBank";
 import AcceptOder from "@/components/BuyPackage/AcceptOder";
-import cities from "@/data/cities.js";
+
+import { formatNumber, changeToSlug } from "@/utils/convert";
+import { setStringPackage, setTradCode } from "@/utils/package";
 import {
   isPhoneNumberValid,
   isEmailValid,
   isTaxCodeValid
 } from "@/utils/validate";
+
+import cities from "@/data/cities.js";
+import methodOfPayments from "@/data/methodOfPayments.js";
+
 import axios from "axios";
 import { switchCase } from "@babel/types";
 import { mapGetters } from "vuex";
@@ -507,7 +708,7 @@ export default {
       fillSvgAct: "",
       titleCartInfoClass: ["title-cart-info"],
       btnProceedPaymentClass: ["btn-proceed-payment"],
-      currentStep: 1,
+      currentStep: 3,
       isVbee: true,
       listCitys: cities,
       // step 1
@@ -535,9 +736,26 @@ export default {
       userInfo: {
         fullName: null,
         email: null,
-        phoneNumber: null
-      }
+        phoneNumber: null,
+        city: null,
+        note: null
+      },
+      // step 3
+      activePayment: "",
+      methodOfPayments,
+      dialogAccepOTP: false,
+      isTruePhone: false,
+      typePayment: "1",
+      tabMethodPayment: "first"
     };
+  },
+  watch: {
+    "currentPackage.name": function(value) {
+      this.handleChangePackage(value);
+    },
+    "currentPackage.processingTime": function(value) {
+      this.handleChangeProcessTime(value);
+    }
   },
   methods: {
     setStringPackage,
@@ -577,11 +795,27 @@ export default {
       if (!this.handleCheckProcessingTime()) return;
       this.currentStep = 2;
     },
-    gotoStepTwo() {
-      if (this.handleCheckPhoneAndEmail()) {
+    gotoStep3() {
+      if (!this.handleCheckPhone()) {
+        const { messageErrorPhone } = this.error;
+        this.$message({
+          type: "error",
+          message: messageErrorPhone,
+          offset: 50
+        });
         return;
       }
-      this.currentStep = 2;
+
+      if (!this.handleCheckEmail()) {
+        const { messageErrorEmail } = this.error;
+        this.$message({
+          type: "error",
+          message: messageErrorEmail,
+          offset: 50
+        });
+        return;
+      }
+      this.currentStep = 3;
     },
     changeError() {
       this.inputClass = ["form-control"];
@@ -654,13 +888,45 @@ export default {
       this.error.errorStep1 = false;
       this.error.messageErrorStep1 = "";
       return true;
+    },
+    handleCheckPhone() {
+      const { phoneNumber } = this.userInfo;
+      const { errorPhoneNumber } = this.error;
+      if (!phoneNumber) {
+        this.error.errorPhoneNumber = true;
+        this.error.messageErrorPhone = "Vui lòng nhập số điện thoại";
+        return false;
+      }
+
+      if (!isPhoneNumberValid(phoneNumber)) {
+        this.error.errorPhoneNumber = true;
+        this.error.messageErrorPhone = "Số điện thoại không đúng định dạng";
+        return false;
+      }
+
+      this.error.errorPhoneNumber = false;
+      this.error.messageErrorPhone = "";
+      return true;
+    },
+    handleCheckEmail() {
+      const { email } = this.userInfo;
+      if (email && email.length > 0) {
+        if (!isEmailValid(email)) {
+          this.error.errorEmail = true;
+          this.error.messageErrorEmail = "Email không đúng định dạng";
+          return false;
+        }
+      }
+      this.error.errorEmail = false;
+      this.error.messageErrorEmail = "";
+      return true;
     }
+  },
+  mounted() {
+    this.loadCurrentPackage();
   },
   created() {
     this.loadCss();
-  },
-  mounted() {
-    console.log(this.listCitys);
   },
   async asyncData({ params }) {
     try {
