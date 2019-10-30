@@ -1,0 +1,111 @@
+#pay-history {
+  .box-filter {
+    display: flex;
+    flex-wrap: wrap;
+    .box-pick-date{
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      .item-box{
+        padding-bottom: 15px;
+        display: flex;
+        align-items: center
+      }
+      .input-search-package{
+        width: auto !important;
+      }
+      .pick-date{
+        display: flex;
+        align-items: center;
+        p{
+          width: 35px;
+          text-align: center;
+        }
+      }
+    }
+    .box-btn-search{
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 5px 10px 5px 15px;
+      .btn-search{
+        background-color: #3C4858;
+        color: #ffffff;
+        border-radius: 0;
+        height: 36px;
+      }
+      &:hover{
+        color: #ffffff;
+      }
+      .btn-refresh{
+        background:none;
+        border: none;
+        span{
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        &:hover{
+          color: #3C4858;
+        }
+        &:focus{
+          outline: none;
+        }
+        &:active{
+          outline: none;
+        }
+      }
+    }
+  }
+  .box-table{
+    .table-history{
+      padding-top: 30px;
+      .el-table{
+        font-size: 13px !important;
+      }
+    }
+    .pagination{
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 15px;
+    }
+    .btn-edit{
+      color: #3a8ee6;
+      border: none;
+      background: none;
+      padding: 0;
+    }
+  }
+}
+@media (max-width: 992px) {
+  #pay-history .box-filter .box-btn-search{
+    padding-left: 0;
+    padding-right: 0;
+  }
+  #pay-history .box-filter .box-btn-search .btn-search{
+    width: 220px;
+  }
+}
+@media (max-width: 500px){
+  #pay-history .box-filter .box-pick-date .pick-date{
+    width: 100%;
+    .el-date-editor.el-input, .el-date-editor.el-input__inner{
+      width: 100%;
+    }
+  }
+  #pay-history .box-filter .box-btn-search{
+    width: 100%;
+  }
+  #pay-history .box-filter .box-btn-search .btn-search{
+    width: 100%;
+  }
+  #pay-history .box-filter .box-btn-search .btn-refresh{
+    width: 100%;
+    margin-left: 0;
+  }
+  .el-table th>.cell{
+    width: 150px;
+  }
+}
