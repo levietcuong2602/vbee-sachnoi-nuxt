@@ -145,12 +145,17 @@ if (process.client) {
 }
 import Breadcrumb from "@/components/Breadcrumb";
 import PackageData from "@/components/BuyPackage/PackageData";
+import { mapGetters } from "vuex";
+
 export default {
   name: "BuyPackage",
   components: {
     carousel,
     Breadcrumb,
     PackageData
+  },
+  computed: {
+    ...mapGetters(["package"])
   },
   data() {
     return {
@@ -195,6 +200,16 @@ export default {
     },
     onBuyPackage() {
       this.dialogVisible = false;
+      const { packageId } = this.package;
+      if (!packageId) {
+        this.$message({
+          type: "error",
+          message: "Không tìm thấy gói cước",
+          offset: 50
+        });
+        return;
+      }
+      this.$router.push("/buy-package/payment");
     },
     onJqueryTabpane() {
       $("#tab-content").on("shown.bs.tab", function() {

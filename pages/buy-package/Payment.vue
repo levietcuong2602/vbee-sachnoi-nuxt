@@ -27,47 +27,79 @@
             </div>
             <div class="box-change-cart-info">
               <p class="box-change-p hidden-xs-only">Quý khách vui lòng chọn gói cước</p>
-              <p class="text-change" v-show="stepCurrent !== 0" @click="onGotoStep(0)">
+              <p class="text-change" v-show="currentStep !== 1" @click="onGotoStep(1)">
                 <i>Thay đổi</i>
               </p>
             </div>
           </div>
-          <div class="content-step content-step-1" v-show="stepCurrent === 0">
+          <div class="content-step content-step-1" v-show="currentStep === 1">
             <table class="table table-bordered info-detail">
               <tr>
                 <td>
                   <span>Tên gói</span>
                 </td>
+                <td>
+                  <span>Thời gian xử lý</span>
+                </td>
                 <td>Hạn sử dụng (ngày)</td>
                 <td>
-                  <span>Số lượng</span>
+                  <span>Số lượng (gói)</span>
                 </td>
                 <td>Giá cước (VNĐ)</td>
               </tr>
               <tr>
                 <td class="select-font-bold">
-                  <el-select v-model="packageDetail" placeholder="Chọn gói cước">
+                  <el-select
+                    placeholder="Chọn gói cước"
+                    v-model="currentPackage.packageName"
+                    @change="handleChangePackage"
+                  >
                     <el-option
-                      v-for="item in arrayPackages"
-                      :key="item.value"
-                      :label="item.label"
+                      v-for="item in listPackages"
+                      :key="item.code"
+                      :label="item.name"
+                      :value="item.code"
+                    ></el-option>
+                  </el-select>
+                </td>
+                <td class="select-font-bold">
+                  <el-select
+                    placeholder="Thời gian xử lý"
+                    v-model="currentPackage.processingTime"
+                    @change="handleChangeProcessTime"
+                  >
+                    <el-option
+                      v-for="item in packageGroup.processingTime"
+                      :key="item"
+                      :label="convertTimeToString(item)"
                       :value="item"
                     ></el-option>
                   </el-select>
                 </td>
                 <td>
-                  <b style="font-size: 18px">{{stepone.expire_day}}</b>
+                  <b
+                    style="font-size: 16px"
+                  >{{ currentPackage.numberExpireDay ? currentPackage.numberExpireDay + ' ngày' : 'không xác định' }}</b>
                 </td>
                 <td class="select-font-bold">
-                  <b style="font-size: 18px">1 gói</b>
+                  <b
+                    style="font-size: 16px"
+                  >{{ currentPackage.packageName ? '1 gói' : 'không xác định' }}</b>
                 </td>
                 <td>
-                  <b style="font-size: 18px">{{formatNumber(stepone.price)}}</b>
+                  <b
+                    style="font-size: 16px"
+                  >{{ currentPackage.amount ? formatNumber(currentPackage.amount) + ' VNĐ' : 'không xác định' }}</b>
                 </td>
               </tr>
             </table>
+            <i
+              class="text-center"
+              style="color: red"
+              v-show="error.errorStep1"
+            >{{ error.messageErrorStep1 }}</i>
             <div class="proceed-payment">
-              <el-button :class="btnProceedPaymentClass" @click="gotoStepOne" round>
+              <el-button :class="btnProceedPaymentClass" @click="gotoStep2" round>
                 Tiến hành thanh toán
                 <svg
                   width="12"
@@ -137,24 +169,30 @@
               <p
                 class="box-change-p hidden-xs-only"
               >Quý khách vui lòng cung cấp thông tin khách hàng</p>
-              <p class="text-change" v-show="stepCurrent !== 1" @click="onGotoStep(1)">
+              <p class="text-change" v-show="currentStep !== 2" @click="onGotoStep(2)">
                 <i>Thay đổi</i>
               </p>
             </div>
           </div>
-          <div class="content-step content-step-2" v-show="stepCurrent === 1">
+          <div class="content-step content-step-2" v-show="currentStep === 2">
             <div class="row info-customer method-login">
               <div class="title-method col-sm-3 col-5">
                 <p>Phương thức đăng ký</p>
               </div>
-              <div class="content-method col-sm-9 col-7">Cá nhân</div>
+              <div class="content-method col-sm-9 col-7">
+                <b>Cá nhân</b>
+              </div>
             </div>
             <div class="row info-customer">
               <div class="title col-sm-3 col-5">
                 <p>Họ tên</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <input class="form-control" v-model="orders.full_name" />
+                <input
+                  class="form-control"
+                  placeholder="Nhập họ và tên"
+                  v-model="userInfo.fullName"
+                />
               </div>
             </div>
             <div class="row info-customer">
@@ -167,11 +205,10 @@
               <div class="col-sm-9 col-7 input-info-customer">
                 <input
                   class="form-control"
-                  v-model="orders.phone_number"
-                  @keyup="handleCheckInputPhone"
                   placeholder="Số điện thoại"
+                  v-model="userInfo.phoneNumber"
                 />
-                <p class="has-danger" v-show="error_phone">{{text_error_phone}}</p>
+                <p class="has-danger" v-show="error.errorPhoneNumber">{{ error.messageErrorPhone }}</p>
               </div>
             </div>
             <div class="row info-customer">
@@ -179,8 +216,8 @@
                 <p>Email</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <input class="form-control" v-model="orders.email" />
-                <p class="has-danger" v-show="error_mail">{{text_error_email}}</p>
+                <input class="form-control" v-model="userInfo.email" />
+                <p class="has-danger" v-show="error.errorEmail">{{ error.messageErrorEmail }}</p>
               </div>
             </div>
             <div class="row info-customer">
@@ -188,13 +225,13 @@
                 <p>Tỉnh thành</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <el-select v-model="stepone.citySelect" placeholder="Select">
+                <el-select placeholder="Select">
                   <el-option :value="null">--Chọn thành phố--</el-option>
                   <el-option
                     v-for="item in listCitys"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item"
+                    :key="item.code"
+                    :label="item.name"
+                    :value="item.code"
                   ></el-option>
                 </el-select>
               </div>
@@ -204,23 +241,20 @@
                 <p>Ghi chú bổ sung</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <textarea v-model="orders.content" class="form-control"></textarea>
+                <textarea class="form-control"></textarea>
               </div>
             </div>
             <div
               class="row info-customer"
               style="display: flex; justify-content: flex-end; align-items: center"
-              v-show="orders.is_enterprise == 1"
             >
               <div class="col-sm-9 col-xs-12 input-info-customer">
-                <el-switch
-                  v-model="orders.is_company"
-                  @click="orders.is_company = !orders.is_company"
-                ></el-switch>
+                <el-switch></el-switch>
                 <label style="margin-bottom: 0">Xuất hóa đơn công ty</label>
               </div>
             </div>
-            <div v-show="orders.is_company">
+
+            <!-- <div v-show="orders.is_company">
               <div class="row info-customer">
                 <div class="title col-sm-3 col-xs-12">
                   <p>
@@ -272,7 +306,7 @@
                   <p class="has-danger" v-show="error_taxCode">{{text_error_taxCode}}</p>
                 </div>
               </div>
-            </div>
+            </div>-->
             <div class="proceed-payment">
               <el-button :class="btnProceedPaymentClass" @click="gotoStepTwo" round>
                 Tiến hành thanh toán
@@ -344,8 +378,8 @@
               <p class="box-change-p hidden-xs-only">Vui lòng chọn hình thức thanh toán phù hợp</p>
             </div>
           </div>
-          <div class="content-step content-step-3" v-show="stepCurrent === 2">
-            <el-tabs tab-position="left" v-model="activeName">
+          <div class="content-step content-step-3" v-show="currentStep === 2">
+            <!-- <el-tabs tab-position="left" v-model="activeName">
               <div class="proceed-payment">
                 <el-button :class="btnProceedPaymentClass" @click="onSave" round>
                   Xác nhận đơn hàng
@@ -393,7 +427,7 @@
                   </div>
                 </div>
               </el-tab-pane>
-            </el-tabs>
+            </el-tabs>-->
           </div>
         </div>
       </div>
@@ -403,33 +437,39 @@
           <div class="buy-fee-line">
             <p>Tên gói:</p>
             <p>
-              <b>{{(packageDetail.label)}}</b>
+              <b>{{ currentPackage.packageName ? currentPackage.packageName : 'không xác định' }}</b>
+            </p>
+          </div>
+          <div class="buy-fee-line">
+            <p>Thời gian xử lý:</p>
+            <p>
+              <b>{{ currentPackage.processingTime ? convertTimeToString(currentPackage.processingTime) : 'không xác định' }}</b>
             </p>
           </div>
           <div class="buy-fee-line">
             <p>Hạn sử dụng:</p>
             <p>
-              <b>{{overView.expire_day}} ngày</b>
+              <b>{{ currentPackage.numberExpireDay ? currentPackage.numberExpireDay + ' ngày' : 'không xác định' }}</b>
             </p>
           </div>
           <div class="buy-fee-line">
             <p>Số lượng:</p>
             <p>
-              <b>{{parseInt(numberDetail.value)}} Gói</b>
+              <b>{{ currentPackage.packageName ? '1 gói' : 'không xác định' }}</b>
             </p>
           </div>
           <div class="buy-fee-line">
             <p>Giá cước:</p>
             <p>
-              <b>{{formatNumber(stepone.price)}} VNĐ</b>
+              <b>{{ currentPackage.amount ? formatNumber(currentPackage.amount) + ' VNĐ' : 'không xác định' }}</b>
             </p>
           </div>
           <hr />
           <div class="buy-fee-line">
             <p>Thành tiền</p>
-            <p>
+            <p v-if="currentPackage.amount">
               <b style="font-size: 28px;" class="money-fee-mb">
-                {{ formatNumber(stepone.total_price) }}
+                {{ formatNumber(currentPackage.amount) }}
                 VNĐ
               </b>
             </p>
@@ -445,147 +485,69 @@ import { formatNumber, changeToSlug } from "@/utils/convert";
 import { setStringPackage, setTradCode } from "@/utils/package";
 import ListBank from "@/components/BuyPackage/ListBank";
 import AcceptOder from "@/components/BuyPackage/AcceptOder";
-import Cities from "@/data/cities.json";
+import cities from "@/data/cities.js";
 import {
   isPhoneNumberValid,
   isEmailValid,
   isTaxCodeValid
 } from "@/utils/validate";
-import { getListBanksApi } from "@/api/bank";
-import { getOrderInfoApi } from "@/api/package";
+import axios from "axios";
+import { switchCase } from "@babel/types";
+import { mapGetters } from "vuex";
+
 export default {
   name: "Payment",
   components: { AcceptOder, ListBank },
+  computed: { ...mapGetters(["package"]) },
   data() {
     return {
-      disableOtp: false,
       inputClass: ["form-control"],
       inputOTPClass: ["form-control"],
-      phonePayment: "",
-      otpCode: "",
-      isTruePhone: false,
-      error_phone_not_match: false,
-      counting: false,
-      acceptOTPDialog: false,
-      errorOTPCode: false,
-      error_nameCompany: false,
-      error_addCompany: false,
-      error_taxCode: false,
-      error_mail: false,
-      text_error_email: "",
-      text_error_phone: "",
-      text_error_nameCompany: "",
-      text_error_addCompany: "",
-      text_error_taxCode: "",
-      error_phone: false,
-      listPaymentMethod: [],
-      listBanks: [],
-      activeName: "first",
-      listPackage: [],
-      numberPackage: [],
-      listCitys: [],
-      list_banks: [],
-      is_loading: true,
-      loading: false,
-      stepCurrent: 0,
-      packageDetail: {
-        label: "Mời chọn gói",
-        value: 0,
-        fee_setup: 0,
-        price_sale: 0,
-        number_month: 0,
-        expire_day: 0
-      },
-      arrayPackages: [],
-      numberDetail: {
-        label: "Chọn số gói",
-        value: 0
-      },
-      stepone: {
-        fee_setup: 0,
-        tmp_price: 0,
-        vat: 0,
-        price: 0,
-        total_price: 0,
-        citySelect: {},
-        expire_day: 0
-      },
-      orders: {
-        city: "",
-        full_name: "",
-        phone_number: "",
-        email: "",
-        content: "",
-        company_name: "",
-        company_tax: "",
-        company_address: "",
-        method_payment: 2,
-        trad_code: "",
-        bank_id: 1,
-        is_company: false,
-        is_enterprise: 0
-      },
-      overView: {},
-      infoUser: {
-        name: "Lê Việt Cường",
-        phone: "0968078124",
-        email: "vietcuongkashi97hy@gmail.com",
-        typeAccount: "customer"
-      },
       fillSvgBuy: "",
       fillSvgAct: "",
       titleCartInfoClass: ["title-cart-info"],
       btnProceedPaymentClass: ["btn-proceed-payment"],
-      error_text_phone_match: "",
-      error_text_otp_match: "",
-      disableConfirmOTP: false,
-      is_vbee: true
-    };
-  },
-  watch: {
-    packageDetail(value) {
-      this.stepone.fee_setup =
-        this.numberDetail.value < 6 ? this.packageDetail.fee_setup : 0;
-      this.stepone.expire_day = this.packageDetail.expire_day;
-      this.handleCalculatorPrice();
-      this.handleRenderCode();
-      this.handleSetOverView();
-    },
-    numberDetail(value) {
-      this.stepone.fee_setup =
-        value.value < 6 ? this.packageDetail.fee_setup : 0;
-      this.handleCalculatorPrice();
-      this.handleRenderCode();
-      this.handleSetOverView();
-    },
-    listPackage(value) {
-      if (value.length > 0) {
-        const arrays = [];
-        value.map(item => {
-          arrays.push({
-            ...{
-              label: setStringPackage(item.name),
-              value: item.id,
-              fee_setup: item.fee_setup,
-              price_sale: item.price_sale,
-              number_month: this.numberDetail.value,
-              expire_day: item.expire_day
-            }
-          });
-        });
-        this.arrayPackages = arrays;
+      currentStep: 1,
+      isVbee: true,
+      listCitys: cities,
+      // step 1
+      listPackages: [],
+      packageGroup: {
+        processingTime: [],
+        amount: []
+      },
+      currentPackage: {
+        packageId: null,
+        packageName: null,
+        amount: null,
+        numberExpireDay: null,
+        processingTime: null
+      },
+      error: {
+        errorStep1: false,
+        errorPhoneNumber: false,
+        errorEmail: false,
+        messageErrorStep1: "",
+        messageErrorPhone: "",
+        messageErrorEmail: ""
+      },
+      // step 2
+      userInfo: {
+        fullName: null,
+        email: null,
+        phoneNumber: null
       }
-    }
+    };
   },
   methods: {
     setStringPackage,
-    checkMobi() {
+    loadCss() {
       this.titleCartInfoClass = ["title-cart-info", "title-cart-info-mb"];
       this.btnProceedPaymentClass = [
         "btn-proceed-payment",
         "btn-proceed-payment-mb"
       ];
-      if (this.is_vbee) {
+      if (this.isVbee) {
         this.fillSvgBuy = "#FFC000";
         this.fillSvgAct = "#000000";
       } else {
@@ -593,437 +555,151 @@ export default {
         this.fillSvgAct = "#ffffff";
       }
     },
-    gotoStepOne() {
-      if (this.handleCheckEmptyPackage()) {
-        return;
-      }
-      this.stepCurrent = 1;
+    loadCurrentPackage() {
+      const {
+        packageId,
+        packageName,
+        amount,
+        numberExpireDay,
+        processingTime
+      } = this.package;
+
+      this.currentPackage = {
+        packageId,
+        packageName,
+        amount,
+        numberExpireDay,
+        processingTime
+      };
+    },
+    gotoStep2() {
+      if (!this.handleCheckPackageName()) return;
+      if (!this.handleCheckProcessingTime()) return;
+      this.currentStep = 2;
     },
     gotoStepTwo() {
       if (this.handleCheckPhoneAndEmail()) {
         return;
       }
-      this.stepCurrent = 2;
-    },
-    startCountdown() {
-      this.counting = true;
-    },
-    handleCountdownEnd() {
-      this.counting = false;
-    },
-    onNextStep() {
-      this.loading = true;
-      if (this.phonePayment === "" || !this.phonePayment) {
-        this.inputClass.push("form-control-error");
-        this.error_phone_not_match = true;
-        this.error_text_phone_match = "Số điện thoại không được bỏ trống !";
-        this.loading = false;
-        return false;
-      }
-      this.$store
-        .dispatch("sendOTPBuyPackage", {
-          phone: this.phonePayment,
-          money: this.overView.total_price,
-          id_package: this.packageDetail.value
-        })
-        .then(responsive => {
-          if (responsive.status_code === 0) {
-            this.startCountdown();
-            this.isTruePhone = true;
-            this.error_phone_not_match = false;
-          } else {
-            this.error_phone_not_match = true;
-            this.error_text_phone_match = responsive.message;
-          }
-          this.loading = false;
-        });
+      this.currentStep = 2;
     },
     changeError() {
-      this.error_phone_not_match = false;
       this.inputClass = ["form-control"];
     },
-    resendOtp() {
-      this.startCountdown();
-      this.onNextStep();
-    },
-    onAcceptOtp() {
-      this.disableConfirmOTP = true;
-      this.disableOtp = true;
-      this.loading = true;
-      if (this.otpCode === "" || !this.otpCode) {
-        this.inputOTPClass.push("form-control-error");
-        this.errorOTPCode = true;
-        this.error_text_otp_match = "Mã otp không được bỏ trống !";
-        this.loading = false;
-        this.disableConfirmOTP = false;
-        this.disableOtp = false;
-        return false;
-      }
-      this.$store
-        .dispatch("verifyOTPBuyPackage", {
-          phone: this.phonePayment,
-          otp: this.otpCode,
-          id_package: this.packageDetail.value
-        })
-        .then(responsive => {
-          if (responsive.status_code === 0) {
-            this.errorOTPCode = false;
-            this.acceptOTPDialog = true;
-            this.onSave();
-            this.disableOtp = true;
-          } else {
-            this.disableOtp = false;
-            this.errorOTPCode = true;
-            this.error_text_otp_match = responsive.message;
-          }
-          this.loading = false;
-          this.disableConfirmOTP = false;
-        });
-    },
-    onInputOTP() {
-      this.errorOTPCode = false;
-      this.inputOTPClass = ["form-control"];
-    },
-    onSave() {
-      this.loading = true;
-      const params = { ...this.orders };
-      params.id_package = this.packageDetail.value;
-      params.total_price = this.stepone.total_price;
-      params.number_month = this.numberDetail.value;
-      params.is_company = this.orders.is_company ? 1 : 0;
-      params.bank_id = this.$store.getters.bankId;
-      params.fee_setup = this.packageDetail.fee_setup;
-      params.city = this.stepone.citySelect.value;
-      params.active = 1;
-      this.$store
-        .dispatch("saveDataOrders", params)
-        .then(response => {
-          this.loading = false;
-          if (response.data.length !== 0) {
-            window.location.href = response.data.url;
-          } else {
-            this.$router.push("/profile/lich-su-thanh-toan");
-          }
-        })
-        .catch(() => {
-          this.loading = false;
-        });
-    },
-    onGotoStep(number) {
-      if (this.handleCheckEmptyPackage() && number === 1) {
-        return;
-      }
-      this.stepCurrent = number;
-    },
-    handleRenderCode() {
-      // let name = '';
-      // if (this.orders.phone_number === '' || this.orders.phone_number === null) {
-      //   name = this.orders.email;
-      // } else {
-      //   name = this.orders.phone_number;
-      // }
-      // this.orders.trad_code = setTradCode(changeToSlug(this.packageDetail.label), this.numberDetail.value, name);
-    },
-    handleCheckEmptyPackage() {
-      if (this.packageDetail.value === 0) {
-        this.$message({
-          type: "error",
-          message: "Vui lòng chọn gói dịch vụ",
-          offset: 50
-        });
-        return true;
-      }
-    },
-    handleCheckPhoneAndEmail() {
-      if (
-        this.orders.phone_number === "" ||
-        this.orders.phone_number === null
-      ) {
-        // Message.error('Vui lòng nhập số điện thoại');
-        this.error_phone = true;
-        this.text_error_phone = "Vui lòng nhập số điện thoại";
-        return true;
-      }
-      if (!isPhoneNumberValid(this.orders.phone_number)) {
-        return true;
-      }
-      if (this.orders.is_company === true) {
-        if (
-          (this.orders.company_name === "" ||
-            this.orders.company_name === null) &&
-          (this.orders.company_address === "" ||
-            this.orders.company_address === null) &&
-          (this.orders.company_tax === "" || this.orders.company_tax === null)
-        ) {
-          this.error_nameCompany = true;
-          this.text_error_nameCompany = "Vui lòng nhập tên công ty";
-          this.error_addCompany = true;
-          this.text_error_addCompany = "Vui lòng nhập địa chỉ công ty";
-          this.error_taxCode = true;
-          this.text_error_taxCode = "Vui lòng nhập mã số thuế";
-          return true;
-        }
-        if (
-          (this.orders.company_address === "" ||
-            this.orders.company_address === null) &&
-          (this.orders.company_name === "" || this.orders.company_name === null)
-        ) {
-          this.error_addCompany = true;
-          this.text_error_addCompany = "Vui lòng nhập địa chỉ công ty";
-          this.error_nameCompany = true;
-          this.text_error_nameCompany = "Vui lòng nhập tên công ty";
-          return true;
-        }
-        if (
-          (this.orders.company_tax === "" ||
-            this.orders.company_tax === null) &&
-          (this.orders.company_address === "" ||
-            this.orders.company_address === null)
-        ) {
-          this.error_taxCode = true;
-          this.text_error_taxCode = "Vui lòng nhập mã số thuế";
-          this.error_addCompany = true;
-          this.text_error_addCompany = "Vui lòng nhập địa chỉ công ty";
-          return true;
-        }
-        if (
-          (this.orders.company_tax === "" ||
-            this.orders.company_tax === null) &&
-          (this.orders.company_name === "" || this.orders.company_name === null)
-        ) {
-          this.error_taxCode = true;
-          this.text_error_taxCode = "Vui lòng nhập mã số thuế";
-          this.error_nameCompany = true;
-          this.text_error_nameCompany = "Vui lòng nhập tên công ty";
-          return true;
-        }
-        if (
-          this.orders.company_tax === "" ||
-          this.orders.company_tax === null
-        ) {
-          this.error_taxCode = true;
-          this.text_error_taxCode = "Vui lòng nhập mã số thuế";
-          return true;
-        }
-        if (
-          this.orders.company_name === "" ||
-          this.orders.company_name === null
-        ) {
-          this.error_nameCompany = true;
-          this.text_error_nameCompany = "Vui lòng nhập tên công ty";
-          return true;
-        }
-        if (
-          this.orders.company_address === "" ||
-          this.orders.company_address === null
-        ) {
-          this.error_addCompanye = true;
-          this.text_error_addCompany = "Vui lòng nhập địa chỉ công ty";
-          return true;
-        }
-
-        if (!isTaxCodeValid(this.orders.company_tax)) {
-          return true;
-        }
-      }
-
-      return false;
-    },
-    handleCheckInputPhone() {
-      if (this.orders.phone_number === "") {
-        this.error_phone = true;
-        this.text_error_phone = "Vui lòng nhập số điện thoại";
-      } else if (!isPhoneNumberValid(this.orders.phone_number)) {
-        this.error_phone = true;
-        this.text_error_phone = "Số điện thoại không đúng định dạng!";
-      } else {
-        this.error_phone = false;
-        this.text_error_phone = "";
-      }
-    },
-    handleCheckInputMail() {
-      if (!isEmailValid(this.orders.email)) {
-        this.error_mail = true;
-        this.text_error_email = "Email không đúng định dạng!";
-      } else {
-        this.error_mail = false;
-        this.text_error_email = "";
-      }
-    },
-    handleCheckInputNameCompany() {
-      if (this.orders.company_name === "") {
-        this.error_nameCompany = true;
-        this.text_error_nameCompany = "Vui lòng nhập tên công ty";
-      } else {
-        this.error_nameCompany = false;
-        this.text_error_nameCompany = "";
-      }
-    },
-    handleCheckInputAdrCompany() {
-      if (this.orders.company_address === "") {
-        this.error_addCompany = true;
-        this.text_error_addCompany = "Vui lòng nhập địa chỉ công ty";
-      } else {
-        this.error_addCompany = false;
-        this.text_error_addCompany = "";
-      }
-    },
-    handleCheckInputTaxCode() {
-      if (
-        this.orders.company_tax === "" ||
-        this.orders.company_tax.length === 0
-      ) {
-        this.error_taxCode = true;
-        this.text_error_taxCodel = "Vui lòng nhập mã số thuế";
-      } else if (
-        (this.orders.company_tax.length === 10 ||
-          this.orders.company_tax.length === 13) &&
-        isTaxCodeValid(this.orders.company_tax)
-      ) {
-        this.error_taxCode = false;
-        this.text_error_taxCode = "";
-      } else {
-        this.error_taxCode = true;
-        this.text_error_taxCode = "Mã thuế không đúng định dạng!";
-      }
+    onGotoStep(step) {
+      this.currentStep = step;
     },
     formatNumber,
-    handleSetNumberPackage() {
-      this.numberPackage = [
-        {
-          value: 1,
-          label: "1 gói"
+    convertTimeToString(value) {
+      const time = value * 60;
+      if (time > 60) return value + " giờ";
+      return time + " phút";
+    },
+    handleChangePackage(value) {
+      for (const { code, processing_time, number_expire_day, amount } of this
+        .listPackages) {
+        if (code === value) {
+          this.packageGroup = {
+            processingTime: processing_time,
+            amount
+          };
+          this.currentPackage.numberExpireDay = number_expire_day;
+          this.currentPackage.amount = null;
+          this.currentPackage.processingTime = null;
+          break;
         }
-      ];
-    },
-    handelSetPackage() {
-      // const user = this.$store.getters.userInfor;
-      // this.is_enterprise = user.is_enterprise;
-      // if (this.$store.getters.packages.length === 0) {
-      //   this.$store.dispatch('getListPackages', { is_enterprise: this.is_enterprise }).then(() => {
-      //     this.listPackage = this.$store.getters.packages;
-      //   });
-      // } else {
-      //   this.listPackage = this.$store.getters.packages;
-      // }
-    },
-    handleSetPackageDetail() {
-      // const id = this.$store.getters.packageId;
-      // const arrays = this.$store.getters.packages;
-      // if (id !== 0) {
-      // const result = arrays.filter(obj => {
-      //   return obj.id === id;
-      // });
-      // if (result.length > 0) {
-      //   this.packageDetail.label = setStringPackage(result[0].name);
-      //   this.packageDetail.value = result[0].id;
-      //   this.packageDetail.fee_setup = result[0].fee_setup;
-      //   this.packageDetail.price_sale = result[0].price_sale;
-      //   this.packageDetail.expire_day = result[0].expire_day;
-      //   this.stepone.expire_day = this.packageDetail.expire_day;
-      // }
-      // }
+      }
 
-      this.numberDetail = {
-        value: 1,
-        label: "1 gói"
-      };
-      this.handleRenderCode();
+      this.handleCheckPackageName();
     },
-    handleCalculatorPrice() {
-      this.stepone.price =
-        parseInt(this.packageDetail.price_sale) *
-        parseInt(this.numberDetail.value);
-      this.stepone.tmp_price =
-        this.stepone.price + parseInt(this.stepone.fee_setup);
-      this.stepone.total_price = this.stepone.tmp_price;
+    handleChangeProcessTime(value) {
+      const { processingTime, amount } = this.packageGroup;
+      const index = processingTime.indexOf(value);
+      if (index !== -1 && index < amount.length) {
+        this.currentPackage.amount = amount[index];
+      }
+
+      this.handleCheckProcessingTime();
     },
-    handleSetUserInfo() {
-      // getOrderInfoApi().then(response => {
-      //   if (response.data === null) {
-      //     const user = this.$store.getters.userInfor;
-      //     this.orders.full_name = this.infoUser.name;
-      //     this.orders.email = user.email;
-      //     this.orders.phone_number = user.phone;
-      //     // this.orders.is_enterprise = user.is_enterprise;
-      //     this.phonePayment = user.phone;
-      //   } else {
-      //     const result = response.data;
-      //     this.orders.email = result.email;
-      //     if (!result.full_name || result.full_name === '') {
-      //       this.orders.full_name = this.infoUser.name;
-      //     } else {
-      //       this.orders.full_name = result.full_name;
-      //     }
-      //     this.orders.phone_number = result.phone_number;
-      //     this.orders.address = result.address;
-      //     this.orders.company_address = result.company_address;
-      //     this.orders.company_name = result.company_name;
-      //     this.orders.company_tax = result.company_tax;
-      //     this.orders.content = result.content;
-      //     this.orders.is_company = result.is_company;
-      //     const user = this.$store.getters.userInfor;
-      //     this.orders.is_enterprise = user.is_enterprise;
-      //     this.phonePayment = user.phone;
-      //     this.orders.email = user.email;
-      //   }
-      // });
+    handleCheckPackageName() {
+      const { packageName } = this.currentPackage;
+      if (!packageName) {
+        this.$message({
+          type: "error",
+          message: "Bạn chưa chọn gói cước",
+          offset: 50
+        });
+        this.error.errorStep1 = true;
+        this.error.messageErrorStep1 = "Bạn chưa chọn gói";
+        return false;
+      }
+
+      this.error.errorStep1 = false;
+      this.error.messageErrorStep1 = "";
+      return true;
     },
-    handleSetListCity() {
-      const arrayCities = [];
-      Cities.map((item, index) => {
-        if (index === 0) {
-          this.stepone.citySelect = { label: item.name, value: item.code };
-        }
-        arrayCities.push({ ...{ label: item.name, value: item.code } });
-      });
-      this.listCitys = arrayCities;
-    },
-    handleSetOverView() {
-      const data = {
-        tradding_code: this.orders.trad_code,
-        name_package: this.packageDetail.label,
-        total_price: this.stepone.total_price,
-        expire_day: this.packageDetail.expire_day
-      };
-      this.overView = { ...data };
-    },
-    onGetMethodPayment() {
-      // this.$store.dispatch('getMothodPayment').then((responsive) => {
-      //   if (responsive.status_code === 0) {
-      //     this.listPaymentMethod = responsive.data;
-      //     this.listPaymentMethod.map((item, index) => {
-      //       if (index === 0) {
-      //         this.orders.method_payment = item.id;
-      //       } else {
-      //         this.orders.method_payment = 2;
-      //       }
-      //     });
-      //   }
-      // });
-    },
-    onGetBanks() {
-      // getListBanksApi().then(responsive => {
-      //   if (responsive.status_code === 0) {
-      //     this.listBanks = responsive.data;
-      //     this.listBanks.map((item, index) => {
-      //       if (index === 0) {
-      //         this.orders.bank_id = item.id;
-      //       }
-      //     });
-      //   }
-      // });
+    handleCheckProcessingTime() {
+      const { processingTime } = this.currentPackage;
+      if (!processingTime) {
+        this.$message({
+          type: "error",
+          message: "Bạn chưa chọn thời gian xử lý",
+          offset: 50
+        });
+        this.error.errorStep1 = true;
+        this.error.messageErrorStep1 = "Bạn chưa chọn thời gian xử lý";
+        return false;
+      }
+
+      this.error.errorStep1 = false;
+      this.error.messageErrorStep1 = "";
+      return true;
     }
   },
   created() {
-    this.checkMobi();
-    this.handleSetNumberPackage();
-    this.handelSetPackage();
-    this.handleSetPackageDetail();
-    this.handleSetUserInfo();
-    this.handleSetListCity();
-    this.onGetMethodPayment();
-    this.onGetBanks();
+    this.loadCss();
+  },
+  mounted() {
+    console.log(this.listCitys);
+  },
+  async asyncData({ params }) {
+    try {
+      const { status, data } = await axios({
+        type: "GET",
+        method: "GET",
+        url: "http://localhost:8888/api/v1/packages"
+      });
+      if (status === 200) {
+        const result = {};
+        const { results } = data;
+        for (const item of results) {
+          const { code, id, amount, processing_time } = item;
+          if (result[code] === undefined) {
+            result[code] = {
+              ...item,
+              id: [id],
+              amount: [amount],
+              processing_time: [processing_time]
+            };
+          } else {
+            result[code].id.unshift(id);
+            result[code].amount.unshift(amount);
+            result[code].processing_time.unshift(processing_time);
+          }
+        }
+        const listPackages = [];
+        for (const item in result) {
+          if (result.hasOwnProperty(item)) {
+            const pkg = result[item];
+            listPackages.push(pkg);
+          }
+        }
+        return { listPackages };
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+    return { listPackages: [] };
   }
 };
 </script>

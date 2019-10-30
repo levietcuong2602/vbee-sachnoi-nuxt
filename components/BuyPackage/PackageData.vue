@@ -2,7 +2,7 @@
   <div :class="['cost-item', getClassWrap()]">
     <div class="cost-item__header">
       <div class="cost-item__title">{{ packageInfo.name }}</div>
-      <div class="cost-item__money">{{ getPricePackage() }}</div>
+      <div class="cost-item__money">{{ formatNumber(getPricePackage()) }}</div>
       <div class="cost-item__unit">VNĐ</div>
     </div>
     <div class="cost-item__main">
@@ -13,6 +13,7 @@
         :marks="getMarks(slider)"
         @change="handleChange"
         v-model="slider"
+        :show-tooltip="false"
       ></el-slider>
       <!-- <RangeSlider /> -->
       <p>Hạn sử dụng {{ packageInfo.number_expire_day }} ngày</p>
@@ -192,11 +193,35 @@ export default {
           return "";
         }
         const price = amount[index];
-        return this.formatNumber(price);
+        return price;
       }
       return "";
     },
     handleBuyPackage() {
+      const packagePrice = this.getPricePackage();
+      const timeProcess = SliderTime[this.slider];
+      const {
+        number_expire_day,
+        name,
+        amount,
+        processing_time,
+        id
+      } = this.packageInfo;
+      let packageId = null;
+      if (
+        amount.indexOf(packagePrice) === processing_time.indexOf(timeProcess)
+      ) {
+        const index = amount.indexOf(packagePrice);
+        packageId = id[index];
+      }
+      this.$store.dispatch("package/updatePackage", {
+        packageId,
+        packageName: name,
+        amount: packagePrice,
+        numberExpireDay: number_expire_day,
+        processingTime: timeProcess
+      });
+
       this.$emit("showConfirmDialog");
     }
   },

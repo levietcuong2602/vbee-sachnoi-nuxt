@@ -12,6 +12,7 @@ const getters = {
   publicYearBook: state => state.book.publicYear,
   chapterBook: state => state.book.chapters,
   book: state => state.book,
-  domain: state => state.domainServiceUrl
+  domain: state => state.domainServiceUrl,
+  package: state => state.package
 };
 export default getters;
