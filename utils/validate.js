@@ -11,6 +11,16 @@ export function isExternal(path) {
 }
 
 /**
+ * Validate an email address
+ * @param {String} email
+ * @return {Boolean}
+ */
+export function isEmailValid(email) {
+  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+}
+
+/**
  * @param {string} str
  * @returns {Boolean}
  */

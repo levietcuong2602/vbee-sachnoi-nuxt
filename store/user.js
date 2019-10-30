@@ -4,7 +4,11 @@ const state = () => ({
   token: getToken(),
   name: "",
   avatar: "",
-  userId: "1"
+  userId: "1",
+  phoneNumber: "",
+  email: "",
+  fullName: "",
+  city: ""
 });
 
 const mutations = {
@@ -16,6 +20,18 @@ const mutations = {
   },
   SET_AVATAR: (state, avatar) => {
     state.avatar = avatar;
+  },
+  SET_PHONE_NUMBER: (state, phone) => {
+    state.phoneNumber = phone;
+  },
+  SET_EMAIL: (state, email) => {
+    state.email = email;
+  },
+  SET_FULL_NAME: (state, fullName) => {
+    state.fullName = fullName;
+  },
+  SET_CITY: (state, city) => {
+    state.city = city;
   }
 };
 
@@ -83,6 +99,18 @@ const actions = {
       removeToken();
       resolve();
     });
+  },
+  setPhoneNumber({ commit }, phone) {
+    commit("SET_PHONE_NUMBER", phone);
+  },
+  setEmail({ commit }, email) {
+    commit("SET_EMAIL", email);
+  },
+  setFullName({ commit }, fullName) {
+    commit("SET_FULL_NAME", fullName);
+  },
+  setCity({ commit }, city) {
+    commit("SET_CITY", city);
   }
 };
 
