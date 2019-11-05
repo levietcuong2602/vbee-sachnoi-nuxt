@@ -128,7 +128,12 @@
                 </el-scrollbar>
               </div>
               <div class="box-step3__footer">
-                <el-pagination layout="prev, pager, next" :page-count="chapters.length"></el-pagination>
+                <el-pagination
+                  v-show="chapters.length > pageSize"
+                  :page-size="pageSize"
+                  layout="prev, pager, next"
+                  :total="chapters.length"
+                ></el-pagination>
                 <a href="#" class="btn-save">Lưu thay đổi</a>
               </div>
             </div>
@@ -138,7 +143,7 @@
     </div>
     <div class="row mt-5 pb-5">
       <div class="col text-right">
-        <el-button @click="gotoNextStep(1)">Quay lại</el-button>
+        <el-button @click="gotoBackStep()">Quay lại</el-button>
         <el-button>Bỏ qua</el-button>
         <el-button v-if="detachFile" type="warning" @click="gotoNextStep()">Tiếp tục</el-button>
         <el-button v-else type="warning" @click="handleBeforeDetachFile">Tiếp tục</el-button>
@@ -187,7 +192,8 @@ export default {
       dialogNotifyVisible: false,
       messageNotify: "",
       isSaveBook: false,
-      isSaveChapter: false
+      isSaveChapter: false,
+      pageSize: 10
     };
   },
   computed: {
@@ -199,7 +205,10 @@ export default {
     }
   },
   methods: {
-    gotoNextStep(step) {
+    gotoBackStep() {
+      this.$emit("handleNextStep", 1);
+    },
+    gotoNextStep() {
       const isCheckEmpty = this.checkEmptyChapterName();
       if (isCheckEmpty) {
         this.dialogNotifyVisible = true;
@@ -304,7 +313,7 @@ export default {
       this.dialogNotifyVisible = false;
 
       if (this.isSaveBook && this.isSaveChapter) {
-        this.$emit("handleNextStep", 3);
+        this.$emit("handleNextStep", 4);
       }
     },
     checkEmptyChapterName() {
@@ -401,7 +410,10 @@ export default {
         if (data.status === 1) {
           const { result } = data;
           console.log("chapter Ids: ", result);
-          if (result.length !== chapters.length) return;
+          if (result.length !== chapters.length) {
+            console.log("lưu chapter thất bại");
+            return;
+          }
           this.chapters = chapters.map((chapter, index) => {
             return {
               ...chapter,

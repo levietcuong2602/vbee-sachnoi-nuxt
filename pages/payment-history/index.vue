@@ -83,8 +83,8 @@ export default {
   methods: {
     async getTransactions() {
       try {
-        let start = null;
-        let end = null;
+        let start = '';
+        let end = '';
         if (this.dateRange) {
           start = new Date(this.dateRange[0]).valueOf();
           end = new Date(this.dateRange[1]).valueOf();

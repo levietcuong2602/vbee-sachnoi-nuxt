@@ -63,15 +63,15 @@
                 <span>Định dạng:</span>
               </div>
               <el-radio-group
-                v-model="extendSelect"
+                v-model="mimeType"
                 class="el-col-lg-16 el-col-md-16 el-col-sm-18 el-col-xs-14"
               >
                 <el-radio
-                  :label="1"
+                  :label="mp3"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
                 >.mp3</el-radio>
                 <el-radio
-                  :label="2"
+                  :label="wav"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
                 >.wav</el-radio>
               </el-radio-group>
@@ -130,8 +130,8 @@
             <div class="select-volume el-col-lg-9 el-col-md-9 el-col-sm-24 el-col-xs-24">
               <p class="el-col-md-12 el-col-sm-12 el-col-xs-12">Âm lượng nhạc:</p>
               <el-slider
-                v-model="volume"
-                @change="handleChangeSoundBackgroundVolumn"
+                v-model="volumn"
+                @change="handleChangeSoundVolumn"
                 :disabled="false"
                 class="el-col-md-12 el-col-sm-12 el-col-xs-12"
                 :min="0"
@@ -158,7 +158,7 @@
             </div>
             <div class="view-detail el-col-md-5 el-col-sm-7 el-col-xs-12">
               <button :style="{'cursor': 'pointer'}">
-                <a href="/#/tts-cloud/tu-dien" target="_blank">Xem chi tiết</a>
+                <a href="#" target="_blank">Xem chi tiết</a>
               </button>
             </div>
           </div>
@@ -173,31 +173,31 @@
           <div class="book-name">
             <p class="title">Tên sách</p>
             <p>
-              <b>Những đứa con của sói</b>
+              <b>{{ book.name ? book.name : 'UNKNOWN'}}</b>
             </p>
           </div>
           <div class="author">
             <p class="title">Tác giả</p>
             <p>
-              <b>Hosoda Mamoru</b>
+              <b>{{ book.author ? book.author : 'UNKNOWN' }}</b>
             </p>
           </div>
           <div class="public-year">
             <p class="title">Năm xuất bản</p>
             <p>
-              <b>2012</b>
+              <b>{{ book.publicYear ? book.publicYear : 'UNKNOWN' }}</b>
             </p>
           </div>
           <div class="header-number">
             <p class="title">Số chương/phần</p>
             <p>
-              <b>4</b>
+              <b>{{ book.chapters.length }}</b>
             </p>
           </div>
           <div class="file-sale">
             <p class="title">Số file đã tách</p>
             <p>
-              <b>5</b>
+              <b>{{ 0 }}</b>
             </p>
           </div>
         </div>
@@ -306,9 +306,9 @@ export default {
         }
       ],
       qualitySelect: "",
-      extendSelect: "",
+      mimeType: "",
       backgroundMusic: false,
-      speedVoice: 0.5,
+      speedVoice: 0,
       nameAudio: "",
       dialogConfirmDeleteMusic: false,
       uploadHeader: {
@@ -320,7 +320,7 @@ export default {
         folder_name: "music"
       },
       fileList: [],
-      volume: 50,
+      volumn: 50,
       dictionary_select: "",
       dialogSelectMusic: false,
       total: 0,
@@ -354,10 +354,6 @@ export default {
       this.$message.warning(`Qúa số file quy định`);
     },
     handleUploadSuccess(response, file, fileList) {
-      // if (file.size > 2097152) {
-      //   console.log('lôi');
-      //   return;
-      // }
       if (file.size > 2097152) {
         this.nameAudio = "";
         this.uploadPath = "";
@@ -411,14 +407,33 @@ export default {
       this.backgroundMusic = value;
       this.$store.dispatch("book/updateUsedSoundBackground", value);
     },
-    handleChangeSoundBackgroundVolumn(value) {
-      this.volume = value;
-      this.$store.dispatch("book/updateSoundBackgroundVolumn", value);
+    handleChangeSoundVolumn(value) {
+      this.volumn = value;
+      this.$store.dispatch("book/updateSoundVolumn", value);
     },
     handleSendRequest() {
       // update property book
       this.onUpdatePropertyBook();
       // convert book return file audio
+      this.onConvertSentenceChapters();
+    },
+    loadInfoBook() {
+      const {
+        voice,
+        rate,
+        bitRate,
+        mimeType,
+        soundBackground,
+        usedSoundBackground,
+        soundVolumn
+      } = this.book;
+
+      this.voiceSelect = voice;
+      this.mimeType = mimeType;
+      this.volumn = soundVolumn;
+      this.speedVoice = rate;
+      this.backgroundMusic = usedSoundBackground;
+      this.qualitySelect = bitRate;
     },
     async onUpdatePropertyBook() {
       const {
@@ -428,7 +443,7 @@ export default {
         rate,
         usedSoundBackground,
         soundBackground,
-        soundBackgroundVolumn
+        soundVolumn
       } = this.book;
 
       const { data, status: statusCode } = await axios({
@@ -438,7 +453,7 @@ export default {
           bit_rate: bitRate,
           rate,
           used_sound_background: usedSoundBackground,
-          sound_background_volumn: soundBackgroundVolumn
+          sound_background_volumn: soundVolumn
         }
       });
 
@@ -458,7 +473,8 @@ export default {
           offset: 50
         });
       }
-    }
+    },
+    async onConvertSentenceChapters() {}
   },
   computed: {
     dictionarySelect: function() {
@@ -492,6 +508,9 @@ export default {
       return arr;
     },
     ...mapGetters(["book", "domain"])
+  },
+  mounted() {
+    this.loadInfoBook();
   }
 };
 </script>

@@ -599,8 +599,8 @@ export default {
       try {
         const { bookId } = this.$route.params;
 
-        let start = null;
-        let end = null;
+        let start = '';
+        let end = '';
         if (this.dateRange) {
           start = new Date(this.dateRange[0]).valueOf();
           end = new Date(this.dateRange[1]).valueOf();

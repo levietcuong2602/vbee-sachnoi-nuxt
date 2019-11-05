@@ -188,11 +188,7 @@
                 <p>Họ tên</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <input
-                  class="form-control"
-                  placeholder="Nhập họ và tên"
-                  v-model="userInfo.fullName"
-                />
+                <input class="form-control" placeholder="Nhập họ và tên" v-model="orders.fullName" />
               </div>
             </div>
             <div class="row info-customer">
@@ -206,7 +202,7 @@
                 <input
                   class="form-control"
                   placeholder="Số điện thoại"
-                  v-model="userInfo.phoneNumber"
+                  v-model="orders.phoneNumber"
                   @keyup="handleCheckPhone"
                   @blur="handleCheckPhone"
                 />
@@ -220,7 +216,7 @@
               <div class="col-sm-9 col-7 input-info-customer">
                 <input
                   class="form-control"
-                  v-model="userInfo.email"
+                  v-model="orders.email"
                   placeholder="Nhập email của bạn"
                   @blur="handleCheckEmail"
                 />
@@ -232,7 +228,7 @@
                 <p>Tỉnh thành</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <el-select placeholder="Select" v-model="userInfo.city">
+                <el-select placeholder="Select" v-model="orders.city">
                   <el-option :value="null">--Chọn thành phố--</el-option>
                   <el-option
                     v-for="item in listCitys"
@@ -248,7 +244,7 @@
                 <p>Ghi chú bổ sung</p>
               </div>
               <div class="col-sm-9 col-7 input-info-customer">
-                <textarea class="form-control" v-model="userInfo.note"></textarea>
+                <textarea class="form-control" v-model="orders.note"></textarea>
               </div>
             </div>
             <div
@@ -392,7 +388,7 @@
               <el-radio v-model="typePayment" label="2">Trừ tiền điện thoại trực tiếp</el-radio>
             </div>
 
-            <div class="bypackage-atm" v-show="typePayment === '1'">
+            <!-- <div class="bypackage-atm" v-show="typePayment === '1'">
               <el-tabs tab-position="left" v-model="tabMethodPayment">
                 <div class="proceed-payment">
                   <el-button :class="btnProceedPaymentClass" @click="onSave" round>
@@ -434,7 +430,7 @@
                       <AcceptOder :data="overView"></AcceptOder>
                     </div>
                     <div v-show="item.is_bank === 1" class="box-select-banks col-12">
-                      <ListBank :banks="listBanks" :bank_id.sync="orders.bank_id" />
+                      <ListBank :banks="banks" :bank_id.sync="orders.bank_id" />
                     </div>
                     <div class="info-banks-transfer col-12">
                       <div v-html="item.content"></div>
@@ -467,7 +463,7 @@
                   </div>
                 </el-tab-pane>
               </el-tabs>
-            </div>
+            </div>-->
             <div class="bypackage-live" v-show="typePayment === '2'">
               <div class="box-input-phone">
                 <div class="title-step-3 el-col-lg-8">
@@ -476,19 +472,20 @@
                     <span style="color: red">(*)</span>
                   </p>
                 </div>
-
                 <div class="el-col-lg-16">
                   <input
                     :class="inputClass"
                     v-model="phonePayment"
-                    @keyup="changeError"
                     placeholder="Nhập số điện thoại"
                   />
-                  <p class="has-error" v-if="error_phone_not_match">* {{error_text_phone_match}}</p>
-                  <div v-if="!isTruePhone" class="proceed-payment">
+                  <p
+                    class="has-error"
+                    v-if="error.errorPhonePayment"
+                  >* {{ error.messsgeErrorPhonePayment }}</p>
+                  <div v-if="!isSubMoneyPhone" class="proceed-payment">
                     <el-button
                       :class="btnProceedPaymentClass"
-                      @click="onNextStep"
+                      @click="onConfirmOrders"
                       round
                       :v-loading="loading"
                       :disabled="loading"
@@ -516,17 +513,13 @@
               </div>
             </div>
 
-            <div v-if="isTruePhone" class="box-input-otp">
+            <div v-if="isSubMoneyPhone" class="box-input-otp">
               <div class="resend-otp">
                 <div class="el-col-lg-16">
                   <p>Hệ thống đã gửi mã OTP đến số điện thoại trên.</p>
                   <p>
-                    <el-button
-                      class="btn-resend-otp"
-                      @click="resendOtp"
-                      :disabled="counting"
-                    >Gửi lại</el-button>
-                    <countdown v-if="counting" :time="60000" @end="handleCountdownEnd">
+                    <el-button class="btn-resend-otp" @click="resendOTP" :disabled="isCount">Gửi lại</el-button>
+                    <countdown v-if="isCount" :time="60000" @end="handleCountdownEnd">
                       <template slot-scope="props">( {{ props.totalSeconds }} s)</template>
                     </countdown>
                   </p>
@@ -539,17 +532,14 @@
                 <div class="el-col-lg-16">
                   <input
                     :class="inputOTPClass"
-                    :disabled="disableOtp"
+                    :disabled="disableInputOTP"
                     v-model="otpCode"
-                    @keyup="onInputOTP"
-                    @keyup.enter="onAcceptOtp"
                     autocomplete="off"
                   />
-                  <p class="has-error" v-if="errorOTPCode">* {{error_text_otp_match}}</p>
+                  <p class="has-error" v-if="error.errorOTPCode">* {{ error.messageErrorOTP }}</p>
                   <div class="proceed-payment">
                     <el-button
                       :class="btnProceedPaymentClass"
-                      @click="onAcceptOtp"
                       :disabled="disableConfirmOTP"
                       round
                       :v-loading="loading"
@@ -576,6 +566,7 @@
                 </div>
               </div>
             </div>
+            <!-- dialog OTP -->
             <el-dialog :visible.sync="dialogAccepOTP" :close-on-click-modal="false" width="500px">
               <div>
                 <p class="title-dialog">Chúc mừng</p>
@@ -691,6 +682,7 @@ import {
 
 import cities from "@/data/cities.js";
 import methodOfPayments from "@/data/methodOfPayments.js";
+import banks from "@/data/banks.js";
 
 import axios from "axios";
 import { switchCase } from "@babel/types";
@@ -708,7 +700,7 @@ export default {
       fillSvgAct: "",
       titleCartInfoClass: ["title-cart-info"],
       btnProceedPaymentClass: ["btn-proceed-payment"],
-      currentStep: 3,
+      currentStep: 1,
       isVbee: true,
       listCitys: cities,
       // step 1
@@ -728,12 +720,16 @@ export default {
         errorStep1: false,
         errorPhoneNumber: false,
         errorEmail: false,
+        errorOTPCode: false,
         messageErrorStep1: "",
         messageErrorPhone: "",
-        messageErrorEmail: ""
+        messageErrorEmail: "",
+        errorPhonePayment: false,
+        messsgeErrorPhonePayment: "",
+        messageErrorOTP: ""
       },
       // step 2
-      userInfo: {
+      orders: {
         fullName: null,
         email: null,
         phoneNumber: null,
@@ -744,9 +740,17 @@ export default {
       activePayment: "",
       methodOfPayments,
       dialogAccepOTP: false,
-      isTruePhone: false,
+      isSubMoneyPhone: false,
       typePayment: "1",
-      tabMethodPayment: "first"
+      tabMethodPayment: "first",
+      banks,
+      phonePayment: "",
+      loading: false,
+      // payment
+      otpCode: "",
+      disableInputOTP: false,
+      isCount: false,
+      disableConfirmOTP: false
     };
   },
   watch: {
@@ -890,7 +894,7 @@ export default {
       return true;
     },
     handleCheckPhone() {
-      const { phoneNumber } = this.userInfo;
+      const { phoneNumber } = this.orders;
       const { errorPhoneNumber } = this.error;
       if (!phoneNumber) {
         this.error.errorPhoneNumber = true;
@@ -909,7 +913,7 @@ export default {
       return true;
     },
     handleCheckEmail() {
-      const { email } = this.userInfo;
+      const { email } = this.orders;
       if (email && email.length > 0) {
         if (!isEmailValid(email)) {
           this.error.errorEmail = true;
@@ -920,7 +924,41 @@ export default {
       this.error.errorEmail = false;
       this.error.messageErrorEmail = "";
       return true;
-    }
+    },
+    handleCheckPhonePayment() {
+      if (!this.phonePayment || this.phonePayment === "") {
+        this.error.errorPhonePayment = true;
+        this.error.messsgeErrorPhonePayment =
+          "Vui lòng nhập số điện thoại thanh toán";
+        return false;
+      }
+      if (!isPhoneNumberValid(this.phonePayment)) {
+        this.error.errorPhonePayment = true;
+        this.error.messsgeErrorPhonePayment =
+          "Số điện thoại không đúng định dạng";
+        return false;
+      }
+
+      this.error.errorPhonePayment = false;
+      this.error.messsgeErrorPhonePayment = "";
+      return true;
+    },
+    onConfirmOrders() {
+      this.loading = true;
+      if (!this.handleCheckPhonePayment()) {
+        this.$message({
+          type: "error",
+          message: this.error.messsgeErrorPhonePayment
+        });
+        this.inputClass.push("form-control-error");
+        this.loading = false;
+        return;
+      }
+      this.isSubMoneyPhone = true;
+      // call api get captcha
+    },
+    resendOTP() {},
+    handleCountdownEnd() {}
   },
   mounted() {
     this.loadCurrentPackage();

@@ -141,18 +141,20 @@ export function detachChapter(content) {
 
   chapters = chapters
     .filter(chapter => chapter && chapter.length > 100)
-    .map(chapter => {
+    .map((chapter, index) => {
       let pages = getPageSentences(chapter, 3000);
       pageStart = pageEnd;
       pageEnd = pageStart + pages.length;
-      var title = null;
+      var title = `Chương ${index + 1}: `;
       if (regexChapter.test(chapter)) {
         const indexOfStart = chapter.indexOf("<h1>");
         const indexOfEnd = chapter.indexOf("</h1>");
         if (indexOfStart !== -1 && indexOfEnd !== -1) {
           title = chapter.substr(indexOfStart, indexOfEnd + 5);
           chapter = chapter.replace(title, "");
-          title = title.replace(/<h[0-9]+>|<\/h[0-9]+>/gi, "");
+          title =
+            `Chương ${index + 1}: ` +
+            title.replace(/<h[0-9]+>|<\/h[0-9]+>/gi, "");
         }
       }
       return {

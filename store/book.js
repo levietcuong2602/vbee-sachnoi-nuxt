@@ -4,14 +4,14 @@ const state = () => ({
   name: "",
   author: "",
   publicYear: "",
-  file: null,
+  mimeType: "mp3",
   chapters: [],
-  voice: 0,
-  rate: 0,
-  bitRate: "",
+  voice: "hn_male_xuantin_vdts_48k-hsmm",
+  rate: 1.0,
+  bitRate: "320",
   soundBackground: "",
   usedSoundBackground: false,
-  soundBackgroundVolumn: 0
+  soundVolumn: 50
 });
 const mutations = {
   UPDATE_CONTENT_BOOK: (state, content) => {
@@ -23,25 +23,27 @@ const mutations = {
       name,
       author,
       publicYear,
+      mimeType,
       id,
       rate,
       voice,
       bitRate,
       soundBackground,
       usedSoundBackground,
-      soundBackgroundVolumn
+      soundVolumn
     }
   ) => {
     state.name = name;
     state.author = author;
     state.publicYear = publicYear;
+    state.mimeType = mimeType;
     state.id = id;
     state.rate = rate;
     state.voice = voice;
     state.bitRate = bitRate;
     state.soundBackground = soundBackground;
     state.usedSoundBackground = usedSoundBackground;
-    state.soundBackgroundVolumn = soundBackgroundVolumn;
+    state.soundVolumn = soundVolumn;
   },
   UPDATE_CHAPTER_BOOK: (state, chapters) => {
     state.chapters = chapters;
@@ -51,6 +53,9 @@ const mutations = {
   },
   UPDATE_VOICE_BOOK: (state, voice) => {
     state.voice = voice;
+  },
+  UPDATE_MIME_TYPE_BOOK: (state, mimeType) => {
+    state.mimeType = mimeType;
   },
   UPDATE_BIT_RATE_BOOK: (state, bitRate) => {
     state.bitRate = bitRate;
@@ -64,8 +69,8 @@ const mutations = {
   UPDATE_USED_SOUND_BACKGROUND: (state, usedSoundBackground) => {
     state.usedSoundBackground = usedSoundBackground;
   },
-  UPDATE_SOUND_BACKGROUND_VOLUMN: (state, soundBackgroundVolumn) => {
-    state.soundBackgroundVolumn = soundBackgroundVolumn;
+  UPDATE_SOUND_VOLUMN: (state, soundVolumn) => {
+    state.soundVolumn = soundVolumn;
   }
 };
 const actions = {
@@ -84,6 +89,9 @@ const actions = {
   updateVoiceBook({ commit }, voice) {
     commit("UPDATE_VOICE_BOOK", voice);
   },
+  updateMimeTypeBook({ commit }, mimeType) {
+    commit("UPDATE_MIME_TYPE_BOOK", mimeType);
+  },
   updateBitRate({ commit }, bitRate) {
     commit("UPDATE_BIT_RATE_BOOK", bitRate);
   },
@@ -96,8 +104,8 @@ const actions = {
   updateUsedSoundBackground({ commit }, usedSoundBackground) {
     commit("UPDATE_USED_SOUND_BACKGROUND", usedSoundBackground);
   },
-  updateSoundBackgroundVolumn({ commit }, soundBackgroundVolumn) {
-    commit("UPDATE_SOUND_BACKGROUND_VOLUMN", soundBackgroundVolumn);
+  updateSoundVolumn({ commit }, soundVolumn) {
+    commit("UPDATE_SOUND_VOLUMN", soundVolumn);
   }
 };
 export default {
