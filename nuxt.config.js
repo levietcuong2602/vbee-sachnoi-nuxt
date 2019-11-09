@@ -6,6 +6,7 @@ module.exports = {
    */
   head: {
     title: process.env.npm_package_name || "",
+    credentials: false,
     meta: [
       { charset: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -77,7 +78,19 @@ module.exports = {
   /*
    ** Nuxt.js modules
    */
-  modules: [],
+  modules: ["@nuxtjs/proxy", "@nuxtjs/axios"],
+  proxy: {
+    "/api/": {
+      target: "https://tts-cloud.vbeecore.com",
+      pathRewrite: { "^/api/tts": "" },
+      changeOrigin: true
+    }
+  },
+  axios: {
+    baseURL: "https://tts-cloud.vbeecore.com",
+    proxyHeaders: false,
+    credentials: false
+  },
   /*
    ** Build configuration
    */

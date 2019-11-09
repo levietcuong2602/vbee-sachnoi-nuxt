@@ -6,12 +6,13 @@ const state = () => ({
   publicYear: "",
   mimeType: "mp3",
   chapters: [],
+  file: null,
   voice: "hn_male_xuantin_vdts_48k-hsmm",
   rate: 1.0,
-  bitRate: "320",
+  bitRate: "128",
   soundBackground: "",
   usedSoundBackground: false,
-  soundVolumn: 50
+  soundBackgroundVolumn: 30
 });
 const mutations = {
   UPDATE_CONTENT_BOOK: (state, content) => {
@@ -30,7 +31,7 @@ const mutations = {
       bitRate,
       soundBackground,
       usedSoundBackground,
-      soundVolumn
+      soundBackgroundVolumn
     }
   ) => {
     state.name = name;
@@ -43,7 +44,7 @@ const mutations = {
     state.bitRate = bitRate;
     state.soundBackground = soundBackground;
     state.usedSoundBackground = usedSoundBackground;
-    state.soundVolumn = soundVolumn;
+    state.soundBackgroundVolumn = soundBackgroundVolumn;
   },
   UPDATE_CHAPTER_BOOK: (state, chapters) => {
     state.chapters = chapters;
@@ -69,8 +70,8 @@ const mutations = {
   UPDATE_USED_SOUND_BACKGROUND: (state, usedSoundBackground) => {
     state.usedSoundBackground = usedSoundBackground;
   },
-  UPDATE_SOUND_VOLUMN: (state, soundVolumn) => {
-    state.soundVolumn = soundVolumn;
+  UPDATE_SOUND_VOLUMN: (state, soundBackgroundVolumn) => {
+    state.soundBackgroundVolumn = soundBackgroundVolumn;
   }
 };
 const actions = {
@@ -104,8 +105,8 @@ const actions = {
   updateUsedSoundBackground({ commit }, usedSoundBackground) {
     commit("UPDATE_USED_SOUND_BACKGROUND", usedSoundBackground);
   },
-  updateSoundVolumn({ commit }, soundVolumn) {
-    commit("UPDATE_SOUND_VOLUMN", soundVolumn);
+  updateSoundVolumn({ commit }, soundBackgroundVolumn) {
+    commit("UPDATE_SOUND_VOLUMN", soundBackgroundVolumn);
   }
 };
 export default {

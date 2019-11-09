@@ -17,7 +17,7 @@
                 :key="voice.value"
                 :label="voice.value"
                 class="el-col-lg-8 el-col-md-8 el-col-sm-12 el-col-xs-24"
-              >{{ voice.label }}</el-radio>
+              >{{ voice.display_name }}</el-radio>
             </el-radio-group>
           </div>
           <div class="format-quality-file">
@@ -26,16 +26,16 @@
                 <span>Chất lượng:</span>
               </div>
               <el-radio-group
-                v-model="qualitySelect"
+                v-model="bitRate"
                 class="el-col-lg-16 el-col-md-16 el-col-sm-16 el-col-xs-16"
                 @change="handleChangeBitRate"
               >
                 <el-radio
-                  :label="128"
+                  label="128"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
                 >128 kbps</el-radio>
                 <el-radio
-                  :label="320"
+                  label="320"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
                 >320 kbps</el-radio>
               </el-radio-group>
@@ -67,11 +67,11 @@
                 class="el-col-lg-16 el-col-md-16 el-col-sm-18 el-col-xs-14"
               >
                 <el-radio
-                  :label="mp3"
+                  label="mp3"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
                 >.mp3</el-radio>
                 <el-radio
-                  :label="wav"
+                  label="wav"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
                 >.wav</el-radio>
               </el-radio-group>
@@ -93,7 +93,7 @@
               <el-button
                 class="btn-select-music"
                 :disabled="!backgroundMusic"
-                @click="dialogSelectMusic = true"
+                @click="showDialogSelectAudio"
               >Chọn từ thư viện</el-button>
               <div class="name-music" v-show="nameAudio != ''">
                 {{nameAudio}}
@@ -163,7 +163,7 @@
             </div>
           </div>
           <div class="try-listening text-center">
-            <el-button>
+            <el-button v-loading="tryListen" @click="handleTryListening">
               Nghe thử
               <i class="fa fa-volume-down"></i>
             </el-button>
@@ -225,32 +225,37 @@
 
       <!-- dialog 2 -->
       <el-dialog
+        title="Chọn nhạc nền"
         class="dialog-music"
         :visible.sync="dialogSelectMusic"
         :close-on-click-modal="false"
         width="50%"
       >
-        <span slot="title">Chọn nhạc nền</span>
-        <audio ref="audio" id="idAudio" :src="audioBackgroundSrc" preload="auto" autoplay></audio>
-        <el-table :data="tableListMusic" style="width: 100%">
-          <el-table-column prop="name" label="Tên" min-width="180"></el-table-column>
-          <el-table-column label="Nghe Thử" align="center" width="140">
+        <audio
+          ref="audioBackgroundSrc"
+          id="idAudio"
+          preload="auto"
+          :src="audioBackgroundSrc"
+          autoplay
+        ></audio>
+        <el-table :data="listAudio" style="width: 100%" v-loading="isLoadingAudio">
+          <el-table-column label="STT" width="55" class-name="stt" type="index" align="center"></el-table-column>
+          <el-table-column prop="name" label="Tên"></el-table-column>
+          <el-table-column label="Nghe Thử" align="center" width="150">
             <template slot-scope="scope">
-              <el-button
-                ref="btnPlay"
-                :icon="(idPlay === scope.row.id) ? classStopped : classPlay"
-                v-on:click="play(scope.row.path_audio, scope.row.id); audioBackgroundSrc = scope.row.path_audio; audioRef = scope.row.id"
-                type="button"
-              >Nghe thử</el-button>
+              <el-button ref="btnPlay" @click="handleStartListentTest(scope.row.link_file)">
+                Nghe thử
+                <i
+                  v-if="scope.row.link_file === audioBackgroundSrc"
+                  class="el-icon-video-pause"
+                ></i>
+                <i v-else class="el-icon-video-play"></i>
+              </el-button>
             </template>
           </el-table-column>
-          <el-table-column prop="path_audio" label="Chọn" align="center" width="150">
+          <el-table-column label="Chọn" align="center" width="150">
             <template slot-scope="scope">
-              <el-radio
-                v-model="uploadPath"
-                :label="scope.row.path_audio"
-                @change="nametmpAudio = scope.row.name;idPlay = 0;playms.pause()"
-              ></el-radio>
+              <el-radio v-model="radioAudio" :label="scope.row.link_file">{{''}}</el-radio>
             </template>
           </el-table-column>
         </el-table>
@@ -264,9 +269,23 @@
           @pagination="getAudioTemplate"
         />
         <div slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="apcceptfileAudio">Xác nhận</el-button>
-          <el-button type="danger" @click="cancelDialogMusic">Hủy</el-button>
+          <el-button type="primary" @click="acceptAudioBackground">Xác nhận</el-button>
+          <el-button type="danger" @click="dialogSelectMusic=false">Hủy</el-button>
         </div>
+      </el-dialog>
+
+      <!-- dialog audio -->
+      <el-dialog
+        title="Nghe thử"
+        :visible.sync="dialogTryListen"
+        width="30%"
+        center
+        @close="handleStopAudio"
+      >
+        <!-- audio -->
+        <audio ref="audioTest" id="idAudio" preload="auto" autoplay controls>
+          <source :src="audioTest" type="audio/mpeg" />
+        </audio>
       </el-dialog>
     </div>
     <div class="row mt-5 pb-5">
@@ -291,21 +310,8 @@ export default {
   data() {
     return {
       voiceSelect: "",
-      voices: [
-        {
-          value: "hn_male_xuantin_vdts_48k-hsmm",
-          label: "Giọng nam Hà Nội (Mạnh Dũng)"
-        },
-        {
-          value: "sg_female_xuanhong_vdts_48k-hsmm",
-          label: "Giọng nữ Sài Gòn (Lan Trinh)"
-        },
-        {
-          value: "sg_female_thaotrinh_dialog_48k-hsmm",
-          label: "Giọng nữ Sài gòn (Thảo Trinh)"
-        }
-      ],
-      qualitySelect: "",
+      voices: [],
+      bitRate: "",
       mimeType: "",
       backgroundMusic: false,
       speedVoice: 0,
@@ -320,7 +326,7 @@ export default {
         folder_name: "music"
       },
       fileList: [],
-      volumn: 50,
+      volumn: 30,
       dictionary_select: "",
       dialogSelectMusic: false,
       total: 0,
@@ -331,7 +337,16 @@ export default {
       tableListMusic: [],
       audioBackgroundSrc: "",
       autoScroll: false,
-      paginationLayout: "total, prev, pager, next"
+      paginationLayout: "total, prev, pager, next",
+      tryListen: false,
+      audioTest: null,
+      dialogTryListen: false,
+      listAudio: [],
+      isLoadingAudio: false,
+      radioAudio: "",
+      isStartTryBg: false,
+      backgroundMusicLink: "",
+      isChangeProperty: false
     };
   },
   watch: {
@@ -378,18 +393,125 @@ export default {
     handleUploadError(err, file, fileList) {
       console.log(err);
     },
+    checkVoice() {
+      if (!this.voiceSelect) {
+        this.$notify({
+          type: "error",
+          message: "Bạn chưa chọn giọng đọc",
+          offset: 50
+        });
+        return false;
+      }
+      return true;
+    },
+    checkContentBook() {
+      const { content } = this.book;
+      if (!content || content === "") {
+        this.$notify({
+          type: "error",
+          message: "Không tìm thấy nội dung sách",
+          offset: 50
+        });
+        return false;
+      }
+      return true;
+    },
+    checkVolume() {
+      if (!this.volumn || (this.volumn < 0 || this.volumn > 100)) {
+        this.$notify({
+          type: "error",
+          message: "Bạn chưa chọn âm lượng",
+          offset: 50
+        });
+        return false;
+      }
+      return true;
+    },
+    checkBiRate() {
+      if (!this.bitRate) {
+        this.$notify({
+          type: "error",
+          message: "Bạn chưa chọn chất lượng audio",
+          offset: 50
+        });
+        return false;
+      }
+      return true;
+    },
+    async handleTryListening() {
+      this.tryListen = true;
+      if (this.audioTest && !isChangeProperty) {
+        this.dialogTryListen = true;
+        this.tryListen = false;
+        return;
+      }
+      if (
+        !this.checkVoice() ||
+        !this.checkVolume() ||
+        this.checkContentBook() ||
+        !this.checkBiRate()
+      ) {
+        this.tryListen = false;
+        return;
+      }
+      const { content } = this.book;
+
+      const textTest =
+        content.length > 1000 ? content.substr(0, 1000) : content;
+      console.log(this.backgroundMusicLink);
+      const options = {
+        voice: this.voiceSelect,
+        text: textTest,
+        background_music_link: this.backgroundMusicLink,
+        rate: this.speedVoice,
+        bit_rate: this.bitRate,
+        volume_music: this.volumn
+      };
+      await axios({
+        method: "POST",
+        url: "http://localhost:8888/api/v1/tts/convert",
+        data: options
+      }).then(res => {
+        const { status, data } = res;
+        if (status === 200) {
+          const {
+            result: { link }
+          } = data;
+          this.dialogTryListen = true;
+          this.audioTest = link;
+          // audio.src = this.audioTest;
+          // audio.play();
+
+          this.tryListen = false;
+        }
+      });
+    },
+    handleStopAudio() {
+      const audio = this.$refs.audioTest;
+      audio.pause();
+    },
+    handleStopBgAudio() {
+      const audio = this.$refs.audioBackgroundSrc;
+      audio.pause();
+    },
     disableUpload: function() {
       if (this.backgroundMusic) {
         return false;
       }
       return true;
     },
-    apcceptfileAudio() {
+    acceptAudioBackground() {
+      if (!this.radioAudio || this.radioAudio === "") {
+        this.$notify({
+          type: "error",
+          message: "Bạn chưa chọn nhạc nền",
+          offset: 50
+        });
+        return;
+      }
       this.dialogSelectMusic = false;
-      this.fileList = [];
-    },
-    cancelDialogMusic() {
-      this.dialogSelectMusic = false;
+      this.backgroundMusicLink = `https://cp.aicallcenter.vn/${this.radioAudio}`;
+      this.handleStopBgAudio();
     },
     getAudioTemplate() {},
     gotoNextStep(step) {
@@ -400,7 +522,7 @@ export default {
       this.$store.dispatch("book/updateVoiceBook", value);
     },
     handleChangeBitRate(value) {
-      this.qualitySelect = value;
+      this.bitRate = value;
       this.$store.dispatch("book/updateBitRate", value);
     },
     handlChangeUsedSoundBackground(value) {
@@ -413,9 +535,40 @@ export default {
     },
     handleSendRequest() {
       // update property book
-      this.onUpdatePropertyBook();
+      // this.onUpdatePropertyBook();
       // convert book return file audio
-      this.onConvertSentenceChapters();
+      this.onConvertBook();
+    },
+    handleStartListentTest(link) {
+      if (this.isStartTryBg && this.audioBackgroundSrc === link) {
+        this.audioBackgroundSrc = null;
+        this.isStartTryBg = false;
+
+        let audio = this.$refs.audioBackgroundSrc;
+        audio.src = this.audioBackgroundSrc;
+        audio.pause();
+        return;
+      }
+
+      this.audioBackgroundSrc = link;
+      this.isStartTryBg = true;
+
+      let audio = this.$refs.audioBackgroundSrc;
+      audio.src = this.audioBackgroundSrc;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(_ => {
+            // Automatic playback started!
+            // Show playing UI.
+            // We can now safely pause video...
+            audio.pause();
+          })
+          .catch(error => {
+            // Auto-play was prevented
+            // Show paused UI.
+          });
+      }
     },
     loadInfoBook() {
       const {
@@ -425,56 +578,129 @@ export default {
         mimeType,
         soundBackground,
         usedSoundBackground,
-        soundVolumn
+        soundBackgroundVolumn
       } = this.book;
 
       this.voiceSelect = voice;
       this.mimeType = mimeType;
-      this.volumn = soundVolumn;
+      this.volumn = soundBackgroundVolumn;
       this.speedVoice = rate;
       this.backgroundMusic = usedSoundBackground;
-      this.qualitySelect = bitRate;
+      this.bitRate = bitRate;
+    },
+    async loadVoicesActive() {
+      const loading = this.$loading({
+        lock: true,
+        text: "Loading",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)"
+      });
+      try {
+        const { status, data } = await axios({
+          type: "GET",
+          method: "GET",
+          url: "http://localhost:8888/api/v1/voices"
+        });
+        if (status === 200) {
+          const { result } = data;
+
+          this.voices = result;
+          setTimeout(() => {
+            loading.close();
+          }, 500);
+        }
+      } catch (error) {
+        console.log(error.message);
+        this.voices = [];
+      }
     },
     async onUpdatePropertyBook() {
-      const {
-        id,
-        voice,
-        bitRate,
-        rate,
-        usedSoundBackground,
-        soundBackground,
-        soundVolumn
-      } = this.book;
-
-      const { data, status: statusCode } = await axios({
-        method: "PUT",
-        url: `${this.domain}books/${id}`,
-        data: {
-          bit_rate: bitRate,
+      try {
+        const {
+          id,
+          voice,
+          bitRate,
           rate,
-          used_sound_background: usedSoundBackground,
-          sound_background_volumn: soundVolumn
+          usedSoundBackground,
+          soundBackground,
+          soundBackgroundVolumn
+        } = this.book;
+        if (!id) {
+          this.$notify({
+            type: "error",
+            message: "Không tìm thấy thông tin sách của bạn",
+            offset: 50
+          });
+          return;
         }
-      });
+        if (!this.checkContentBook()) {
+          return;
+        }
 
-      if (statusCode !== 200) {
-        this.$notify.error({
-          title: "Lỗi",
-          message: "Cập nhật thông tin sách thất bại",
-          offset: 50
+        const { data, status: statusCode } = await axios({
+          method: "PUT",
+          url: `${this.domain}books/${id}`,
+          data: {
+            bit_rate: bitRate,
+            rate,
+            used_sound_background: usedSoundBackground,
+            sound_background_volumn: soundBackgroundVolumn
+          }
         });
-        return;
-      }
-      const { status } = data;
-      if (status === 1) {
-        this.$notify.success({
-          title: "Thành công",
-          message: "Cập nhật thông tin sách thành công",
-          offset: 50
-        });
+
+        if (statusCode !== 200) {
+          this.$notify.error({
+            title: "Lỗi",
+            message: "Cập nhật thông tin sách thất bại",
+            offset: 50
+          });
+          return;
+        }
+        const { status } = data;
+        if (status === 1) {
+          this.$notify.success({
+            title: "Thành công",
+            message: "Cập nhật thông tin sách thành công",
+            offset: 50
+          });
+        }
+      } catch (error) {
+        console.log(error.message);
       }
     },
-    async onConvertSentenceChapters() {}
+    onConvertBook() {
+      this.$notify({
+        title: "Thông báo",
+        type: "warning",
+        message: "Sách của bạn đang được convert ...",
+        position: "bottom-right"
+      });
+    },
+    async showDialogSelectAudio() {
+      this.dialogSelectMusic = true;
+
+      if (this.listAudio.length <= 0) {
+        try {
+          this.isLoadingAudio = true;
+          const { status, data } = await axios({
+            type: "GET",
+            method: "GET",
+            url: "http://localhost:8888/api/v1/audios"
+          });
+          if (status === 200) {
+            const { result } = data;
+
+            this.listAudio = result;
+            setTimeout(() => {
+              this.isLoadingAudio = false;
+            }, 1000);
+          }
+        } catch (error) {
+          console.log(error.message);
+          this.listAudio = [];
+        }
+      }
+    }
   },
   computed: {
     dictionarySelect: function() {
@@ -510,6 +736,7 @@ export default {
     ...mapGetters(["book", "domain"])
   },
   mounted() {
+    this.loadVoicesActive();
     this.loadInfoBook();
   }
 };

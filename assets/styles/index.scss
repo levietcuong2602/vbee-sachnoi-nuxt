@@ -60,6 +60,13 @@ div:focus {
   }
 }
 
+.el-button {
+  &:focus {
+    outline: none;
+  }
+}
+
+
 .el-dialog__wrapper {
   .el-dialog__body {
     word-break: break-word;
