@@ -229,7 +229,7 @@ export default {
   },
   data() {
     return {
-      currentStep: 1
+      currentStep: 4
     };
   },
   methods: {

@@ -166,6 +166,7 @@ export default {
         return;
       }
       this.$store.dispatch("book/updateInfoBook", {
+        ...this.book,
         ...this.bookInfo,
         file: this.fileBooks[0]
       });

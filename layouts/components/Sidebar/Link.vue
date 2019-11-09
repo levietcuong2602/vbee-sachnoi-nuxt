@@ -18,6 +18,14 @@ export default {
   },
   methods: {
     linkProps(url) {
+      if (url === "/convert-book") {
+        return {
+          is: "a",
+          href: url,
+          rel: "noopener"
+        };
+      }
+
       if (isExternal(url)) {
         return {
           is: "a",
