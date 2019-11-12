@@ -31,11 +31,11 @@
                 @change="handleChangeBitRate"
               >
                 <el-radio
-                  label="128"
+                  label="64000"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
                 >128 kbps</el-radio>
                 <el-radio
-                  label="320"
+                  label="128000"
                   class="el-col-lg-12 el-col-md-12 el-col-sm-12 el-col-xs-12"
                 >320 kbps</el-radio>
               </el-radio-group>
@@ -140,7 +140,7 @@
               ></el-slider>
             </div>
           </div>
-          <div class="dictionary">
+          <div class="dictionary" style="display: none;">
             <div class="title-dictionary el-col-md-5 el-col-sm-6 el-col-xs-24">
               <p>Từ điển cách đọc:</p>
               <i>(không bắt buộc)</i>
@@ -345,13 +345,34 @@ export default {
       isLoadingAudio: false,
       radioAudio: "",
       isStartTryBg: false,
-      backgroundMusicLink: "",
+      backgroundMusicAccept: "",
       isChangeProperty: false
     };
   },
   watch: {
     speedVoice: function(value) {
+      this.isChangeProperty = true;
       this.$store.dispatch("book/updateRate", value);
+    },
+    volumn: function(value) {
+      this.isChangeProperty = true;
+      this.$store.dispatch("book/updateSoundVolumn", value);
+    },
+    voiceSelect: function(value) {
+      this.isChangeProperty = true;
+      this.$store.dispatch("book/updateVoiceBook", value);
+    },
+    mimeType: function(value) {
+      this.isChangeProperty = true;
+      this.$store.dispatch("book/updateMimeTypeBook", value);
+    },
+    backgroundMusic: function(value) {
+      this.isChangeProperty = true;
+      this.$store.dispatch("book/updateUsedSoundBackground", value);
+    },
+    bitRate: function(value) {
+      this.isChangeProperty = true;
+      this.$store.dispatch("book/updateBitRate", value);
     }
   },
   methods: {
@@ -438,9 +459,32 @@ export default {
       }
       return true;
     },
+    checkBackgroundMusic() {
+      if (this.backgroundMusic && !this.backgroundMusicAccept) {
+        this.$notify({
+          title: "Lỗi",
+          type: "error",
+          message: "Bạn chưa chọn nhạc nền",
+          offset: 40
+        });
+        return false;
+      }
+      return true;
+    },
+    checkAudioType() {
+      if (!this.mimeType || this.mimeType === "") {
+        this.$notify({
+          type: "error",
+          message: "Bạn chưa chọn định dạng file audio",
+          offset: 50
+        });
+        return false;
+      }
+      return true;
+    },
     async handleTryListening() {
       this.tryListen = true;
-      if (this.audioTest && !isChangeProperty) {
+      if (this.audioTest && !this.isChangeProperty) {
         this.dialogTryListen = true;
         this.tryListen = false;
         return;
@@ -448,8 +492,10 @@ export default {
       if (
         !this.checkVoice() ||
         !this.checkVolume() ||
-        this.checkContentBook() ||
-        !this.checkBiRate()
+        !this.checkContentBook() ||
+        !this.checkBiRate() ||
+        !this.checkAudioType() ||
+        !this.checkBackgroundMusic()
       ) {
         this.tryListen = false;
         return;
@@ -458,33 +504,49 @@ export default {
 
       const textTest =
         content.length > 1000 ? content.substr(0, 1000) : content;
-      console.log(this.backgroundMusicLink);
-      const options = {
-        voice: this.voiceSelect,
-        text: textTest,
-        background_music_link: this.backgroundMusicLink,
-        rate: this.speedVoice,
-        bit_rate: this.bitRate,
-        volume_music: this.volumn
-      };
-      await axios({
-        method: "POST",
-        url: "http://localhost:8888/api/v1/tts/convert",
-        data: options
-      }).then(res => {
-        const { status, data } = res;
+      try {
+        const options = {
+          voice: this.voiceSelect,
+          text: textTest,
+          rate: this.speedVoice,
+          bit_rate: this.bitRate,
+          volume_music: this.volumn,
+          audio_type: this.mimeType
+        };
+
+        if (this.backgroundMusic) {
+          options.background_music_link = `https://cp.aicallcenter.vn/${this.backgroundMusicAccept}`;
+        }
+        const { status, data } = await axios({
+          method: "POST",
+          url: "http://localhost:8888/api/v1/tts/convert",
+          data: options
+        });
         if (status === 200) {
           const {
             result: { link }
           } = data;
           this.dialogTryListen = true;
           this.audioTest = link;
-          // audio.src = this.audioTest;
-          // audio.play();
 
           this.tryListen = false;
+          this.isChangeProperty = false;
+
+          this.$nextTick(() => {
+            const audio = this.$refs.audioTest;
+            audio.src = this.audioTest;
+          });
         }
-      });
+      } catch (error) {
+        console.log(error.message);
+        this.$notify({
+          title: "Convert thất bại",
+          type: "error",
+          message: "Vui lòng kiểm tra lại",
+          offset: 40
+        });
+        this.tryListen = false;
+      }
     },
     handleStopAudio() {
       const audio = this.$refs.audioTest;
@@ -509,8 +571,13 @@ export default {
         });
         return;
       }
+
+      this.backgroundMusicAccept = this.radioAudio;
       this.dialogSelectMusic = false;
-      this.backgroundMusicLink = `https://cp.aicallcenter.vn/${this.radioAudio}`;
+      this.$store.dispatch(
+        "book/updateSoundBackground",
+        `https://cp.aicallcenter.vn/${this.backgroundMusicAccept}`
+      );
       this.handleStopBgAudio();
     },
     getAudioTemplate() {},
@@ -535,7 +602,7 @@ export default {
     },
     handleSendRequest() {
       // update property book
-      // this.onUpdatePropertyBook();
+      this.onUpdatePropertyBook();
       // convert book return file audio
       this.onConvertBook();
     },
@@ -623,7 +690,8 @@ export default {
           rate,
           usedSoundBackground,
           soundBackground,
-          soundBackgroundVolumn
+          soundBackgroundVolumn,
+          mimeType
         } = this.book;
         if (!id) {
           this.$notify({
@@ -633,19 +701,30 @@ export default {
           });
           return;
         }
-        if (!this.checkContentBook()) {
+        if (
+          !this.checkVoice() ||
+          !this.checkVolume() ||
+          !this.checkContentBook() ||
+          !this.checkBiRate() ||
+          !this.checkAudioType() ||
+          !this.checkBackgroundMusic()
+        ) {
           return;
         }
 
+        const options = {
+          bit_rate: bitRate,
+          rate,
+          used_sound_background: usedSoundBackground,
+          sound_background_volumn: soundBackgroundVolumn,
+          audio_type: mimeType,
+          voice_id: voice,
+          sound_background: soundBackground
+        };
         const { data, status: statusCode } = await axios({
           method: "PUT",
           url: `${this.domain}books/${id}`,
-          data: {
-            bit_rate: bitRate,
-            rate,
-            used_sound_background: usedSoundBackground,
-            sound_background_volumn: soundBackgroundVolumn
-          }
+          data: options
         });
 
         if (statusCode !== 200) {
@@ -656,6 +735,7 @@ export default {
           });
           return;
         }
+
         const { status } = data;
         if (status === 1) {
           this.$notify.success({

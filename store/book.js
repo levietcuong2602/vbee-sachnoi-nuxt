@@ -9,7 +9,7 @@ const state = () => ({
   file: null,
   voice: "hn_male_xuantin_vdts_48k-hsmm",
   rate: 1.0,
-  bitRate: "128",
+  bitRate: "64000",
   soundBackground: "",
   usedSoundBackground: false,
   soundBackgroundVolumn: 30
@@ -31,7 +31,8 @@ const mutations = {
       bitRate,
       soundBackground,
       usedSoundBackground,
-      soundBackgroundVolumn
+      soundBackgroundVolumn,
+      file
     }
   ) => {
     state.name = name;
@@ -45,6 +46,7 @@ const mutations = {
     state.soundBackground = soundBackground;
     state.usedSoundBackground = usedSoundBackground;
     state.soundBackgroundVolumn = soundBackgroundVolumn;
+    state.file = file;
   },
   UPDATE_CHAPTER_BOOK: (state, chapters) => {
     state.chapters = chapters;

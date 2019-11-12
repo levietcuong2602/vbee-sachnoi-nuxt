@@ -155,7 +155,7 @@
       <h5>{{ messageNotify }}</h5>
       <span slot="footer" class="dialog-footer">
         <el-button type="danger" @click="dialogNotifyVisible = false">Bỏ qua tách file</el-button>
-        <el-button type="primary" @click="handleDetachFile">Tiếp tục tách file</el-button>
+        <el-button type="primary" @click="handleBeforeDetachFileContinue">Tiếp tục tách file</el-button>
       </span>
     </el-dialog>
   </div>
@@ -305,15 +305,23 @@ export default {
         this.chapters = this.detachChapter(this.contentBook);
       });
     },
+    handleBeforeDetachFileContinue() {
+      this.$nextTick(() => {
+        this.chapters = this.detachChapter(this.contentBook);
+        this.dialogNotifyVisible = false;
+      });
+    },
     async handleDetachFile() {
       // check header
       // create book and chapter
       await this.saveBookInfo();
       await this.saveChaptersInfo();
-      this.dialogNotifyVisible = false;
+      await this.updateNumberChapterBook();
 
       if (this.isSaveBook && this.isSaveChapter) {
-        this.$emit("handleNextStep", 4);
+        setTimeout(() => {
+          this.$emit("handleNextStep", 4);
+        }, 1000);
       }
     },
     checkEmptyChapterName() {
@@ -327,7 +335,12 @@ export default {
     },
     async saveBookInfo() {
       try {
-        const { name, publicYear, author } = this.book;
+        const { id, name, publicYear, author } = this.book;
+        if (id) {
+          this.isSaveBook = true;
+          return;
+        }
+
         const userId = this.userId;
         const { status, data } = await axios({
           method: "POST",
@@ -337,40 +350,46 @@ export default {
             title: name,
             author,
             public_year: publicYear,
-            status: "INIT"
+            status: "INIT",
+            number_chapter: 0
           }
         });
-        if (status !== 200) {
-          console.log("save book infomation error");
-          this.$notify.error({
-            title: "Lỗi",
-            message: "Lưu thông tin sách thất bại",
-            offset: 50
-          });
-          this.isSaveBook = false;
+        if (status === 200) {
+          if (data.status === 1) {
+            const {
+              result: { id }
+            } = data;
+            console.log("book Id: ", id);
+            this.$store.dispatch("book/updateIdBook", id);
+            this.isSaveBook = true;
+          }
           return;
         }
-        if (data.status === 1) {
-          const {
-            result: { id }
-          } = data;
-          console.log("book Id: ", id);
-          this.$store.dispatch("book/updateIdBook", id);
-          this.isSaveBook = true;
-        }
+        console.log("save book infomation error");
+        this.$notify.error({
+          title: "Lỗi",
+          message: "Lưu thông tin sách thất bại",
+          offset: 40
+        });
+        this.isSaveBook = false;
+        return;
       } catch (error) {
         console.log(error.message);
         this.$notify.error({
           title: "Lỗi",
           message: "Lưu thông tin sách thất bại",
-          offset: 50
+          offset: 40
         });
         this.isSaveBook = false;
       }
     },
     async saveChaptersInfo() {
-      const { id } = this.book;
-      if (!id) {
+      const {
+        id,
+        chapters: { length }
+      } = this.book;
+      if (!id || length > 0) {
+        this.isSaveChapter = true;
         return;
       }
       const userId = this.userId;
@@ -384,7 +403,7 @@ export default {
           bookId: id,
           userId,
           title,
-          content,
+          content: title + "\n" + content,
           status: "INIT"
         };
       });
@@ -397,40 +416,85 @@ export default {
             chapters
           }
         });
-        if (status !== 200) {
-          console.log("save chapters infomation error");
-          this.$notify.error({
-            title: "Lỗi",
-            message: "Lưu thông tin chương thất bại",
-            offset: 50
-          });
-          this.isSaveChapter = false;
-          return;
-        }
-        if (data.status === 1) {
-          const { result } = data;
-          console.log("chapter Ids: ", result);
-          if (result.length !== chapters.length) {
-            console.log("lưu chapter thất bại");
+        if (status === 200) {
+          if (data.status === 1) {
+            const { result } = data;
+            console.log("chapter Ids: ", result);
+            if (result.length !== chapters.length) {
+              console.log("lưu chapter thất bại");
+              return;
+            }
+            this.chapters = chapters.map((chapter, index) => {
+              return {
+                ...chapter,
+                id: result[index]
+              };
+            });
+            this.$store.dispatch("book/updateChapterBook", this.chapters);
+            this.isSaveChapter = true;
             return;
           }
-          this.chapters = chapters.map((chapter, index) => {
-            return {
-              ...chapter,
-              id: result[index]
-            };
-          });
-          this.$store.dispatch("book/updateChapterBook", this.chapters);
-          this.isSaveChapter = true;
         }
+
+        console.log("save chapters infomation error");
+        this.$notify.error({
+          title: "Lỗi",
+          message: "Lưu thông tin chương thất bại"
+        });
+        this.isSaveChapter = false;
+        return;
       } catch (error) {
         console.log(error.message);
         this.$notify.error({
           title: "Lỗi",
           message: "Lưu thông tin chương thất bại",
-          offset: 50
+          offset: 40
         });
         this.isSaveChapter = false;
+      }
+    },
+    async updateNumberChapterBook() {
+      this.isSaveBook = false;
+      const { id } = this.book;
+      if (!id) {
+        return;
+      }
+      try {
+        const {
+          id,
+          chapters: { length }
+        } = this.book;
+        console.log(id);
+        const { status, data } = await axios({
+          method: "PUT",
+          url: `${this.domain}books/${id}`,
+          data: {
+            number_chapter: length
+          }
+        });
+        if (status === 200) {
+          if (data.status === 1) {
+            this.isSaveBook = true;
+          }
+          return;
+        }
+
+        console.log("update chapters infomation error");
+        this.$notify.error({
+          title: "Lỗi",
+          message: "Cập nhật số chương thất bại",
+          offset: 40
+        });
+        this.isSaveBook = false;
+        return;
+      } catch (error) {
+        console.log(error.message);
+        this.$notify.error({
+          title: "Lỗi",
+          message: "Cập nhật số chương thất bại",
+          offset: 40
+        });
+        this.isSaveBook = false;
       }
     }
   },

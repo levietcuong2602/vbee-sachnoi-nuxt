@@ -132,10 +132,13 @@ export function detachChapter(content) {
   const regexChapter = RegExp(
     /<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>|<h>|<\/H>|<H>|<\/h>/g
   );
-  if (!regex.test(content)) {
-    return [];
+  let chapters;
+  if (regex.test(content)) {
+    chapters = content.split(regex);
+  } else {
+    chapters = [content];
   }
-  let chapters = content.split(regex);
+
   let pageStart = 1;
   let pageEnd = 1;
 
@@ -154,7 +157,10 @@ export function detachChapter(content) {
           chapter = chapter.replace(title, "");
           title =
             `Chương ${index + 1}: ` +
-            title.replace(/<h[0-9]+>|<\/h[0-9]+>/gi, "");
+            title.replace(
+              /<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>|<h>|<\/H>|<H>|<\/h>/g,
+              ""
+            );
         }
       }
       return {
