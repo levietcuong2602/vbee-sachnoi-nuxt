@@ -35,7 +35,7 @@
               <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
             </el-table-column>
             <el-table-column label="Tổng số phần/chương">
-              <template slot-scope="scope">{{ scope.row.chapter_ids.length }}</template>
+              <template slot-scope="scope">{{ scope.row.number_chapter }}</template>
             </el-table-column>
             <el-table-column property="status" label="Trạng thái"></el-table-column>
             <el-table-column label="Thao tác" align="center">
@@ -127,8 +127,8 @@ export default {
     },
     async getBooks() {
       try {
-        let start = '';
-        let end = '';
+        let start = "";
+        let end = "";
         if (this.dateRange) {
           start = new Date(this.dateRange[0]).valueOf();
           end = new Date(this.dateRange[1]).valueOf();
