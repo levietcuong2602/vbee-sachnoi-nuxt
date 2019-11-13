@@ -105,7 +105,10 @@
                 ></el-button>
               </div>
             </div>
-            <div class="btn-select-local el-col-lg-5 el-col-md-5 el-col-sm-7 el-col-xs-12">
+            <div
+              class="btn-select-local el-col-lg-5 el-col-md-5 el-col-sm-7 el-col-xs-12"
+              style="display: none;"
+            >
               <el-upload
                 class="upload-demo"
                 name="file"
@@ -294,6 +297,30 @@
         <el-button type="warning" @click="handleSendRequest">Gửi yêu cầu</el-button>
       </div>
     </div>
+
+    <!-- dialog notify -->
+    <el-dialog title="Nghe thử" :visible.sync="dialogCongratulation" width="30%" center>
+      <p slot="title" class="text-center">Chúc mừng</p>
+      <p>
+        Yêu cầu của bạn đã được gửi.
+        <br />Hệ thống đang xử lý yêu cầu của bạn
+      </p>
+      <div slot="footer">
+        <el-button type="primary" @click="dialogCongratulation=false">OK</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog title="Nghe thử" :visible.sync="dialogNotifyFail" width="30%" center>
+      <p slot="title" class="text-center">Chúc mừng</p>
+      <p>
+        Yêu cầu của bạn đã được gửi.
+        <br />Hệ thống đang xử lý yêu cầu của bạn
+      </p>
+      <div slot="footer">
+        <el-button type="warning" @click="dialogNotifyFail=false">Gửi lại yêu cầu</el-button>
+        <el-button type="danger" @click="dialogNotifyFail=false">Bỏ qua</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -346,7 +373,10 @@ export default {
       radioAudio: "",
       isStartTryBg: false,
       backgroundMusicAccept: "",
-      isChangeProperty: false
+      isChangeProperty: false,
+      dialogCongratulation: false,
+      dialogNotifyFail: false,
+      isUpdateBook: false
     };
   },
   watch: {
@@ -500,7 +530,9 @@ export default {
         this.tryListen = false;
         return;
       }
-      const { content } = this.book;
+      const {
+        chapters: [{ content }]
+      } = this.book;
 
       const textTest =
         content.length > 1000 ? content.substr(0, 1000) : content;
@@ -549,12 +581,20 @@ export default {
       }
     },
     handleStopAudio() {
-      const audio = this.$refs.audioTest;
-      audio.pause();
+      try {
+        const audio = this.$refs.audioTest;
+        audio.pause();
+      } catch (error) {
+        console.log(error.message);
+      }
     },
     handleStopBgAudio() {
-      const audio = this.$refs.audioBackgroundSrc;
-      audio.pause();
+      try {
+        const audio = this.$refs.audioBackgroundSrc;
+        audio.pause();
+      } catch (error) {
+        console.log(error.message);
+      }
     },
     disableUpload: function() {
       if (this.backgroundMusic) {
@@ -600,9 +640,9 @@ export default {
       this.volumn = value;
       this.$store.dispatch("book/updateSoundVolumn", value);
     },
-    handleSendRequest() {
+    async handleSendRequest() {
       // update property book
-      this.onUpdatePropertyBook();
+      await this.onUpdatePropertyBook();
       // convert book return file audio
       this.onConvertBook();
     },
@@ -626,15 +666,9 @@ export default {
       if (playPromise !== undefined) {
         playPromise
           .then(_ => {
-            // Automatic playback started!
-            // Show playing UI.
-            // We can now safely pause video...
             audio.pause();
           })
-          .catch(error => {
-            // Auto-play was prevented
-            // Show paused UI.
-          });
+          .catch(error => {});
       }
     },
     loadInfoBook() {
@@ -682,6 +716,7 @@ export default {
       }
     },
     async onUpdatePropertyBook() {
+      this.isUpdateBook = false;
       try {
         const {
           id,
@@ -721,40 +756,50 @@ export default {
           voice_id: voice,
           sound_background: soundBackground
         };
-        const { data, status: statusCode } = await axios({
+        const {
+          data: { status },
+          status: statusCode
+        } = await axios({
           method: "PUT",
           url: `${this.domain}books/${id}`,
           data: options
         });
 
-        if (statusCode !== 200) {
-          this.$notify.error({
-            title: "Lỗi",
-            message: "Cập nhật thông tin sách thất bại",
-            offset: 50
-          });
+        if (statusCode === 200 && status === 1) {
+          this.isUpdateBook = true;
           return;
         }
-
-        const { status } = data;
-        if (status === 1) {
-          this.$notify.success({
-            title: "Thành công",
-            message: "Cập nhật thông tin sách thành công",
-            offset: 50
-          });
-        }
+        this.$notify.error({
+          title: "Lỗi",
+          message: "Cập nhật thông tin sách thất bại",
+          offset: 50
+        });
+        return;
       } catch (error) {
         console.log(error.message);
       }
     },
-    onConvertBook() {
+    async onConvertBook() {
+      if (!this.isUpdateBook) return;
       this.$notify({
         title: "Thông báo",
         type: "warning",
         message: "Sách của bạn đang được convert ...",
         position: "bottom-right"
       });
+      const { id } = this.book;
+      const {
+        data: { status },
+        status: statusCode
+      } = await axios({
+        method: "GET",
+        url: `${this.domain}tts/convert/${id}`
+      });
+      if (statusCode === 200 && status === 1) {
+        this.dialogCongratulation = true;
+        return;
+      }
+      this.dialogNotifyFail = true;
     },
     async showDialogSelectAudio() {
       this.dialogSelectMusic = true;

@@ -78,19 +78,7 @@ module.exports = {
   /*
    ** Nuxt.js modules
    */
-  modules: ["@nuxtjs/proxy", "@nuxtjs/axios"],
-  proxy: {
-    "/api/": {
-      target: "https://tts-cloud.vbeecore.com",
-      pathRewrite: { "^/api/tts": "" },
-      changeOrigin: true
-    }
-  },
-  axios: {
-    baseURL: "https://tts-cloud.vbeecore.com",
-    proxyHeaders: false,
-    credentials: false
-  },
+  modules: [],
   /*
    ** Build configuration
    */
