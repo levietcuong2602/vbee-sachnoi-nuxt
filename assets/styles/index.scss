@@ -1,8 +1,8 @@
-@import './variables.scss';
-@import './mixin.scss';
-@import './transition.scss';
-@import './element-ui.scss';
-@import './sidebar.scss';
+@import "./variables.scss";
+@import "./mixin.scss";
+@import "./transition.scss";
+@import "./element-ui.scss";
+@import "./sidebar.scss";
 
 body {
   margin: 0px;
@@ -10,7 +10,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB,
+    Microsoft YaHei, Arial, sans-serif;
 }
 
 label {
@@ -66,6 +67,12 @@ div:focus {
   }
 }
 
+.el-dialog {
+  .el-dialog__header {
+    background: #304156;
+    color: #fff;
+  }
+}
 
 .el-dialog__wrapper {
   .el-dialog__body {
@@ -118,7 +125,7 @@ div:focus {
   }
   .el-slider__runway {
     margin-right: 50px;
-    margin-left: 15px
+    margin-left: 15px;
   }
 }
 
@@ -138,7 +145,7 @@ div:focus {
 .book-detail__inner-dialog {
   .el-dialog__header {
     padding: 10px;
-    background: #409EFF;
+    background: #409eff;
     color: #fff;
 
     h5 {
@@ -164,8 +171,8 @@ div:focus {
 
 // component package item
 $colorStart: #0dd260;
-$colorMiddle: #F2C94C;
-$colorEnd: #EB5757;
+$colorMiddle: #f2c94c;
+$colorEnd: #eb5757;
 .cost-item {
   .cost-item__main {
     .el-slider {
@@ -209,7 +216,7 @@ $colorEnd: #EB5757;
       .el-slider__runway {
         background: $colorMiddle;
         .el-slider__bar {
-          background: linear-gradient(90deg, #0DD260 0%, #F2C94C 98.7%);
+          background: linear-gradient(90deg, #0dd260 0%, #f2c94c 98.7%);
         }
         .el-slider__button {
           background: $colorMiddle;
@@ -224,7 +231,12 @@ $colorEnd: #EB5757;
       .el-slider__runway {
         background: $colorEnd;
         .el-slider__bar {
-          background: linear-gradient(90deg, #0DD260 0%, #F2C94C 49.35%, #EB5757 98.7%);
+          background: linear-gradient(
+            90deg,
+            #0dd260 0%,
+            #f2c94c 49.35%,
+            #eb5757 98.7%
+          );
         }
         .el-slider__button {
           background: $colorEnd;

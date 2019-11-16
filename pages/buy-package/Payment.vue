@@ -684,6 +684,8 @@ import cities from "@/data/cities.js";
 import methodOfPayments from "@/data/methodOfPayments.js";
 import banks from "@/data/banks.js";
 
+import { getPackages } from "@/api/package";
+
 import axios from "axios";
 import { switchCase } from "@babel/types";
 import { mapGetters } from "vuex";
@@ -966,44 +968,40 @@ export default {
   created() {
     this.loadCss();
   },
-  async asyncData({ params }) {
-    try {
-      const { status, data } = await axios({
-        type: "GET",
-        method: "GET",
-        url: "http://localhost:8888/api/v1/packages"
+  async asyncData() {
+    return getPackages()
+      .then(res => {
+        const { status, result } = res;
+        if (status === 1) {
+          const data = {};
+          for (const item of result) {
+            const { code, id, amount, processing_time } = item;
+            if (data[code] === undefined) {
+              data[code] = {
+                ...item,
+                id: [id],
+                amount: [amount],
+                processing_time: [processing_time]
+              };
+            } else {
+              data[code].id.unshift(id);
+              data[code].amount.unshift(amount);
+              data[code].processing_time.unshift(processing_time);
+            }
+          }
+          const listPackages = [];
+          for (const item in data) {
+            if (data.hasOwnProperty(item)) {
+              const pkg = data[item];
+              listPackages.push(pkg);
+            }
+          }
+          return { listPackages };
+        }
+      })
+      .catch(err => {
+        return { listPackages: [] };
       });
-      if (status === 200) {
-        const result = {};
-        const { results } = data;
-        for (const item of results) {
-          const { code, id, amount, processing_time } = item;
-          if (result[code] === undefined) {
-            result[code] = {
-              ...item,
-              id: [id],
-              amount: [amount],
-              processing_time: [processing_time]
-            };
-          } else {
-            result[code].id.unshift(id);
-            result[code].amount.unshift(amount);
-            result[code].processing_time.unshift(processing_time);
-          }
-        }
-        const listPackages = [];
-        for (const item in result) {
-          if (result.hasOwnProperty(item)) {
-            const pkg = result[item];
-            listPackages.push(pkg);
-          }
-        }
-        return { listPackages };
-      }
-    } catch (error) {
-      console.log(error.message);
-    }
-    return { listPackages: [] };
   }
 };
 </script>

@@ -1,9 +1,9 @@
 import request from "@/utils/request";
 
-export function getPackages() {
+export function getChapters(params) {
   return request({
-    type: "GET",
+    url: "/api/v1/chapters",
     method: "GET",
-    url: "/api/v1/packages"
+    params
   });
 }

@@ -37,6 +37,7 @@
         <div class="book-detail__main">
           <el-scrollbar wrap-class="book-detail__scroll">
             <el-table
+              v-loading="isLoadingData"
               ref="singleTable"
               :data="chapterBooks"
               highlight-current-row
@@ -95,7 +96,7 @@
                       />
                     </svg>
                   </span>
-                  <span @click="dialogDetailVisible = !dialogDetailVisible">
+                  <span @click="showDetailContentChapter">
                     <svg
                       width="24"
                       height="24"
@@ -287,8 +288,9 @@
 <script>
 import phrases from "@/data";
 import moment from "moment";
-import axios from "axios";
 import { mapGetters } from "vuex";
+import { getBookInfo } from "@/api/book";
+import { getChapters } from "@/api/chapter";
 
 const OPTIONS_TYPE = {
   ADD_BEFORE_PHRASE: 0,
@@ -300,44 +302,7 @@ export default {
   name: "BookDetail",
   data() {
     return {
-      chapterBooks: [
-        {
-          headerNumber: "Phần 1: Mở đầu",
-          timeRequest: "17:20:24 - 19/04/2019",
-          timeResponse: "17:20:24 - 20/04/2019",
-          length: "00:04:42",
-          status: "1"
-        },
-        {
-          headerNumber:
-            "Phần 2: Đoán biết tâm lý dựa theo phản xạ người đối diện",
-          timeRequest: "17:20:24 - 19/04/2019",
-          timeResponse: "17:20:24 - 20/04/2019",
-          length: "00:04:42",
-          status: "2"
-        },
-        {
-          headerNumber: "Phần 3: Nắm bắt cử chỉ",
-          timeRequest: "17:20:24 - 19/04/2019",
-          timeResponse: "17:20:24 - 20/04/2019",
-          length: "00:04:42",
-          status: "0"
-        },
-        {
-          headerNumber: "Phần 4: Thuyết phục thật tự nhiên",
-          timeRequest: "17:20:24 - 19/04/2019",
-          timeResponse: "17:20:24 - 20/04/2019",
-          length: "00:04:42",
-          status: "1"
-        },
-        {
-          headerNumber: "Những câu chuyện thực tế",
-          timeRequest: "17:20:24 - 19/04/2019",
-          timeResponse: "17:20:24 - 20/04/2019",
-          length: "00:04:42",
-          status: "1"
-        }
-      ],
+      chapterBooks: [],
       dialogDetailVisible: false,
       innerVisible: false,
       phrases,
@@ -353,7 +318,8 @@ export default {
       pageCurrent: 1,
       // context-menu
       contextMenuWidth: null,
-      contextMenuHeight: null
+      contextMenuHeight: null,
+      isLoadingData: true
     };
   },
   methods: {
@@ -578,55 +544,57 @@ export default {
     async getBookInfo() {
       try {
         const { bookId } = this.$route.params;
-        const { status, data } = await axios({
-          type: "GET",
-          method: "GET",
-          url: `http://localhost:8888/api/v1/books/${bookId}`
-        });
-
-        if (status !== 200) {
+        getBookInfo(bookId).then(res => {
+          const { status, result } = res;
+          if (status === 1) {
+            this.bookInfo = result;
+            return;
+          }
           this.bookInfo = null;
-          return;
-        }
-        const { result } = data;
-        this.bookInfo = result;
+        });
       } catch (error) {
         console.log(error.message);
         this.bookInfo = null;
       }
     },
     async getChapterList() {
-      try {
-        const { bookId } = this.$route.params;
+      this.isLoadingData = true;
+      const { bookId } = this.$route.params;
 
-        let start = '';
-        let end = '';
-        if (this.dateRange) {
-          start = new Date(this.dateRange[0]).valueOf();
-          end = new Date(this.dateRange[1]).valueOf();
-        }
-        const { status, data } = await axios({
-          type: "GET",
-          method: "GET",
-          url: `http://localhost:8888/api/v1/chapters?limit=${this.limit}&book_id=${bookId}&page_num=${this.pageCurrent}&start_time=${start}&end_time=${end}`
-        });
-
-        if (status === 200) {
-          const {
-            result: {
-              pager: { limit, total_count, current_page_num }
-            }
-          } = data;
-
-          this.pageCurrent = current_page_num;
-          this.total = total_count;
-          this.chapterBooks = data.result.data;
-        }
-      } catch (error) {
-        console.log(error.message);
-        this.total = 0;
-        this.chapterBooks = [];
+      let start = "";
+      let end = "";
+      if (this.dateRange) {
+        start = new Date(this.dateRange[0]).valueOf();
+        end = new Date(this.dateRange[1]).valueOf();
       }
+      const options = {
+        limit: this.limit,
+        book_id: bookId,
+        page_num: this.pageCurrent,
+        start_time: start,
+        end_time: end
+      };
+      getChapters(options)
+        .then(res => {
+          const { status, result } = res;
+          if (status === 1) {
+            const {
+              pager: { limit, total_count, current_page_num },
+              data
+            } = result;
+
+            this.pageCurrent = current_page_num;
+            this.total = total_count;
+            this.chapterBooks = data;
+
+            console.log(this.chapterBooks);
+          }
+        })
+        .catch(err => {
+          this.total = 0;
+          this.chapterBooks = [];
+        });
+      this.isLoadingData = false;
     },
     formatTimeRequest(time) {
       const date = new Date(time);

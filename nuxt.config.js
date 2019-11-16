@@ -41,6 +41,9 @@ module.exports = {
       }
     ]
   },
+  env: {
+    baseUrl: process.env.BASE_URL || "http://localhost:8888"
+  },
   /*
    ** Customize the progress-bar color
    */
