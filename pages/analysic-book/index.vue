@@ -29,15 +29,15 @@
             :header-cell-style="{background: '#EAECED'}"
             v-loading="loading"
           >
-            <el-table-column type="index" width="50"></el-table-column>
-            <el-table-column property="title" label="Tên sách" width="320"></el-table-column>
-            <el-table-column label="Ngày gửi yêu cầu">
+            <el-table-column type="index" width="50" align="center"></el-table-column>
+            <el-table-column property="title" label="Tên sách" width="320" align="center"></el-table-column>
+            <el-table-column label="Ngày gửi yêu cầu" align="center">
               <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
             </el-table-column>
-            <el-table-column label="Tổng số phần/chương">
+            <el-table-column label="Tổng số phần/chương" align="center">
               <template slot-scope="scope">{{ scope.row.number_chapter }}</template>
             </el-table-column>
-            <el-table-column property="status" label="Trạng thái"></el-table-column>
+            <el-table-column property="status" label="Trạng thái" align="center"></el-table-column>
             <el-table-column label="Thao tác" align="center">
               <template slot-scope="scope">
                 <span>
@@ -108,6 +108,8 @@ import { mapGetters } from "vuex";
 import axios from "axios";
 import moment from "moment";
 
+import { getBooks } from "@/api/book";
+
 export default {
   name: "AnalysicBook",
   computed: { ...mapGetters(["userId"]) },
@@ -126,42 +128,48 @@ export default {
       this.$router.push("/analysic-book/" + bookId);
     },
     async getBooks() {
-      try {
-        let start = "";
-        let end = "";
-        if (this.dateRange) {
-          start = new Date(this.dateRange[0]).valueOf();
-          end = new Date(this.dateRange[1]).valueOf();
-        }
-        const { data, status } = await axios({
-          method: "GET",
-          type: "GET",
-          url: `http://localhost:8888/api/v1/books?limit=${this.limit}&user_id=${this.userId}&page_num=${this.pageCurrent}&start_time=${start}&end_time=${end}`
-        });
-
-        if (status !== 200) {
-          this.tableData = [];
-          this.loading = false;
-          return;
-        }
-        const {
-          result: {
-            pager: { total_count, current_page_num }
-          }
-        } = data;
-
-        this.pageCurrent = current_page_num;
-        this.total = total_count;
-        this.tableData = data.result.data;
-        this.loading = false;
-      } catch (error) {
-        console.log(error.message);
-
-        this.tableData = [];
-        this.pageCurrent = 1;
-        this.total = 0;
-        this.loading = false;
+      this.book = true;
+      let start = "";
+      let end = "";
+      if (this.dateRange) {
+        start = new Date(this.dateRange[0]).valueOf();
+        end = new Date(this.dateRange[1]).valueOf();
       }
+
+      getBooks({
+        limit: this.limit,
+        user_id: this.userId,
+        page_num: this.pageCurrent,
+        start_time: start,
+        end_time: end
+      })
+        .then(res => {
+          const {
+            result: {
+              data,
+              pager: { total_count, current_page_num }
+            },
+            status
+          } = res;
+
+          if (status === 1) {
+            this.pageCurrent = current_page_num;
+            this.total = total_count;
+            this.tableData = data;
+            this.loading = false;
+          } else {
+            this.tableData = [];
+            this.pageCurrent = 1;
+            this.loading = false;
+            return;
+          }
+        })
+        .catch(err => {
+          this.tableData = [];
+          this.pageCurrent = 1;
+          this.total = 0;
+          this.loading = false;
+        });
     },
     formatTimeRequest(time) {
       const date = new Date(time);

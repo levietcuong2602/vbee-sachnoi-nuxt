@@ -105,7 +105,10 @@
                 ></el-button>
               </div>
             </div>
-            <div class="btn-select-local el-col-lg-5 el-col-md-5 el-col-sm-7 el-col-xs-12">
+            <div
+              class="btn-select-local el-col-lg-5 el-col-md-5 el-col-sm-7 el-col-xs-12"
+              style="display: none;"
+            >
               <el-upload
                 class="upload-demo"
                 name="file"
@@ -216,6 +219,9 @@
         width="30%"
         custom-class="dialog-delete-music"
       >
+        <div class="text-center" slot="title">
+          <b>Thông báo</b>
+        </div>
         <div>Bạn có chắc muốn xóa file: {{nameAudio}}</div>
         <div slot="footer" class="dialog-footer">
           <el-button @click="dialogConfirmDeleteMusic = false">Hủy</el-button>
@@ -225,12 +231,14 @@
 
       <!-- dialog 2 -->
       <el-dialog
-        title="Chọn nhạc nền"
         class="dialog-music"
         :visible.sync="dialogSelectMusic"
         :close-on-click-modal="false"
         width="50%"
       >
+        <div slot="title" class="text-center">
+          <b>Chọn nhạc nền</b>
+        </div>
         <audio
           ref="audioBackgroundSrc"
           id="idAudio"
@@ -238,27 +246,29 @@
           :src="audioBackgroundSrc"
           autoplay
         ></audio>
-        <el-table :data="listAudio" style="width: 100%" v-loading="isLoadingAudio">
-          <el-table-column label="STT" width="55" class-name="stt" type="index" align="center"></el-table-column>
-          <el-table-column prop="name" label="Tên"></el-table-column>
-          <el-table-column label="Nghe Thử" align="center" width="150">
-            <template slot-scope="scope">
-              <el-button ref="btnPlay" @click="handleStartListentTest(scope.row.link_file)">
-                Nghe thử
-                <i
-                  v-if="scope.row.link_file === audioBackgroundSrc"
-                  class="el-icon-video-pause"
-                ></i>
-                <i v-else class="el-icon-video-play"></i>
-              </el-button>
-            </template>
-          </el-table-column>
-          <el-table-column label="Chọn" align="center" width="150">
-            <template slot-scope="scope">
-              <el-radio v-model="radioAudio" :label="scope.row.link_file">{{''}}</el-radio>
-            </template>
-          </el-table-column>
-        </el-table>
+        <el-scrollbar wrap-class="preview-book__scroll">
+          <el-table :data="listAudio" style="width: 100%" v-loading="isLoadingAudio">
+            <el-table-column label="STT" width="55" class-name="stt" type="index" align="center"></el-table-column>
+            <el-table-column prop="name" label="Tên"></el-table-column>
+            <el-table-column label="Nghe Thử" align="center" width="150">
+              <template slot-scope="scope">
+                <el-button ref="btnPlay" @click="handleStartListentTest(scope.row.link_file)">
+                  Nghe thử
+                  <i
+                    v-if="scope.row.link_file === audioBackgroundSrc"
+                    class="el-icon-video-pause"
+                  ></i>
+                  <i v-else class="el-icon-video-play"></i>
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column label="Chọn" align="center" width="150">
+              <template slot-scope="scope">
+                <el-radio v-model="radioAudio" :label="scope.row.link_file">{{''}}</el-radio>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-scrollbar>
         <pagination
           v-show="total>listQuery.limit"
           :autoScroll="autoScroll"
@@ -275,13 +285,10 @@
       </el-dialog>
 
       <!-- dialog audio -->
-      <el-dialog
-        title="Nghe thử"
-        :visible.sync="dialogTryListen"
-        width="30%"
-        center
-        @close="handleStopAudio"
-      >
+      <el-dialog :visible.sync="dialogTryListen" width="30%" center @close="handleStopAudio">
+        <div class="text-center" slot="title">
+          <b>Nghe thử</b>
+        </div>
         <!-- audio -->
         <audio ref="audioTest" id="idAudio" preload="auto" autoplay controls>
           <source :src="audioTest" type="audio/mpeg" />
@@ -294,13 +301,47 @@
         <el-button type="warning" @click="handleSendRequest">Gửi yêu cầu</el-button>
       </div>
     </div>
+
+    <!-- dialog notify -->
+    <el-dialog :visible.sync="dialogCongratulation" width="30%" center>
+      <div slot="title" class="text-center">
+        <b>Chúc mừng</b>
+      </div>
+      <p>
+        Yêu cầu của bạn đã được gửi.
+        <br />Hệ thống đang xử lý yêu cầu của bạn
+      </p>
+      <div slot="footer">
+        <el-button type="primary" @click="dialogCongratulation=false">OK</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog :visible.sync="dialogNotifyFail" width="30%" center>
+      <div slot="title" class="text-center">
+        <b>Thất bại</b>
+      </div>
+      <p>
+        Đã xảy ra lỗi.
+        <br />Vui lòng kiểm tra lại
+      </p>
+      <div slot="footer">
+        <el-button type="warning" @click="dialogNotifyFail=false">Gửi lại yêu cầu</el-button>
+        <el-button type="danger" @click="dialogNotifyFail=false">Bỏ qua</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
-import { getToken } from "@/utils/auth";
-import Pagination from "@/components/Pagination";
-import { mapGetters } from "vuex";
 import axios from "axios";
+import { mapGetters } from "vuex";
+
+import { getToken } from "@/utils/auth";
+
+import Pagination from "@/components/Pagination";
+
+import { getVoices } from "@/api/voice";
+import { getAudios } from "@/api/audio";
+import { convertTTS, convertBook } from "@/api/tts";
 
 export default {
   name: "Step4",
@@ -346,7 +387,10 @@ export default {
       radioAudio: "",
       isStartTryBg: false,
       backgroundMusicAccept: "",
-      isChangeProperty: false
+      isChangeProperty: false,
+      dialogCongratulation: false,
+      dialogNotifyFail: false,
+      isUpdateBook: false
     };
   },
   watch: {
@@ -500,61 +544,70 @@ export default {
         this.tryListen = false;
         return;
       }
-      const { content } = this.book;
+      const {
+        chapters: [{ content }]
+      } = this.book;
 
       const textTest =
         content.length > 1000 ? content.substr(0, 1000) : content;
-      try {
-        const options = {
-          voice: this.voiceSelect,
-          text: textTest,
-          rate: this.speedVoice,
-          bit_rate: this.bitRate,
-          volume_music: this.volumn,
-          audio_type: this.mimeType
-        };
+      const options = {
+        voice: this.voiceSelect,
+        text: textTest,
+        rate: this.speedVoice,
+        bit_rate: this.bitRate,
+        volume_music: this.volumn,
+        audio_type: this.mimeType
+      };
 
-        if (this.backgroundMusic) {
-          options.background_music_link = `https://cp.aicallcenter.vn/${this.backgroundMusicAccept}`;
-        }
-        const { status, data } = await axios({
-          method: "POST",
-          url: "http://localhost:8888/api/v1/tts/convert",
-          data: options
-        });
-        if (status === 200) {
-          const {
-            result: { link }
-          } = data;
-          this.dialogTryListen = true;
-          this.audioTest = link;
-
-          this.tryListen = false;
-          this.isChangeProperty = false;
-
-          this.$nextTick(() => {
-            const audio = this.$refs.audioTest;
-            audio.src = this.audioTest;
-          });
-        }
-      } catch (error) {
-        console.log(error.message);
-        this.$notify({
-          title: "Convert thất bại",
-          type: "error",
-          message: "Vui lòng kiểm tra lại",
-          offset: 40
-        });
-        this.tryListen = false;
+      if (this.backgroundMusic) {
+        options.background_music_link = `https://cp.aicallcenter.vn/${this.backgroundMusicAccept}`;
       }
+
+      convertTTS(options)
+        .then(res => {
+          const {
+            status,
+            result: { link }
+          } = res;
+          if (status === 1) {
+            this.dialogTryListen = true;
+            this.audioTest = link;
+
+            this.tryListen = false;
+            this.isChangeProperty = false;
+
+            this.$nextTick(() => {
+              const audio = this.$refs.audioTest;
+              audio.src = this.audioTest;
+            });
+          }
+        })
+        .catch(err => {
+          console.log(err.message);
+          this.$notify({
+            title: "Convert thất bại",
+            type: "error",
+            message: "Vui lòng kiểm tra lại",
+            offset: 40
+          });
+          this.tryListen = false;
+        });
     },
     handleStopAudio() {
-      const audio = this.$refs.audioTest;
-      audio.pause();
+      try {
+        const audio = this.$refs.audioTest;
+        audio.pause();
+      } catch (error) {
+        console.log(error.message);
+      }
     },
     handleStopBgAudio() {
-      const audio = this.$refs.audioBackgroundSrc;
-      audio.pause();
+      try {
+        const audio = this.$refs.audioBackgroundSrc;
+        audio.pause();
+      } catch (error) {
+        console.log(error.message);
+      }
     },
     disableUpload: function() {
       if (this.backgroundMusic) {
@@ -600,9 +653,9 @@ export default {
       this.volumn = value;
       this.$store.dispatch("book/updateSoundVolumn", value);
     },
-    handleSendRequest() {
+    async handleSendRequest() {
       // update property book
-      this.onUpdatePropertyBook();
+      await this.onUpdatePropertyBook();
       // convert book return file audio
       this.onConvertBook();
     },
@@ -626,15 +679,9 @@ export default {
       if (playPromise !== undefined) {
         playPromise
           .then(_ => {
-            // Automatic playback started!
-            // Show playing UI.
-            // We can now safely pause video...
             audio.pause();
           })
-          .catch(error => {
-            // Auto-play was prevented
-            // Show paused UI.
-          });
+          .catch(error => {});
       }
     },
     loadInfoBook() {
@@ -662,26 +709,23 @@ export default {
         spinner: "el-icon-loading",
         background: "rgba(0, 0, 0, 0.7)"
       });
-      try {
-        const { status, data } = await axios({
-          type: "GET",
-          method: "GET",
-          url: "http://localhost:8888/api/v1/voices"
+      getVoices()
+        .then(res => {
+          const { status, result } = res;
+          if (status === 1) {
+            this.voices = result;
+            setTimeout(() => {
+              loading.close();
+            }, 500);
+          }
+        })
+        .catch(err => {
+          console.log(err.message);
+          this.voices = [];
         });
-        if (status === 200) {
-          const { result } = data;
-
-          this.voices = result;
-          setTimeout(() => {
-            loading.close();
-          }, 500);
-        }
-      } catch (error) {
-        console.log(error.message);
-        this.voices = [];
-      }
     },
     async onUpdatePropertyBook() {
+      this.isUpdateBook = false;
       try {
         const {
           id,
@@ -721,64 +765,76 @@ export default {
           voice_id: voice,
           sound_background: soundBackground
         };
-        const { data, status: statusCode } = await axios({
+        const {
+          data: { status },
+          status: statusCode
+        } = await axios({
           method: "PUT",
           url: `${this.domain}books/${id}`,
           data: options
         });
 
-        if (statusCode !== 200) {
-          this.$notify.error({
-            title: "Lỗi",
-            message: "Cập nhật thông tin sách thất bại",
-            offset: 50
-          });
+        if (statusCode === 200 && status === 1) {
+          this.isUpdateBook = true;
           return;
         }
-
-        const { status } = data;
-        if (status === 1) {
-          this.$notify.success({
-            title: "Thành công",
-            message: "Cập nhật thông tin sách thành công",
-            offset: 50
-          });
-        }
+        this.$notify.error({
+          title: "Lỗi",
+          message: "Cập nhật thông tin sách thất bại",
+          offset: 50
+        });
+        return;
       } catch (error) {
         console.log(error.message);
       }
     },
-    onConvertBook() {
+    async onConvertBook() {
+      if (!this.isUpdateBook) return;
       this.$notify({
         title: "Thông báo",
         type: "warning",
         message: "Sách của bạn đang được convert ...",
         position: "bottom-right"
       });
+      const { id } = this.book;
+      const {
+        data: { status },
+        status: statusCode
+      } = await axios({
+        method: "GET",
+        url: `${this.domain}tts/convert/${id}`
+      });
+
+      convertBook()
+        .then(res => {
+          const { status } = res;
+          if (status === 1) {
+            this.dialogCongratulation = true;
+          }
+        })
+        .catch(err => {
+          this.dialogNotifyFail = true;
+        });
     },
     async showDialogSelectAudio() {
       this.dialogSelectMusic = true;
 
       if (this.listAudio.length <= 0) {
-        try {
-          this.isLoadingAudio = true;
-          const { status, data } = await axios({
-            type: "GET",
-            method: "GET",
-            url: "http://localhost:8888/api/v1/audios"
+        this.isLoadingAudio = true;
+        getAudios()
+          .then(res => {
+            const { status, result } = res;
+            if (status === 1) {
+              this.listAudio = result;
+              setTimeout(() => {
+                this.isLoadingAudio = false;
+              }, 1000);
+            }
+          })
+          .catch(err => {
+            console.log(err.message);
+            this.listAudio = [];
           });
-          if (status === 200) {
-            const { result } = data;
-
-            this.listAudio = result;
-            setTimeout(() => {
-              this.isLoadingAudio = false;
-            }, 1000);
-          }
-        } catch (error) {
-          console.log(error.message);
-          this.listAudio = [];
-        }
       }
     }
   },

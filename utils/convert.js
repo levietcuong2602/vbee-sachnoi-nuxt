@@ -154,7 +154,12 @@ export function detachChapter(content) {
         const indexOfEnd = chapter.indexOf("</h1>");
         if (indexOfStart !== -1 && indexOfEnd !== -1) {
           title = chapter.substr(indexOfStart, indexOfEnd + 5);
-          chapter = chapter.replace(title, "");
+          chapter = chapter
+            .replace(title, "")
+            .replace(
+              /<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>|<h>|<\/H>|<H>|<\/h>/g,
+              ""
+            );
           title =
             `Chương ${index + 1}: ` +
             title.replace(

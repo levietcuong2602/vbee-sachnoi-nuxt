@@ -145,7 +145,7 @@
       <div class="col text-right">
         <el-button @click="gotoBackStep()">Quay lại</el-button>
         <el-button>Bỏ qua</el-button>
-        <el-button v-if="detachFile" type="warning" @click="gotoNextStep()">Tiếp tục</el-button>
+        <el-button v-if="detachFile&&!isChange" type="warning" @click="gotoNextStep()">Tiếp tục</el-button>
         <el-button v-else type="warning" @click="handleBeforeDetachFile">Tiếp tục</el-button>
       </div>
     </div>
@@ -193,7 +193,8 @@ export default {
       messageNotify: "",
       isSaveBook: false,
       isSaveChapter: false,
-      pageSize: 10
+      pageSize: 10,
+      isChange: true
     };
   },
   computed: {
@@ -202,6 +203,7 @@ export default {
   watch: {
     segmentPage: function(content) {
       this.handleEditContent(content);
+      this.isChange = true;
     }
   },
   methods: {
@@ -304,6 +306,8 @@ export default {
       this.$nextTick(() => {
         this.chapters = this.detachChapter(this.contentBook);
       });
+
+      this.isChange = false;
     },
     handleBeforeDetachFileContinue() {
       this.$nextTick(() => {

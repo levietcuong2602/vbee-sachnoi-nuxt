@@ -1,9 +1,9 @@
 import request from "@/utils/request";
 
-export function getPackages() {
+export function getVoices() {
   return request({
     type: "GET",
     method: "GET",
-    url: "/api/v1/packages"
+    url: "/api/v1/voices"
   });
 }
