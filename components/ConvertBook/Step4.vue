@@ -797,15 +797,7 @@ export default {
         position: "bottom-right"
       });
       const { id } = this.book;
-      const {
-        data: { status },
-        status: statusCode
-      } = await axios({
-        method: "GET",
-        url: `${this.domain}tts/convert/${id}`
-      });
-
-      convertBook()
+      convertBook(id)
         .then(res => {
           const { status } = res;
           if (status === 1) {
