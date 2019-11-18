@@ -96,7 +96,7 @@
                       />
                     </svg>
                   </span>
-                  <span @click="showDetailContentChapter">
+                  <span @click="showDetailContentChapter(scope.row)">
                     <svg
                       width="24"
                       height="24"
@@ -117,6 +117,7 @@
             </el-table>
           </el-scrollbar>
         </div>
+
         <!-- dialog detail -->
         <el-dialog :visible.sync="dialogDetailVisible" width="90%">
           <template slot="title">
@@ -139,7 +140,7 @@
                     />
                   </svg>
                 </span>
-                <span v-if="isStartAudio" @click="isStartAudio = false">
+                <span v-if="!isStopAudio" @click="handleStopAudio">
                   <svg
                     width="46"
                     height="46"
@@ -155,7 +156,7 @@
                     />
                   </svg>
                 </span>
-                <span v-else @click="isStartAudio = true">
+                <span v-else @click="handleStartAudio">
                   <svg
                     width="46"
                     height="46"
@@ -191,31 +192,32 @@
               </div>
             </div>
           </template>
-          <div class="dialog-box">
-            <div class="dialog-box__main">
-              <template v-for="(phrase, index) in phrases">
-                <button
-                  v-if="currentPhrase === index"
-                  :key="phrase.start"
-                  class="highlight-btn"
-                  @contextmenu.prevent="showContextMenu"
-                  @click="jumpToPhare(phrase, index)"
-                >{{ phrase.text }}</button>
-                <span
-                  v-else
-                  :key="phrase.start"
-                  class="highlight"
-                  @click="jumpToPhare(phrase, index)"
-                >{{ phrase.text }}&nbsp;</span>
-              </template>
+          <el-scrollbar wrap-class="preview-book__scroll">
+            <div class="dialog-box">
+              <div class="dialog-box__main">
+                <template v-for="(sentence, index) in sentences">
+                  <span
+                    v-if="currentPhrase === index"
+                    :key="sentence.file_name"
+                    class="highlight-btn"
+                    @contextmenu.prevent="showContextMenu"
+                    @click="jumpToPhare(sentence, index)"
+                  >{{ sentence.content }}</span>
+                  <span
+                    v-else
+                    :key="sentence.file_name"
+                    class="highlight"
+                    @click="jumpToPhare(sentence, index)"
+                  >{{ sentence.content }}&nbsp;</span>
+                </template>
+              </div>
+              <div class="dialog-box__footer">Trang 107/129</div>
             </div>
-            <div class="dialog-box__footer">Trang 107/129</div>
-          </div>
+          </el-scrollbar>
           <div slot="footer">
             <el-button type="warning" @click="dialogDetailVisible = false">Trở lại</el-button>
           </div>
         </el-dialog>
-
         <!-- inner dialog -->
         <el-dialog
           class="book-detail__inner-dialog"
@@ -280,6 +282,7 @@
           </li>
         </ul>
         <!-- end context menu -->
+        <audio ref="audioSrc" id="idAudio" preload="auto" autoplay :src="audioSrc"></audio>
       </div>
     </template>
     <div class="container" v-else>Không tìm thấy thông tin sách</div>
@@ -305,9 +308,9 @@ export default {
       chapterBooks: [],
       dialogDetailVisible: false,
       innerVisible: false,
-      phrases,
+      sentences: [],
       time: "0:00:00.165",
-      isStartAudio: false,
+      isStopAudio: true,
       tempPhrase: "",
       titleInnerDialog: "Thêm mới",
       currentOption: -1,
@@ -319,7 +322,9 @@ export default {
       // context-menu
       contextMenuWidth: null,
       contextMenuHeight: null,
-      isLoadingData: true
+      isLoadingData: true,
+      currentChapter: null,
+      audioSrc: null
     };
   },
   methods: {
@@ -357,10 +362,12 @@ export default {
           break;
       }
     },
-    jumpToPhare({ start, text }, index) {
-      this.time = start;
-      this.tempPhrase = text;
+    jumpToPhare(sentence, index) {
+      const { content } = sentence;
+      this.tempPhrase = content;
       this.currentPhrase = index;
+
+      this.handleStartAudio();
     },
     convertTimeToMilliseconds(time) {
       if (!/^\d{1,2}\:\d{1,2}\:\d{1,2}.\d{1,3}$/.test(time)) return null;
@@ -586,8 +593,6 @@ export default {
             this.pageCurrent = current_page_num;
             this.total = total_count;
             this.chapterBooks = data;
-
-            console.log(this.chapterBooks);
           }
         })
         .catch(err => {
@@ -614,6 +619,74 @@ export default {
       var start = new Date(date.getFullYear(), date.getMonth(), 1);
       var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
       this.dateRange = [start, end];
+    },
+    showDetailContentChapter(currentChapter) {
+      const { sentences } = currentChapter;
+      if (sentences.length > 0) {
+        this.currentChapter = currentChapter;
+        this.sentences = sentences;
+        this.dialogDetailVisible = true;
+
+        const audioElement = this.$refs.audioSrc;
+        var me = this;
+
+        audioElement.addEventListener("ended", playAudio);
+        var i = 0;
+        function playAudio() {
+          if (i >= sentences.length) i = 0; // if i=> length, reset
+          if (i !== me.currentPhrase) me.currentPhrase = i;
+
+          const { file_name } = sentences[i++]; // get current entry, increment i
+          const { book_id, id } = me.currentChapter;
+          const desc = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
+
+          audioElement.src = desc; // <- for demo samples only. 'sound/' + entry.value + '.wav';
+          audioElement.load(); // cleanup old fun, invoke loading of new
+          audioElement.play(); // cue up play
+        }
+
+        return;
+      }
+
+      this.$notify({
+        type: "error",
+        message: "Lỗi không tìm thấy nội dung của chương này",
+        offset: "40"
+      });
+    },
+    handleStartAudio() {
+      this.isStopAudio = false;
+      this.audioSrc = null;
+
+      let audio = this.$refs.audioSrc;
+      audio.src = "";
+      // start audio
+      const { file_name } = this.sentences[this.currentPhrase];
+      const { book_id, id } = this.currentChapter;
+      const desc = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
+
+      this.audioSrc = desc;
+      audio.src = desc;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(_ => {
+            audio.pause();
+          })
+          .catch(error => {});
+      }
+    },
+    handleStopAudio() {
+      this.isStopAudio = true;
+      this.audioSrc = null;
+
+      try {
+        const audio = this.$refs.audioSrc;
+
+        audio.pause();
+      } catch (error) {
+        console.log(error.message);
+      }
     }
   },
   computed: {
@@ -627,6 +700,9 @@ export default {
     sidebar: function() {
       return this.$store.state.app.sidebar;
     }
+  },
+  created() {
+    this.isLoadingData = true;
   },
   mounted() {
     this.onClickHideContextMenu();

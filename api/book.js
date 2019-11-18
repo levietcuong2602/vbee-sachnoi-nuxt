@@ -9,5 +9,9 @@ export function getBooks(params) {
 }
 
 export function getBookInfo(bookId) {
-  return request({ url: `/api/v1/books/${bookId}`, method: "GET" });
+  return request({
+    url: `/api/v1/books/${bookId}`,
+    method: "GET",
+    type: "GET"
+  });
 }

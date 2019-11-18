@@ -11,6 +11,6 @@ export function convertTTS(options) {
 export function convertBook(bookId) {
   return request({
     method: "GET",
-    url: `/tts/convert/${bookId}`
+    url: `/api/v1/tts/convert/${bookId}`
   });
 }
