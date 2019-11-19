@@ -7,3 +7,11 @@ export function getChapters(params) {
     params
   });
 }
+
+export function getChapter(chapterId) {
+  return request({
+    url: `/api/v1/chapters/${chapterId}`,
+    method: "GET",
+    type: "GET"
+  });
+}
