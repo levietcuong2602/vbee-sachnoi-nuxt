@@ -134,9 +134,9 @@ export function detachChapter(content) {
   );
   let chapters;
   if (regex.test(content)) {
-    chapters = content.split(regex);
+    chapters = content.trim().split(regex);
   } else {
-    chapters = [content];
+    chapters = [content.trim()];
   }
 
   let pageStart = 1;
@@ -155,6 +155,7 @@ export function detachChapter(content) {
         if (indexOfStart !== -1 && indexOfEnd !== -1) {
           title = chapter.substr(indexOfStart, indexOfEnd + 5);
           chapter = chapter
+            .trim()
             .replace(title, "")
             .replace(
               /<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>|<h>|<\/H>|<H>|<\/h>/g,
@@ -169,7 +170,7 @@ export function detachChapter(content) {
         }
       }
       return {
-        content: chapter,
+        content: chapter.trim(),
         start: pageStart,
         end: pageEnd - 1,
         title

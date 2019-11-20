@@ -407,7 +407,7 @@ export default {
           bookId: id,
           userId,
           title,
-          content: title + "\n" + content,
+          content: content.trim(),
           status: "INIT"
         };
       });
