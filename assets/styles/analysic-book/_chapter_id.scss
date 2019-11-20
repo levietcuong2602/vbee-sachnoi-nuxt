@@ -1,65 +1,75 @@
 .chapter-detail {
-  background: url(/img/bg_18.jpg);
-  .box__title {
-    // .header-title {
-    // }
-    .header-title-option {
+  background: url(/img/bg_18.jpg) no-repeat;
+  .box__footer {
+    position: relative;
+    .box__footer_main {
       display: flex;
+      padding: 10px;
+      margin: auto;
+      background-color: #fff;
+      box-shadow: 0 5px 30px rgba(0, 0, 0, 0.55);
+      position: fixed;
+      z-index: 1060;
+      bottom: 0px;
       align-items: center;
-      .header-title-controll {
-        margin: auto;
-        span {
-          svg {
-            max-width: 40px;
-            &:hover {
-              background: #dcdcdc;
-            }
+      flex-wrap: wrap;
+      width: 100%;
+      right: 0px;
+      cursor: pointer;
+      .box__footer_main-controll {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .btn {
+          font-size: 18px;
+          &:hover {
+            color: #6e55b4;
           }
         }
-        @include Responsive(XS) {
+        .btn-play,
+        .btn-pause {
+          font-size: 30px;
+        }
+      }
+      .box__footer_main-process {
+        min-width: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .process {
+          flex: 1 1 auto;
           text-align: center;
         }
-        @include mobile-xs {
-          text-align: center;
+        .sound {
+          margin-left: 50px;
+          flex: 0 0 30px;
+        }
+        .download {
+          flex: 0 0 30px;
         }
       }
-
-      .header-title-search {
-        max-width: 200px;
-        position: absolute;
-        right: 20px;
-        .el-input {
-          width: 100%;
-        }
-        @include Responsive(XS) {
-          width: 100%;
-          position: static;
-          margin: auto;
-        }
-        @include mobile-xs {
-          width: 100%;
-          position: static;
-          margin: auto;
-        }
+      .box__footer_main-chapter {
+        text-align: center;
       }
-
-      @include Responsive(XS) {
-        display: block;
-      }
-      @include mobile-xs {
-        display: block;
-      }
+      // &.open-class {
+      //   width: calc(100% - 210px);
+      // }
+      // &.close-class {
+      //   width: calc(100% - 54px);
+      // }
     }
   }
   .box__body {
     padding: 0;
+    padding-bottom: 50px;
     .dialog-box {
+      padding-bottom: 50px;
       .dialog-box__main {
         word-break: break-word;
         text-align: justify;
         margin: auto;
         margin-top: 20px;
-        padding: 20px;
+        padding: 40px;
         background-color: #fff;
         border-radius: 12px;
         box-shadow: 0 5px 30px rgba(0, 0, 0, 0.55);
@@ -73,12 +83,7 @@
         }
         .highlight-btn {
           border-radius: 4px;
-          border: 1px solid #ebef01;
-          background-color: #fff;
-          box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-          color: white;
-          text-shadow: 1px 1px 2px black, 0 0 25px blue, 0 0 5px darkblue;
-          font-size: 16px;
+          background-color: #bdbaba;
         }
       }
       .dialog-box__footer {

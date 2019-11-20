@@ -1,84 +1,15 @@
 <template>
   <div class="chapter-detail">
-    <div class="box__title">
-      <div class="header-title">[CHI TIẾT]</div>
-      <div class="header-title-option">
-        <div class="header-title-controll">
-          <span>
-            <svg
-              width="46"
-              height="46"
-              viewBox="0 0 46 46"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M15.3333 11.5H11.5V34.5H15.3333V11.5ZM34.5 34.5L18.2083 23L34.5 11.5V34.5Z"
-                fill="black"
-              />
-            </svg>
-          </span>
-          <span v-if="!isStopAudio" @click="handleStopAudio">
-            <svg
-              width="46"
-              height="46"
-              viewBox="0 0 62 62"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M26.1429 47H17V15H26.1429V47ZM35.2857 47V15H44.4285V47H35.2857Z"
-                fill="black"
-              />
-            </svg>
-          </span>
-          <span v-else @click="handleStartAudio">
-            <svg
-              width="46"
-              height="46"
-              viewBox="0 0 62 62"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M24.6373 15.4432C22.9175 14.3488 20.667 15.5842 20.667 17.6227V44.3774C20.667 46.4159 22.9175 47.6512 24.6373 46.5568L45.6588 33.1795C47.254 32.1644 47.254 29.8357 45.6588 28.8206L24.6373 15.4432Z"
-                fill="black"
-              />
-            </svg>
-          </span>
-          <span>
-            <svg
-              width="46"
-              height="46"
-              viewBox="0 0 46 46"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M27.7917 23L11.5 34.5V11.5L27.7917 23ZM34.5 34.5H30.6667V11.5H34.5V34.5Z"
-                fill="black"
-              />
-            </svg>
-          </span>
-        </div>
-        <!-- <div class="header-title-search">
-          <el-input size="small" placeholder="Tìm kiếm"></el-input>
-        </div>-->
-      </div>
-    </div>
     <div class="box__body">
       <el-scrollbar wrap-class="preview-book__scroll">
         <div class="dialog-box">
-          <div class="dialog-box__main col-lg-8 col-12">
-            <!-- <template v-for="(sentence, index) in sentences">
+          <div class="dialog-box__main col-lg-10 col-12">
+            <div class="title-chapter">
+              <h5 class="text-center">{{ currentChapter ? currentChapter.title : "" }}</h5>
+            </div>
+            <template v-for="(sentence, index) in sentences">
               <span
-                v-if="currentPhrase === index"
+                v-if="currentSentence === index"
                 :key="sentence.file_name"
                 class="highlight-btn"
                 @contextmenu.prevent="showContextMenu"
@@ -88,18 +19,68 @@
                 v-else
                 :key="sentence.file_name"
                 class="highlight"
+                @contextmenu.prevent="showContextMenu"
                 @click="jumpToPhare(sentence, index)"
               >{{ sentence.content }}&nbsp;</span>
-            </template>-->
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Fuga recusandae corrupti minima molestias provident ea consequuntur dicta earum, soluta, magnam saepe non quia. Minima, corrupti culpa voluptas optio quibusdam eius.
+            </template>
           </div>
-          <div class="dialog-box__footer">Trang 107/129</div>
         </div>
       </el-scrollbar>
     </div>
 
     <div class="box__footer">
-      <el-button type="warning">Trở lại</el-button>
+      <div class="box__footer_main row">
+        <div class="box__footer_main-controll col-lg-3">
+          <span class="btn btn-prev">
+            <i class="fas fa-step-backward"></i>
+          </span>
+          <span v-if="isStartingAudio" class="btn btn-pause" @click="handleStopAudio">
+            <i class="far fa-pause-circle"></i>
+          </span>
+          <span v-else class="btn btn-play" @click="handleStartAudio">
+            <i class="far fa-play-circle"></i>
+          </span>
+          <span class="btn btn-next">
+            <i class="fas fa-step-forward"></i>
+          </span>
+        </div>
+        <div class="box__footer_main-process col-lg-6">
+          <div class="process">
+            <p class="name m-0">Chương 1: Phần mở đầu</p>
+          </div>
+          <div class="sound">
+            <el-dropdown trigger="click">
+              <span class="el-dropdown-link">
+                <i class="fas fa-volume-up"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>
+                  <el-slider v-model="soundVolume" vertical height="200px" :show-tooltip="false"></el-slider>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+          <div class="download">
+            <el-dropdown trigger="click">
+              <span class="el-dropdown-link">
+                <i class="fas fa-ellipsis-h"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item class="item-download">
+                  <img src="/img/download.png" alt />
+                  <span>Tải xuống</span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+        </div>
+        <div class="box__footer_main-chapter col-lg-3">
+          <el-select v-model="chapterSelect" placeholder="Chọn chương">
+            <el-option label="Chương 1" value="chapter_1"></el-option>
+            <el-option label="Chương 2" value="chapter_2"></el-option>
+          </el-select>
+        </div>
+      </div>
     </div>
 
     <!-- inner dialog -->
@@ -171,6 +152,7 @@
 </template>
 <script>
 import { getChapter } from "@/api/chapter";
+import { mapGetters } from "vuex";
 
 const OPTIONS_TYPE = {
   ADD_BEFORE_PHRASE: 0,
@@ -178,16 +160,17 @@ const OPTIONS_TYPE = {
   EDIT_PHRASE: 2,
   DELETE_PHRASE: 3
 };
+
 export default {
   name: "chapter",
   data() {
     return {
       sentences: [],
-      isStopAudio: true,
+      isStartingAudio: false,
       tempPhrase: "",
       titleInnerDialog: "Thêm mới",
       currentOption: -1,
-      currentPhrase: 0,
+      currentSentence: 0,
       dateRange: [],
       // context-menu
       contextMenuWidth: null,
@@ -198,15 +181,18 @@ export default {
       innerVisible: false,
       bookdId: null,
       chapterId: null,
-      chapterInfo: null,
-      sentences: []
+      chapterSelect: null,
+      soundVolume: 0
     };
+  },
+  computed: {
+    ...mapGetters(["sidebar"])
   },
   methods: {
     jumpToPhare(sentence, index) {
       const { content } = sentence;
       this.tempPhrase = content;
-      this.currentPhrase = index;
+      this.currentSentence = index;
 
       this.handleStartAudio();
     },
@@ -245,7 +231,7 @@ export default {
       document.getElementById("context-menu").classList.remove("active");
     },
     addBeforePhrases() {
-      const index = this.currentPhrase;
+      const index = this.currentSentence;
       const phrase = {
         text: this.tempPhrase,
         start: null,
@@ -254,7 +240,7 @@ export default {
       this.phrases.splice(index, 0, phrase);
     },
     addAfterPhrases() {
-      const index = this.currentPhrase;
+      const index = this.currentSentence;
       const phrase = {
         text: this.tempPhrase,
         start: null,
@@ -264,7 +250,7 @@ export default {
     },
     editPhrases() {
       this.phrases = this.phrases.map((phrase, index) =>
-        index - this.currentPhrase === 0
+        index - this.currentSentence === 0
           ? {
               ...phrase,
               text: this.tempPhrase
@@ -284,7 +270,7 @@ export default {
         }
       )
         .then(() => {
-          const valueDelete = this.phrases.splice(this.currentPhrase, 1);
+          const valueDelete = this.phrases.splice(this.currentSentence, 1);
           if (valueDelete) {
             this.$message({
               type: "success",
@@ -335,7 +321,7 @@ export default {
         case OPTIONS_TYPE["EDIT_PHRASE"]:
           this.titleInnerDialog = "Sửa câu";
           this.currentOption = OPTIONS_TYPE["EDIT_PHRASE"];
-          const { text } = phrases[this.currentPhrase];
+          const { text } = phrases[this.currentSentence];
           this.tempPhrase = text;
           break;
         default:
@@ -375,30 +361,75 @@ export default {
           break;
       }
     },
-    showDetailContentChapter(currentChapter) {
-      const { sentences } = currentChapter;
+    initPlayer() {
+      const { sentences } = this.currentChapter;
       if (sentences.length > 0) {
-        this.currentChapter = currentChapter;
-        this.sentences = sentences;
-
-        const audioElement = this.$refs.audioSrc;
         var me = this;
+        me.sentences = sentences;
+        const audioElement = me.$refs.audioSrc;
 
-        audioElement.addEventListener("ended", playAudio);
-        var i = 0;
-        function playAudio() {
-          if (i >= sentences.length) i = 0; // if i=> length, reset
-          if (i !== me.currentPhrase) me.currentPhrase = i;
+        // Audio track has ended playing.
+        audioElement.addEventListener(
+          "ended",
+          e => {
+            _trackHasEnded();
+          },
+          false
+        );
+        //Audio error.
+        audioElement.addEventListener(
+          "error",
+          function(e) {
+            switch (e.target.error.code) {
+              case e.target.error.MEDIA_ERR_ABORTED:
+                alert("You aborted the video playback.");
+                break;
+              case e.target.error.MEDIA_ERR_NETWORK:
+                alert("A network error caused the audio download to fail.");
+                break;
+              case e.target.error.MEDIA_ERR_DECODE:
+                alert(
+                  "The audio playback was aborted due to a corruption problem or because the video used features your browser did not support."
+                );
+                break;
+              case e.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                alert(
+                  "The video audio not be loaded, either because the server or network failed or because the format is not supported."
+                );
+                break;
+              default:
+                alert("An unknown error occurred.");
+                break;
+            }
+            me.isStartingAudio = false;
+          },
+          false
+        );
 
-          const { file_name } = sentences[i++]; // get current entry, increment i
+        var _trackHasEnded = function() {
+          me.currentSentence =
+            parseInt(me.currentSentence) === me.sentences.length - 1
+              ? 0
+              : parseInt(me.currentSentence) + 1;
+          me.isStartingAudio = false;
+          _setTrack();
+        };
+        var _setTrack = function() {
+          const { file_name } = sentences[me.currentSentence]; // get current entry, increment i
           const { book_id, id } = me.currentChapter;
-          const desc = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
-
-          audioElement.src = desc; // <- for demo samples only. 'sound/' + entry.value + '.wav';
-          audioElement.load(); // cleanup old fun, invoke loading of new
-          audioElement.play(); // cue up play
-        }
-
+          const songURL = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
+          audioElement.setAttribute("src", songURL);
+          audioElement.load();
+          me.isStartingAudio = true;
+          _playBack();
+        };
+        var _playBack = function() {
+          if (audioElement.paused) {
+            audioElement.play();
+          } else {
+            audioElement.pause();
+          }
+        };
         return;
       }
 
@@ -409,34 +440,31 @@ export default {
       });
     },
     handleStartAudio() {
-      this.isStopAudio = false;
-      this.audioSrc = null;
-
+      this.isStartingAudio = true;
       let audio = this.$refs.audioSrc;
       audio.src = "";
       // start audio
-      const { file_name } = this.sentences[this.currentPhrase];
+      const { file_name } = this.sentences[this.currentSentence];
       const { book_id, id } = this.currentChapter;
       const desc = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
-
       this.audioSrc = desc;
       audio.src = desc;
+      audio.load();
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
           .then(_ => {
             audio.pause();
           })
-          .catch(error => {});
+          .catch(error => {
+            console.log(error.message);
+          });
       }
     },
     handleStopAudio() {
-      this.isStopAudio = true;
-      this.audioSrc = null;
-
+      this.isStartingAudio = false;
       try {
         const audio = this.$refs.audioSrc;
-
         audio.pause();
       } catch (error) {
         console.log(error.message);
@@ -451,11 +479,11 @@ export default {
     sidebar: function() {
       return this.$store.state.app.sidebar;
     },
-    getChapterInfo() {
-      getChapter(this.chapterId)
+    async getChapterInfo() {
+      await getChapter(this.chapterId)
         .then(res => {
           const { result } = res;
-          this.chapterInfo = result;
+          this.currentChapter = result;
           this.sentences = result.sentences;
         })
         .catch(err => {});
@@ -466,9 +494,10 @@ export default {
     this.bookdId = bookId;
     this.chapterId = chapterId;
   },
-  mounted() {
+  async mounted() {
     this.onClickHideContextMenu();
-    this.getChapterInfo();
+    await this.getChapterInfo();
+    this.initPlayer();
   }
 };
 </script>
