@@ -56,62 +56,25 @@
                 <template slot-scope="scope">{{toHHMMSS(scope.row.duration)}}</template>
               </el-table-column>
               <el-table-column property="status" label="Trạng thái">
-                <!-- <template slot-scope="scope">
-                  <strong
-                    :class="getClassStatus(scope.row.status)"
-                >{{getTextStatus(scope.row.status)}}</strong>-->
-                <!-- </template> -->
+                <template slot-scope="scope">
+                  <span class="text-center">{{ convertStatusBook(scope.row.status) }}</span>
+                </template>
               </el-table-column>
               <el-table-column label="Thao tác" align="center">
                 <template slot-scope="scope">
-                  <span v-if="scope.row.status == 1">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M15 10H19L12 17L5 10H9V4H15V10ZM5 21V19H19V21H5Z"
-                        fill="#2593FB"
-                      />
-                    </svg>
-                  </span>
-                  <span v-else>
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M15 10H19L12 17L5 10H9V4H15V10ZM5 21V19H19V21H5Z"
-                        fill="#9C9C9C"
-                      />
-                    </svg>
-                  </span>
-                  <span @click="showDetailContentChapter(scope.row)">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM13 9V7H11V9H13ZM13 17V11H11V17H13ZM4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12Z"
-                        fill="#3C4858"
-                      />
-                    </svg>
-                  </span>
+                  <el-tooltip effect="light" content="Tải xuống" placement="bottom-start">
+                    <span v-if="scope.row.status === 'DONE'">
+                      <i class="fas fa-download text-primary"></i>
+                    </span>
+                    <span v-else>
+                      <i class="fas fa-download"></i>
+                    </span>
+                  </el-tooltip>
+                  <el-tooltip effect="light" content="Chi tiết" placement="bottom-start">
+                    <span @click="showDetailContentChapter(scope.row)">
+                      <i class="fas fa-info-circle"></i>
+                    </span>
+                  </el-tooltip>
                 </template>
               </el-table-column>
             </el-table>
@@ -137,7 +100,8 @@ export default {
       time: "0:00:00.165",
       bookInfo: null,
       limit: 10,
-      pageCurrent: 1
+      pageCurrent: 1,
+      isLoadingData: true
     };
   },
   methods: {
@@ -274,6 +238,19 @@ export default {
         message: "Lỗi không tìm thấy nội dung của chương này",
         offset: "40"
       });
+    },
+    convertStatusBook(status) {
+      switch (status) {
+        case "INIT":
+          return "Đã khởi tạo";
+        case "WAITING":
+          return "Chờ convert";
+        case "DONE":
+          return "Đã convert";
+        default:
+          return "Không xác định";
+          break;
+      }
     }
   },
   computed: {

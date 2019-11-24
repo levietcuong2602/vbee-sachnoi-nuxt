@@ -15,3 +15,11 @@ export function getChapter(chapterId) {
     type: "GET"
   });
 }
+
+export function updateChapter(chapterId, params) {
+  return request({
+    url: `/api/v1/chapters/${chapterId}`,
+    method: "PUT",
+    data: params
+  });
+}

@@ -12,17 +12,21 @@
                 v-if="currentSentence === index"
                 :key="sentence.file_name"
                 class="highlight-btn"
-                @contextmenu.prevent="showContextMenu"
+                @contextmenu.prevent="event => showContextMenu(event, index)"
                 @click="jumpToPhare(sentence, index)"
               >{{ sentence.content }}</span>
               <span
                 v-else
                 :key="sentence.file_name"
                 class="highlight"
-                @contextmenu.prevent="showContextMenu"
+                :class="getClassByStatus(sentence.status)"
+                @contextmenu.prevent="event => showContextMenu(event, index)"
                 @click="jumpToPhare(sentence, index)"
               >{{ sentence.content }}&nbsp;</span>
             </template>
+            <div class="footer-chapter text-right">
+              <el-button v-if="isChange" type="primary" @click="requestConvertChapter">Chỉnh sửa</el-button>
+            </div>
           </div>
         </div>
       </el-scrollbar>
@@ -32,16 +36,24 @@
       <div class="box__footer_main row">
         <div class="box__footer_main-controll col-lg-3">
           <span class="btn btn-prev">
-            <i class="fas fa-step-backward"></i>
+            <el-tooltip effect="light" content="Previous" placement="bottom-start">
+              <i class="fas fa-step-backward"></i>
+            </el-tooltip>
           </span>
           <span v-if="isStartingAudio" class="btn btn-pause" @click="handleStopAudio">
-            <i class="far fa-pause-circle"></i>
+            <el-tooltip effect="light" content="Play" placement="bottom-start">
+              <i class="far fa-pause-circle"></i>
+            </el-tooltip>
           </span>
           <span v-else class="btn btn-play" @click="handleStartAudio">
-            <i class="far fa-play-circle"></i>
+            <el-tooltip effect="light" content="Pause" placement="bottom-start">
+              <i class="far fa-play-circle"></i>
+            </el-tooltip>
           </span>
           <span class="btn btn-next">
-            <i class="fas fa-step-forward"></i>
+            <el-tooltip effect="light" content="Next" placement="bottom-start">
+              <i class="fas fa-step-forward"></i>
+            </el-tooltip>
           </span>
         </div>
         <div class="box__footer_main-process col-lg-6">
@@ -49,13 +61,20 @@
             <p class="name m-0">Chương 1: Phần mở đầu</p>
           </div>
           <div class="sound">
-            <el-dropdown trigger="click">
+            <el-dropdown>
               <span class="el-dropdown-link">
                 <i class="fas fa-volume-up"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item>
-                  <el-slider v-model="soundVolume" vertical height="200px" :show-tooltip="false"></el-slider>
+                  <el-slider
+                    v-model="soundVolume"
+                    :min="0"
+                    :max="100"
+                    vertical
+                    height="200px"
+                    @change="handleChangeVolume"
+                  ></el-slider>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
@@ -63,7 +82,9 @@
           <div class="download">
             <el-dropdown trigger="click">
               <span class="el-dropdown-link">
-                <i class="fas fa-ellipsis-h"></i>
+                <el-tooltip effect="light" content="Xem thêm" placement="bottom-start">
+                  <i class="fas fa-ellipsis-h"></i>
+                </el-tooltip>
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item class="item-download">
@@ -99,7 +120,7 @@
           type="textarea"
           :rows="4"
           placeholder="Vui lòng nhập vào đây ..."
-          v-model="tempPhrase"
+          v-model="tempSentence"
         ></el-input>
       </div>
       <!-- end body inner dialog -->
@@ -151,8 +172,9 @@
   </div>
 </template>
 <script>
-import { getChapter } from "@/api/chapter";
+import { getChapter, updateChapter } from "@/api/chapter";
 import { mapGetters } from "vuex";
+import { STATUS_SENTENCE } from "@/constant";
 
 const OPTIONS_TYPE = {
   ADD_BEFORE_PHRASE: 0,
@@ -167,7 +189,8 @@ export default {
     return {
       sentences: [],
       isStartingAudio: false,
-      tempPhrase: "",
+      tempSentence: "",
+      tempIndex: null,
       titleInnerDialog: "Thêm mới",
       currentOption: -1,
       currentSentence: 0,
@@ -182,7 +205,8 @@ export default {
       bookdId: null,
       chapterId: null,
       chapterSelect: null,
-      soundVolume: 0
+      soundVolume: 40,
+      isChange: false
     };
   },
   computed: {
@@ -191,12 +215,14 @@ export default {
   methods: {
     jumpToPhare(sentence, index) {
       const { content } = sentence;
-      this.tempPhrase = content;
+      this.tempSentence = content;
       this.currentSentence = index;
 
       this.handleStartAudio();
     },
-    showContextMenu(vm) {
+    showContextMenu(vm, index) {
+      this.tempIndex = index;
+      this.tempSentence = vm.target.textContent;
       var widthSidebar = this.sidebar.opened ? 210 : 54;
       var menu = document.getElementById("context-menu");
       if (!this.contextMenuWidth || !this.contextMenuHeight) {
@@ -230,33 +256,97 @@ export default {
     hideContextMenu: () => {
       document.getElementById("context-menu").classList.remove("active");
     },
-    addBeforePhrases() {
-      const index = this.currentSentence;
-      const phrase = {
-        text: this.tempPhrase,
-        start: null,
-        end: null
-      };
-      this.phrases.splice(index, 0, phrase);
+    async addBeforePhrases() {
+      if (this.tempSentence.trim().length > 0) {
+        const sentences = this.sentences.filter(
+          sentence => sentence.content.trim().length > 0
+        );
+        const sentence = {
+          content: this.tempSentence,
+          fileName: null,
+          link: null,
+          status: STATUS_SENTENCE.ADD
+        };
+        sentences.splice(this.tempIndex, 0, sentence);
+
+        const content = sentences.reduce(
+          (accumulator, sentence) => `${accumulator} ${sentence.content}`,
+          ""
+        );
+        this.sentences = sentences;
+        this.isChange = true;
+        await updateChapter(this.chapterId, { sentences, content });
+        await this.getChapterInfo();
+        return;
+      }
+      this.$notify({
+        type: "error",
+        message: "Lỗi thao tác dữ liệu",
+        offset: 40
+      });
     },
-    addAfterPhrases() {
-      const index = this.currentSentence;
-      const phrase = {
-        text: this.tempPhrase,
-        start: null,
-        end: null
-      };
-      this.phrases.splice(index + 1, 0, phrase);
+    async addAfterPhrases() {
+      if (this.tempSentence.trim().length > 0) {
+        const sentences = this.sentences.filter(
+          sentence => sentence.content.trim().length > 0
+        );
+        const sentence = {
+          content: this.tempSentence,
+          fileName: null,
+          link: null,
+          status: STATUS_SENTENCE.ADD
+        };
+        sentences.splice(this.tempIndex + 1, 0, sentence);
+        const content = sentences.reduce(
+          (accumulator, sentence) => `${accumulator} ${sentence.content}`,
+          ""
+        );
+        this.sentences = sentences;
+        this.tempIndex += 1;
+        this.isChange = true;
+        await updateChapter(this.chapterId, { sentences, content });
+        await this.getChapterInfo();
+        return;
+      }
+      this.$notify({
+        type: "error",
+        message: "Lỗi thao tác dữ liệu",
+        offset: 40
+      });
     },
-    editPhrases() {
-      this.phrases = this.phrases.map((phrase, index) =>
-        index - this.currentSentence === 0
-          ? {
-              ...phrase,
-              text: this.tempPhrase
+    async editPhrases() {
+      if (this.tempSentence.trim().length > 0 || this.tempIndex) {
+        const sentences = this.sentences
+          .filter(sentence => sentence.content.trim().length > 0)
+          .map((sentence, index) => {
+            if (index === this.tempIndex) {
+              return {
+                ...sentence,
+                content: this.tempSentence,
+                status: STATUS_SENTENCE.EDIT
+              };
             }
-          : phrase
-      );
+            if (sentence.status !== "EDIT" && sentence.status !== "ADD") {
+              return { ...sentence, status: "DONE" };
+            }
+            return sentence;
+          });
+        const content = sentences.reduce(
+          (accumulator, sentence) => `${accumulator} ${sentence.content}`,
+          ""
+        );
+
+        this.sentences = sentences;
+        this.isChange = true;
+        await updateChapter(this.chapterId, { sentences, content });
+        await this.getChapterInfo();
+        return;
+      }
+      this.$notify({
+        type: "error",
+        message: "Lỗi thao tác dữ liệu",
+        offset: 40
+      });
     },
     deletePhrases() {
       this.$confirm(
@@ -269,22 +359,18 @@ export default {
           customClass: "book-detail__messagebox"
         }
       )
-        .then(() => {
-          const valueDelete = this.phrases.splice(this.currentSentence, 1);
-          if (valueDelete) {
-            this.$message({
-              type: "success",
-              message: "Xóa câu thành công!",
-              offset: 100
-            });
-          } else {
-            this.$message({
-              type: "error",
-              message: "Xóa câu thất bại!",
-              offset: 100,
-              duration: 1500
-            });
-          }
+        .then(async () => {
+          const sentences = this.sentences;
+          sentences.splice(this.tempIndex, 1);
+          this.sentences = sentences;
+          await updateChapter(this.chapterId, { sentences });
+          await this.getChapterInfo();
+
+          this.$message({
+            type: "success",
+            message: "Cập nhật thông tin chương thành công",
+            offset: 100
+          });
         })
         .catch(() => {
           this.$message({
@@ -295,8 +381,12 @@ export default {
           });
         });
     },
+    handleChangeVolume(value) {
+      const audioElement = this.$refs.audioSrc;
+      audioElement.volume = parseFloat(value / 100);
+    },
     handleChangeOption(option) {
-      if (!OPTIONS_TYPE.hasOwnProperty(option)) {
+      if (!OPTIONS_TYPE.hasOwnProperty(option) || this.tempIndex === null) {
         this.$message({
           type: "error",
           message: "Lỗi thao tác. Vui lòng thử lại!",
@@ -311,21 +401,19 @@ export default {
         case OPTIONS_TYPE["ADD_BEFORE_PHRASE"]:
           this.titleInnerDialog = "Thêm vào trước";
           this.currentOption = OPTIONS_TYPE["ADD_BEFORE_PHRASE"];
-          this.tempPhrase = "";
+          this.tempSentence = "";
           break;
         case OPTIONS_TYPE["ADD_AFTER_PHRASE"]:
           this.titleInnerDialog = "Thêm vào sau";
           this.currentOption = OPTIONS_TYPE["ADD_AFTER_PHRASE"];
-          this.tempPhrase = "";
+          this.tempSentence = "";
           break;
         case OPTIONS_TYPE["EDIT_PHRASE"]:
           this.titleInnerDialog = "Sửa câu";
           this.currentOption = OPTIONS_TYPE["EDIT_PHRASE"];
-          const { text } = phrases[this.currentSentence];
-          this.tempPhrase = text;
           break;
         default:
-          this.$message({
+          this.$notify({
             type: "error",
             message: "Lỗi thao tác. Vui lòng thử lại!",
             offset: 100,
@@ -405,6 +493,7 @@ export default {
           },
           false
         );
+        // change volume audio
 
         var _trackHasEnded = function() {
           me.currentSentence =
@@ -419,6 +508,7 @@ export default {
           const { book_id, id } = me.currentChapter;
           const songURL = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
           audioElement.setAttribute("src", songURL);
+          audioElement.volume = parseFloat(me.soundVolume / 100);
           audioElement.load();
           me.isStartingAudio = true;
           _playBack();
@@ -440,12 +530,13 @@ export default {
       });
     },
     handleStartAudio() {
+      // start audio
+      const { file_name, status } = this.sentences[this.currentSentence];
+      const { book_id, id } = this.currentChapter;
+
       this.isStartingAudio = true;
       let audio = this.$refs.audioSrc;
       audio.src = "";
-      // start audio
-      const { file_name } = this.sentences[this.currentSentence];
-      const { book_id, id } = this.currentChapter;
       const desc = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
       this.audioSrc = desc;
       audio.src = desc;
@@ -476,17 +567,42 @@ export default {
         return time >= start && time < end;
       };
     },
-    sidebar: function() {
-      return this.$store.state.app.sidebar;
-    },
     async getChapterInfo() {
       await getChapter(this.chapterId)
         .then(res => {
           const { result } = res;
           this.currentChapter = result;
           this.sentences = result.sentences;
+          this.isChange = this.sentences.some(
+            sentence =>
+              sentence.status !== "DONE" && sentence.status !== "WAITING"
+          );
         })
         .catch(err => {});
+    },
+    async requestConvertChapter() {
+      const sentences = this.sentences
+        .filter(sentence => sentence.content.trim().length > 0)
+        .map(sentence => {
+          const { status } = sentence;
+          if (status !== "DONE") {
+            return { ...sentence, status: "WAITING" };
+          }
+          return sentence;
+        });
+      await updateChapter(this.bookdId, { sentences });
+    },
+    getClassByStatus(status) {
+      switch (status) {
+        case "ADD":
+          return "action-add";
+        case "EDIT":
+          return "action-edit";
+        case "ERROR":
+          return "action-delete";
+        default:
+          return "";
+      }
     }
   },
   created() {

@@ -4,7 +4,7 @@
     position: relative;
     .box__footer_main {
       display: flex;
-      padding: 10px;
+      padding: 0px 10px;
       margin: auto;
       background-color: #fff;
       box-shadow: 0 5px 30px rgba(0, 0, 0, 0.55);
@@ -80,10 +80,20 @@
             cursor: pointer;
             background-color: #eee;
           }
+          &.action-add {
+            background-color: #ccffff;
+          }
+          &.action-edit {
+            background-color: #e6fff5;
+          }
+          &.action-delete {
+            background-color: #ef7e7e;
+          }
         }
         .highlight-btn {
+          cursor: pointer;
           border-radius: 4px;
-          background-color: #bdbaba;
+          background-color: #e0e0eb;
         }
       }
       .dialog-box__footer {
