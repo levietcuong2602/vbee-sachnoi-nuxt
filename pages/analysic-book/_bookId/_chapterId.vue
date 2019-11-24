@@ -19,7 +19,6 @@
                 v-else
                 :key="sentence.file_name"
                 class="highlight"
-<<<<<<< HEAD
                 :class="getClassByStatus(sentence.status)"
                 @contextmenu.prevent="event => showContextMenu(event, index)"
                 @click="jumpToPhare(sentence, index)"
@@ -28,12 +27,6 @@
             <div class="footer-chapter text-right">
               <el-button v-if="isChange" type="primary" @click="requestConvertChapter">Chỉnh sửa</el-button>
             </div>
-=======
-                @contextmenu.prevent="showContextMenu"
-                @click="jumpToPhare(sentence, index)"
-              >{{ sentence.content }}&nbsp;</span>
-            </template>
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
           </div>
         </div>
       </el-scrollbar>
@@ -43,7 +36,6 @@
       <div class="box__footer_main row">
         <div class="box__footer_main-controll col-lg-3">
           <span class="btn btn-prev">
-<<<<<<< HEAD
             <el-tooltip effect="light" content="Previous" placement="bottom-start">
               <i class="fas fa-step-backward"></i>
             </el-tooltip>
@@ -62,18 +54,6 @@
             <el-tooltip effect="light" content="Next" placement="bottom-start">
               <i class="fas fa-step-forward"></i>
             </el-tooltip>
-=======
-            <i class="fas fa-step-backward"></i>
-          </span>
-          <span v-if="isStartingAudio" class="btn btn-pause" @click="handleStopAudio">
-            <i class="far fa-pause-circle"></i>
-          </span>
-          <span v-else class="btn btn-play" @click="handleStartAudio">
-            <i class="far fa-play-circle"></i>
-          </span>
-          <span class="btn btn-next">
-            <i class="fas fa-step-forward"></i>
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
           </span>
         </div>
         <div class="box__footer_main-process col-lg-6">
@@ -81,17 +61,12 @@
             <p class="name m-0">Chương 1: Phần mở đầu</p>
           </div>
           <div class="sound">
-<<<<<<< HEAD
             <el-dropdown>
-=======
-            <el-dropdown trigger="click">
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
               <span class="el-dropdown-link">
                 <i class="fas fa-volume-up"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item>
-<<<<<<< HEAD
                   <el-slider
                     v-model="soundVolume"
                     :min="0"
@@ -100,9 +75,6 @@
                     height="200px"
                     @change="handleChangeVolume"
                   ></el-slider>
-=======
-                  <el-slider v-model="soundVolume" vertical height="200px" :show-tooltip="false"></el-slider>
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
                 </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
@@ -110,13 +82,9 @@
           <div class="download">
             <el-dropdown trigger="click">
               <span class="el-dropdown-link">
-<<<<<<< HEAD
                 <el-tooltip effect="light" content="Xem thêm" placement="bottom-start">
                   <i class="fas fa-ellipsis-h"></i>
                 </el-tooltip>
-=======
-                <i class="fas fa-ellipsis-h"></i>
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item class="item-download">
@@ -204,14 +172,9 @@
   </div>
 </template>
 <script>
-<<<<<<< HEAD
 import { getChapter, updateChapter } from "@/api/chapter";
 import { mapGetters } from "vuex";
 import { STATUS_SENTENCE } from "@/constant";
-=======
-import { getChapter } from "@/api/chapter";
-import { mapGetters } from "vuex";
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
 
 const OPTIONS_TYPE = {
   ADD_BEFORE_PHRASE: 0,
@@ -226,12 +189,8 @@ export default {
     return {
       sentences: [],
       isStartingAudio: false,
-<<<<<<< HEAD
       tempSentence: "",
       tempIndex: null,
-=======
-      tempPhrase: "",
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
       titleInnerDialog: "Thêm mới",
       currentOption: -1,
       currentSentence: 0,
@@ -246,12 +205,8 @@ export default {
       bookdId: null,
       chapterId: null,
       chapterSelect: null,
-<<<<<<< HEAD
       soundVolume: 40,
       isChange: false
-=======
-      soundVolume: 0
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
     };
   },
   computed: {
@@ -260,11 +215,7 @@ export default {
   methods: {
     jumpToPhare(sentence, index) {
       const { content } = sentence;
-<<<<<<< HEAD
       this.tempSentence = content;
-=======
-      this.tempPhrase = content;
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
       this.currentSentence = index;
 
       this.handleStartAudio();
@@ -305,7 +256,6 @@ export default {
     hideContextMenu: () => {
       document.getElementById("context-menu").classList.remove("active");
     },
-<<<<<<< HEAD
     async addBeforePhrases() {
       if (this.tempSentence.trim().length > 0) {
         const sentences = this.sentences.filter(
@@ -375,32 +325,6 @@ export default {
                 content: this.tempSentence,
                 status: STATUS_SENTENCE.EDIT
               };
-=======
-    addBeforePhrases() {
-      const index = this.currentSentence;
-      const phrase = {
-        text: this.tempPhrase,
-        start: null,
-        end: null
-      };
-      this.phrases.splice(index, 0, phrase);
-    },
-    addAfterPhrases() {
-      const index = this.currentSentence;
-      const phrase = {
-        text: this.tempPhrase,
-        start: null,
-        end: null
-      };
-      this.phrases.splice(index + 1, 0, phrase);
-    },
-    editPhrases() {
-      this.phrases = this.phrases.map((phrase, index) =>
-        index - this.currentSentence === 0
-          ? {
-              ...phrase,
-              text: this.tempPhrase
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
             }
             if (sentence.status !== "EDIT" && sentence.status !== "ADD") {
               return { ...sentence, status: "DONE" };
@@ -435,7 +359,6 @@ export default {
           customClass: "book-detail__messagebox"
         }
       )
-<<<<<<< HEAD
         .then(async () => {
           const sentences = this.sentences;
           sentences.splice(this.tempIndex, 1);
@@ -448,24 +371,6 @@ export default {
             message: "Cập nhật thông tin chương thành công",
             offset: 100
           });
-=======
-        .then(() => {
-          const valueDelete = this.phrases.splice(this.currentSentence, 1);
-          if (valueDelete) {
-            this.$message({
-              type: "success",
-              message: "Xóa câu thành công!",
-              offset: 100
-            });
-          } else {
-            this.$message({
-              type: "error",
-              message: "Xóa câu thất bại!",
-              offset: 100,
-              duration: 1500
-            });
-          }
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
         })
         .catch(() => {
           this.$message({
@@ -506,11 +411,6 @@ export default {
         case OPTIONS_TYPE["EDIT_PHRASE"]:
           this.titleInnerDialog = "Sửa câu";
           this.currentOption = OPTIONS_TYPE["EDIT_PHRASE"];
-<<<<<<< HEAD
-=======
-          const { text } = phrases[this.currentSentence];
-          this.tempPhrase = text;
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
           break;
         default:
           this.$notify({
@@ -593,10 +493,7 @@ export default {
           },
           false
         );
-<<<<<<< HEAD
         // change volume audio
-=======
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
 
         var _trackHasEnded = function() {
           me.currentSentence =
@@ -611,10 +508,7 @@ export default {
           const { book_id, id } = me.currentChapter;
           const songURL = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
           audioElement.setAttribute("src", songURL);
-<<<<<<< HEAD
           audioElement.volume = parseFloat(me.soundVolume / 100);
-=======
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
           audioElement.load();
           me.isStartingAudio = true;
           _playBack();
@@ -636,7 +530,6 @@ export default {
       });
     },
     handleStartAudio() {
-<<<<<<< HEAD
       // start audio
       const { file_name, status } = this.sentences[this.currentSentence];
       const { book_id, id } = this.currentChapter;
@@ -644,14 +537,6 @@ export default {
       this.isStartingAudio = true;
       let audio = this.$refs.audioSrc;
       audio.src = "";
-=======
-      this.isStartingAudio = true;
-      let audio = this.$refs.audioSrc;
-      audio.src = "";
-      // start audio
-      const { file_name } = this.sentences[this.currentSentence];
-      const { book_id, id } = this.currentChapter;
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
       const desc = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
       this.audioSrc = desc;
       audio.src = desc;
@@ -682,12 +567,6 @@ export default {
         return time >= start && time < end;
       };
     },
-<<<<<<< HEAD
-=======
-    sidebar: function() {
-      return this.$store.state.app.sidebar;
-    },
->>>>>>> 442e663049af4a4cacdb1b0f8bf437fc03129b92
     async getChapterInfo() {
       await getChapter(this.chapterId)
         .then(res => {
