@@ -19,19 +19,22 @@
         background: #ffffff;
         border: 1px solid #c4c4c4;
         box-sizing: border-box;
-        padding: 5px;
+        // padding: 5px;
         height: 650px;
-        .el-scrollbar__view {
-          height: 650px;
-          .content {
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            text-align: justify;
-            font-size: 95%;
-            .el-textarea__inner {
-              min-height: 34px;
+        .preview-book__scroll {
+          overflow: hidden !important;
+          .el-scrollbar__view {
+            height: 650px;
+            .content {
+              padding: 0;
+              width: 100%;
               height: 100%;
+              text-align: justify;
+              font-size: 95%;
+              .el-textarea__inner {
+                min-height: 34px;
+                height: 100%;
+              }
             }
           }
         }

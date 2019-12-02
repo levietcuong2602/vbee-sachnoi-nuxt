@@ -1,32 +1,62 @@
 <template>
-  <div>
-    <!-- <client-only>
-      <VueDocPreview value="function () {\n  console.log('VueDocPreview')\n}" type="markdown" />
-    </client-only>-->
-    <button></button>
-  </div>
+  <client-only>
+    <div class="editor">
+      <editor
+        ref="tuiEditor"
+        v-model="editorText"
+        :options="editorOptions"
+        :html="editorHtml"
+        previewStyle="vertical"
+        height="500px"
+        mode="wysiwyg"
+      />
+    </div>
+  </client-only>
 </template>
  
 <script>
-import { getBooks } from "@/api/book";
+import "tui-editor/dist/tui-editor.css";
+import "tui-editor/dist/tui-editor-contents.css";
+import "codemirror/lib/codemirror.css";
+var Editor = null;
+if (process.client) {
+  var toastui = require("@toast-ui/vue-editor");
+  Editor = toastui.Editor;
+}
 
 export default {
+  components: {
+    Editor
+  },
   data() {
     return {
-      clientID:
-        "92755147524-ru1o72nkf5lmt73m5kemplk1c40urjsh.apps.googleusercontent.com",
-      secret: "maqy_2sU46cYDiKA-hHOVYZO",
-      apiKey: "AIzaSyANCNHNb0fGZZeAn5mYa5_6oGgjF96Zjbk"
+      editorText: "This is initialValue.",
+      editorOptions: {
+        hideModeSwitch: true,
+        useCommandShortcut: true,
+        useDefaultHTMLSanitizer: true,
+        usageStatistics: true,
+        toolbarItems: [
+          "heading",
+          "bold",
+          "italic",
+          "divider",
+          "indent",
+          "outdent"
+        ]
+      },
+      editorHtml: ""
     };
   },
   methods: {
-    call() {
-      const { status, data } = getBooks({ limit: 10, user_id: 1, page_num: 1 });
-      console.log({ status, data });
+    scroll() {
+      this.$refs.tuiEditor.invoke("scrollTop", 10);
+    },
+    moveTop() {
+      this.$refs.tuiEditor.invoke("moveCursorToStart");
     }
-  },
-  mounted() {
-    this.call();
   }
 };
 </script>
+<style lang="css">
+</style>

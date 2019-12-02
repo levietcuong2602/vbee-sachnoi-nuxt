@@ -1,3 +1,5 @@
+import { stringLiteral } from "@babel/types";
+
 export function changeToSlug(title = "vbee", replace = "_") {
   var slug = "";
   var titleLower = title.toLowerCase();
@@ -67,19 +69,54 @@ export function getTotalCharacters(text) {
   return totalCount;
 }
 
-export function breakTextToWords(text) {}
+export function normalizeString(string) {
+  return (
+    string
+      .replace(/-+/gi, "-")
+      .replace(/@-|-@|@/gi, "")
+      .replace(/[\n\r]+/gi, "")
+      .replace(/\`/gi, "")
+      .replace(/(\.|:|!|\?|\. )(\-)/gi, "$1\n$2")
+      // .replace(/(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\n|\r|\r\n)/gm, "$1$2\n")
+      .trim()
+  );
+}
 
-export function detachSentences(characters) {
-  var sentences = characters
-    .replace(/(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm, "$1$2|")
-    .split("|");
-  return sentences;
+export function getPageWithLines(string, maxLineOfPage, maxCharacterOfLine) {
+  string = normalizeString(string);
+
+  const pages = [];
+  // const words = string.split(/[ -./\\()"',;<>~!@#$%^&*|+=[\]{}`~?:]/u);
+  const words = string.split(/ /u);
+  let linesOfPage = [];
+  let line = "";
+
+  for (let word of words) {
+    line += word;
+    line = line.trim() + " ";
+    if (line.length >= maxCharacterOfLine) {
+      line += "\n";
+      linesOfPage.push(line);
+      line = "";
+    }
+    if (linesOfPage.length >= maxLineOfPage) {
+      pages.push(linesOfPage.join(" "));
+      linesOfPage = [];
+    }
+  }
+  if (linesOfPage.length > 0) {
+    pages.push(linesOfPage.join(" "));
+  }
+
+  return pages;
 }
 
 export function getPageSentences(characters, limit) {
   var pages = [];
   var sentences = characters
-    .replace(/(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm, "$1$2|")
+    .replace(/(\.|:|!|\?|\. )(\-)/gi, "$1\n$2")
+    .replace(/(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm, "$1$2$3|")
+    .trim()
     .split("|");
 
   var totalSentence = sentences.length;

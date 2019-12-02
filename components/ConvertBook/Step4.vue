@@ -802,6 +802,15 @@ export default {
           const { status } = res;
           if (status === 1) {
             this.dialogCongratulation = true;
+            this.$notify({
+              title: "Thông báo",
+              type: "success",
+              message: "Sách của bạn đã được convert",
+              position: "bottom-right"
+            });
+            setTimeout(() => {
+              this.$router.push(`/analysic-book/${id}`);
+            }, 1000);
           }
         })
         .catch(err => {

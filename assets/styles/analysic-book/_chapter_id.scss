@@ -75,6 +75,37 @@
         box-shadow: 0 5px 30px rgba(0, 0, 0, 0.55);
         min-height: 600px;
         font-size: 1.5vw;
+
+        .title-chapter {
+          .note {
+            position: absolute;
+            font-size: 0.9vw;
+            top: 10px;
+            display: flex;
+            .note-item {
+              width: 20px;
+              height: 20px;
+              margin: 0px 5px;
+              &.error {
+                background-color: #ef7e7e;
+              }
+              &.add {
+                background-color: #ccffff;
+              }
+              &.edit {
+                background-color: #e6fff5;
+              }
+            }
+          }
+          .back {
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            right: 0px;
+            top: 10px;
+          }
+        }
+
         .highlight {
           &:hover {
             cursor: pointer;
@@ -86,7 +117,7 @@
           &.action-edit {
             background-color: #e6fff5;
           }
-          &.action-delete {
+          &.action-error {
             background-color: #ef7e7e;
           }
         }

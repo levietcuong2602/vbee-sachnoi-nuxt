@@ -227,7 +227,7 @@ export default {
     },
     showDetailContentChapter(currentChapter) {
       const { sentences } = currentChapter;
-      if (currentChapter && sentences.length > 0) {
+      if (currentChapter && sentences > 0) {
         const { id } = this.bookInfo;
         this.$router.push(`/analysic-book/${id}/${currentChapter.id}`);
         return;
@@ -255,9 +255,6 @@ export default {
   },
   computed: {
     ...mapGetters(["userId"])
-  },
-  created() {
-    this.isLoadingData = true;
   },
   mounted() {
     this.initDateRangeDefault();

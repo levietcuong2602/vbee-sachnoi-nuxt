@@ -14,11 +14,26 @@
           <div class="box-main">
             <div class="preview-book">
               <el-scrollbar wrap-class="preview-book__scroll">
-                <el-input class="content" type="textarea" v-model="segmentPage"></el-input>
-                <!-- <client-only>
-                  <VueEditor v-model.lazy="segmentPage" @input="handleEditContent"></VueEditor>
-                </client-only>-->
+                <el-input
+                  class="content"
+                  type="textarea"
+                  v-model="segmentPage"
+                  @blur="updateBufferPages"
+                ></el-input>
               </el-scrollbar>
+              <!-- <client-only>
+                <div class="editor">
+                  <editor
+                    ref="tuiEditor"
+                    v-model="segmentPage"
+                    :options="editorOptions"
+                    :html="editorHtml"
+                    previewStyle="vertical"
+                    height="650px"
+                    mode="wysiwyg"
+                  />
+                </div>
+              </client-only>-->
             </div>
             <div class="preview-pager">
               <el-pagination
@@ -146,12 +161,15 @@
         <el-button @click="gotoBackStep()">Quay lại</el-button>
         <el-button>Bỏ qua</el-button>
         <el-button v-if="detachFile&&!isChange" type="warning" @click="gotoNextStep()">Tiếp tục</el-button>
-        <el-button v-else type="warning" @click="handleBeforeDetachFile">Tiếp tục</el-button>
+        <el-button v-else type="warning" @click="handleBeforeDetachFile">Tách file</el-button>
       </div>
     </div>
 
     <!-- dialog -->
     <el-dialog :visible.sync="dialogNotifyVisible" width="40%" center>
+      <div slot="title">
+        <h5 class="text-center">Thông báo</h5>
+      </div>
       <h5>{{ messageNotify }}</h5>
       <span slot="footer" class="dialog-footer">
         <el-button type="danger" @click="dialogNotifyVisible = false">Bỏ qua tách file</el-button>
@@ -162,21 +180,26 @@
 </template>
 <script>
 import { mapGetters } from "vuex";
+import axios from "axios";
+
+import "tui-editor/dist/tui-editor.css";
+import "tui-editor/dist/tui-editor-contents.css";
+import "codemirror/lib/codemirror.css";
+var Editor = null;
+if (process.client) {
+  var toastui = require("@toast-ui/vue-editor");
+  Editor = toastui.Editor;
+}
+
 import {
+  getPageWithLines,
   getPageSentences,
-  pagination,
-  getTotalCharacters,
   detachChapter
 } from "@/utils/convert";
 
-if (process.client) {
-  var { VueEditor } = require("vue2-editor");
-}
-import axios from "axios";
-
 export default {
   name: "Step2",
-  components: { VueEditor },
+  components: { Editor },
   data() {
     return {
       isExtend: true,
@@ -185,8 +208,6 @@ export default {
       totalPage: 0,
       currentPage: 1,
       limitPage: 3000,
-      minReload: 2990,
-      maxReload: 3010,
       detachFile: false,
       chapters: [],
       dialogNotifyVisible: false,
@@ -194,7 +215,25 @@ export default {
       isSaveBook: false,
       isSaveChapter: false,
       pageSize: 10,
-      isChange: true
+      isChange: true,
+      // editor
+      editorOptions: {
+        hideModeSwitch: true,
+        useCommandShortcut: true,
+        useDefaultHTMLSanitizer: true,
+        usageStatistics: true,
+        toolbarItems: [
+          "heading",
+          "bold",
+          "italic",
+          "divider",
+          "hr",
+          "divider",
+          "indent",
+          "outdent"
+        ]
+      },
+      editorHtml: ""
     };
   },
   computed: {
@@ -202,7 +241,6 @@ export default {
   },
   watch: {
     segmentPage: function(content) {
-      this.handleEditContent(content);
       this.isChange = true;
     }
   },
@@ -221,38 +259,19 @@ export default {
 
       this.handleDetachFile();
     },
+    getPageWithLines,
     getPageSentences,
-    pagination,
-    getTotalCharacters,
     detachChapter,
-    loadSegmentPage() {
-      const isHasBuffer = this.bufferPages.length > 0;
-
-      if (isHasBuffer) {
-        const index = this.currentPage - 1;
-
-        this.segmentPage = this.bufferPages[index];
-        this.totalPage = this.bufferPages.length;
-      } else {
-        const {
-          pager: { lastPageNum, currentPageNum },
-          data
-        } = this.pagination({
-          characters: this.contentBook,
-          limit: this.limitPage,
-          pageNum: this.currentPage
-        });
-
-        this.segmentPage = data;
-        this.totalPage = lastPageNum;
-      }
-    },
     loadBufferPages() {
+      // this.bufferPages = this.getPageWithLines(this.contentBook, 25, 75);
       this.bufferPages = this.getPageSentences(
         this.contentBook,
         this.limitPage
       );
+      this.segmentPage = this.bufferPages[this.currentPage - 1];
+      this.totalPage = this.bufferPages.length;
     },
+    updateBufferPages() {},
     updateOriginBook() {
       const content = this.bufferPages.join(" ");
       this.$store.dispatch("book/updateContentBook", content);
@@ -260,35 +279,9 @@ export default {
     handleCheckIsExtend() {
       this.isExtend = !this.isExtend;
     },
-    updateBufferPage() {
-      const { currentPage, totalPage, bufferPages } = this;
-      const startIndex = currentPage <= 1 ? 0 : currentPage - 2;
-      const endIndex = startIndex + 2 >= totalPage ? totalPage : startIndex + 2;
-
-      const contentUpdate = bufferPages.slice(startIndex, endIndex);
-      const itemUpdate = this.getPageSentences(contentUpdate, this.limitPage);
-
-      this.bufferPages.splice(startIndex, endIndex - startIndex, ...itemUpdate);
-    },
     handleChangePage(page) {
       this.currentPage = page;
-      this.loadSegmentPage();
-    },
-    handleEditContent: function(content) {
-      const index = this.currentPage - 1;
-      const contentCurrent = content ? content.replace(/<p>|<\/p>/gi, "") : "";
-      this.bufferPages[index] = contentCurrent;
-
-      const { minReload, maxReload } = this;
-      const segmentLength = this.getTotalCharacters(contentCurrent);
-
-      if (segmentLength <= minReload || segmentLength >= maxReload) {
-        this.$nextTick(function() {
-          this.updateOriginBook();
-          this.loadBufferPages();
-        });
-        this.loadSegmentPage();
-      }
+      this.segmentPage = this.bufferPages[page - 1];
     },
     handleBeforeDetachFile() {
       this.detachFile = true;
@@ -323,9 +316,7 @@ export default {
       await this.updateNumberChapterBook();
 
       if (this.isSaveBook && this.isSaveChapter) {
-        setTimeout(() => {
-          this.$emit("handleNextStep", 4);
-        }, 1000);
+        this.$emit("handleNextStep", 4);
       }
     },
     checkEmptyChapterName() {
@@ -354,7 +345,7 @@ export default {
             title: name,
             author,
             public_year: publicYear,
-            status: "INIT",
+            status: { waiting: true },
             number_chapter: 0
           }
         });
@@ -408,7 +399,7 @@ export default {
           userId,
           title,
           content: content.trim(),
-          status: "INIT"
+          status: { waiting: true }
         };
       });
 
@@ -468,7 +459,6 @@ export default {
           id,
           chapters: { length }
         } = this.book;
-        console.log(id);
         const { status, data } = await axios({
           method: "PUT",
           url: `${this.domain}books/${id}`,
@@ -504,7 +494,6 @@ export default {
   },
   mounted() {
     this.loadBufferPages();
-    this.loadSegmentPage();
   }
 };
 </script>

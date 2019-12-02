@@ -104,13 +104,16 @@ div:focus {
 // convert book step 2
 .convert-book {
   .preview-book {
-    .el-scrollbar__view {
-      height: 650px;
-      .el-textarea__inner {
-        height: 100%;
-      }
-      .quillWrapper {
+    .preview-book__scroll {
+      overflow: hidden !important;
+      .el-scrollbar__view {
         height: 650px;
+        .el-textarea__inner {
+          height: 100%;
+        }
+        .quillWrapper {
+          height: 650px;
+        }
       }
     }
   }

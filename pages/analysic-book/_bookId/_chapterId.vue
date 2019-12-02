@@ -5,7 +5,20 @@
         <div class="dialog-box">
           <div class="dialog-box__main col-lg-10 col-12">
             <div class="title-chapter">
+              <div class="note">
+                <p class="note-item error"></p>
+                <span>lỗi</span>
+                <p class="note-item add"></p>
+                <span>thêm</span>
+                <p class="note-item edit"></p>
+                <span>sửa</span>
+              </div>
               <h5 class="text-center">{{ currentChapter ? currentChapter.title : "" }}</h5>
+              <div class="back">
+                <el-tooltip effect="light" content="Đóng" placement="bottom-start">
+                  <i class="fas fa-times" @click="gotoBack"></i>
+                </el-tooltip>
+              </div>
             </div>
             <template v-for="(sentence, index) in sentences">
               <span
@@ -58,7 +71,7 @@
         </div>
         <div class="box__footer_main-process col-lg-6">
           <div class="process">
-            <p class="name m-0">Chương 1: Phần mở đầu</p>
+            <p class="name m-0">{{ currentChapter ? currentChapter.title : "" }}</p>
           </div>
           <div class="sound">
             <el-dropdown>
@@ -80,14 +93,14 @@
             </el-dropdown>
           </div>
           <div class="download">
-            <el-dropdown trigger="click">
+            <el-dropdown trigger="click" @command="handleDownloadChapter">
               <span class="el-dropdown-link">
                 <el-tooltip effect="light" content="Xem thêm" placement="bottom-start">
                   <i class="fas fa-ellipsis-h"></i>
                 </el-tooltip>
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item class="item-download">
+                <el-dropdown-item class="item-download" command="1">
                   <img src="/img/download.png" alt />
                   <span>Tải xuống</span>
                 </el-dropdown-item>
@@ -96,9 +109,13 @@
           </div>
         </div>
         <div class="box__footer_main-chapter col-lg-3">
-          <el-select v-model="chapterSelect" placeholder="Chọn chương">
-            <el-option label="Chương 1" value="chapter_1"></el-option>
-            <el-option label="Chương 2" value="chapter_2"></el-option>
+          <el-select v-model="chapterId" placeholder="Chọn chương" @change="handleChangeChapter">
+            <el-option
+              v-for="chapter in chapterOptions"
+              :key="chapter.id"
+              :label="chapter.title"
+              :value="chapter.id"
+            ></el-option>
           </el-select>
         </div>
       </div>
@@ -172,7 +189,13 @@
   </div>
 </template>
 <script>
-import { getChapter, updateChapter } from "@/api/chapter";
+import {
+  getChapter,
+  updateChapter,
+  downloadChapter,
+  getChapters
+} from "@/api/chapter";
+import { reconvertChapter } from "@/api/tts";
 import { mapGetters } from "vuex";
 import { STATUS_SENTENCE } from "@/constant";
 
@@ -204,9 +227,9 @@ export default {
       innerVisible: false,
       bookdId: null,
       chapterId: null,
-      chapterSelect: null,
       soundVolume: 40,
-      isChange: false
+      isChange: false,
+      chapterOptions: []
     };
   },
   computed: {
@@ -450,6 +473,7 @@ export default {
       }
     },
     initPlayer() {
+      if (!this.currentChapter) return;
       const { sentences } = this.currentChapter;
       if (sentences.length > 0) {
         var me = this;
@@ -496,10 +520,17 @@ export default {
         // change volume audio
 
         var _trackHasEnded = function() {
-          me.currentSentence =
-            parseInt(me.currentSentence) === me.sentences.length - 1
-              ? 0
-              : parseInt(me.currentSentence) + 1;
+          let file_name = null;
+          do {
+            if (parseInt(me.currentSentence) === me.sentences.length - 1) {
+              me.currentSentence = 0;
+              _stopTrack();
+              return;
+            }
+            me.currentSentence = parseInt(me.currentSentence) + 1;
+            file_name = sentences[me.currentSentence].file_name;
+          } while (!file_name);
+
           me.isStartingAudio = false;
           _setTrack();
         };
@@ -520,6 +551,11 @@ export default {
             audioElement.pause();
           }
         };
+        var _stopTrack = function() {
+          me.isStartingAudio = false;
+          audioElement.pause();
+          audioElement.currentTime = 0;
+        };
         return;
       }
 
@@ -531,25 +567,32 @@ export default {
     },
     handleStartAudio() {
       // start audio
-      const { file_name, status } = this.sentences[this.currentSentence];
+      let { file_name } = this.sentences[this.currentSentence];
       const { book_id, id } = this.currentChapter;
+      while (!file_name) {
+        this.currentSentence =
+          parseInt(this.currentSentence) === this.sentences.length - 1
+            ? 0
+            : parseInt(this.currentSentence) + 1;
+
+        file_name = this.sentences[this.currentSentence].file_name;
+      }
 
       this.isStartingAudio = true;
       let audio = this.$refs.audioSrc;
-      audio.src = "";
+      if (!audio.paused) {
+        audio.pause();
+        audio.src = "";
+        audio.currentTime = 0;
+      }
+
       const desc = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
       this.audioSrc = desc;
       audio.src = desc;
       audio.load();
       const playPromise = audio.play();
       if (playPromise !== undefined) {
-        playPromise
-          .then(_ => {
-            audio.pause();
-          })
-          .catch(error => {
-            console.log(error.message);
-          });
+        playPromise.then(_ => {}).catch(error => {});
       }
     },
     handleStopAudio() {
@@ -560,6 +603,21 @@ export default {
       } catch (error) {
         console.log(error.message);
       }
+    },
+    async handleDownloadChapter() {
+      const me = this;
+      const des = `http://localhost:8888/audio/${this.bookdId}/${this.chapterId}/${this.chapterId}.mp3`;
+      await downloadChapter(des).then(res => {
+        const url = window.URL.createObjectURL(new Blob([res]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${me.chapterId}.mp3`); //or any other extension
+        document.body.appendChild(link);
+        link.click();
+      });
+    },
+    handleChangeChapter(chapterId) {
+      this.$router.push(`/analysic-book/${this.bookdId}/${chapterId}`);
     },
     checkTimeHightLight: function() {
       return ({ start, end }) => {
@@ -580,7 +638,24 @@ export default {
         })
         .catch(err => {});
     },
+    async getChapterOptions() {
+      const options = {
+        limit: 100,
+        page_num: 1,
+        book_id: this.bookdId
+      };
+      await getChapters(options)
+        .then(res => {
+          const { status, result } = res;
+          if (status === 1) {
+            const { data } = result;
+            this.chapterOptions = data;
+          }
+        })
+        .catch();
+    },
     async requestConvertChapter() {
+      const me = this;
       const sentences = this.sentences
         .filter(sentence => sentence.content.trim().length > 0)
         .map(sentence => {
@@ -590,7 +665,48 @@ export default {
           }
           return sentence;
         });
-      await updateChapter(this.bookdId, { sentences });
+      me.$notify({
+        type: "warning",
+        message: "Đang cập nhật thay đổi vào hệ thống ...",
+        offset: 40
+      });
+      await updateChapter(this.chapterId, { sentences })
+        .then(res => {
+          const { status } = res;
+          if (status === 1) {
+            me.$notify({
+              type: "success",
+              message: "Đã cập nhật nội dung mới nhất của chương",
+              offset: 40
+            });
+          }
+        })
+        .catch(err => {
+          me.$notify({
+            type: "error",
+            message: "Cập nhật chapter thất bại",
+            offset: 40
+          });
+        });
+      await reconvertChapter(this.bookdId)
+        .then(res => {
+          const { status } = res;
+          if (status === 1) {
+            me.$notify({
+              type: "success",
+              message: "reconvert chương thành công",
+              offset: 40
+            });
+          }
+        })
+        .catch(err => {
+          me.$notify({
+            type: "error",
+            message: "reconvert chương thất bại",
+            offset: 40
+          });
+        });
+      this.isChange = false;
     },
     getClassByStatus(status) {
       switch (status) {
@@ -599,10 +715,13 @@ export default {
         case "EDIT":
           return "action-edit";
         case "ERROR":
-          return "action-delete";
+          return "action-error";
         default:
           return "";
       }
+    },
+    gotoBack() {
+      this.$router.push(`/analysic-book/${this.bookdId}`);
     }
   },
   created() {
@@ -614,6 +733,7 @@ export default {
     this.onClickHideContextMenu();
     await this.getChapterInfo();
     this.initPlayer();
+    await this.getChapterOptions();
   }
 };
 </script>

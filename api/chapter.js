@@ -23,3 +23,11 @@ export function updateChapter(chapterId, params) {
     data: params
   });
 }
+
+export function downloadChapter(url) {
+  return request({
+    url,
+    method: "GET",
+    responseType: "blob"
+  });
+}
