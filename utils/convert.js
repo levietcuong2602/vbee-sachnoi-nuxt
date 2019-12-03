@@ -128,11 +128,11 @@ export function getPageSentences(characters, limit) {
     if (pageLength > limit) {
       pages.push(sentences.slice(start, i).join(" "));
       start = i;
-      pageLength = 0;
+      pageLength = sentences[i].length;
     }
   }
   if (pageLength > 0) {
-    pages.push(sentences.slice(start, i).join(" "));
+    pages.push(sentences.slice(start).join(" "));
   }
   if (totalSentence <= 0) {
     pages = [characters];
@@ -160,61 +160,6 @@ export function pagination({ characters, limit, pageNum }) {
     },
     data
   };
-}
-
-export function detachChapter(content) {
-  const regex = RegExp(
-    /<c[0-9]+>|<C[0-9]+>|<\/c[0-9]+>|<\/C[0-9]+>|<c>|<\/C>|<C>|<\/c>/g
-  );
-  const regexChapter = RegExp(
-    /<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>|<h>|<\/H>|<H>|<\/h>/g
-  );
-  let chapters;
-  if (regex.test(content)) {
-    chapters = content.trim().split(regex);
-  } else {
-    chapters = [content.trim()];
-  }
-
-  let pageStart = 1;
-  let pageEnd = 1;
-
-  chapters = chapters
-    .filter(chapter => chapter && chapter.length > 100)
-    .map((chapter, index) => {
-      let pages = getPageSentences(chapter, 3000);
-      pageStart = pageEnd;
-      pageEnd = pageStart + pages.length;
-      var title = `Chương ${index + 1}: `;
-      if (regexChapter.test(chapter)) {
-        const indexOfStart = chapter.indexOf("<h1>");
-        const indexOfEnd = chapter.indexOf("</h1>");
-        if (indexOfStart !== -1 && indexOfEnd !== -1) {
-          title = chapter.substr(indexOfStart, indexOfEnd + 5);
-          chapter = chapter
-            .trim()
-            .replace(title, "")
-            .replace(
-              /<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>|<h>|<\/H>|<H>|<\/h>/g,
-              ""
-            );
-          title =
-            `Chương ${index + 1}: ` +
-            title.replace(
-              /<h[0-9]+>|<H[0-9]+>|<\/h[0-9]+>|<\/H[0-9]+>|<h>|<\/H>|<H>|<\/h>/g,
-              ""
-            );
-        }
-      }
-      return {
-        content: chapter.trim(),
-        start: pageStart,
-        end: pageEnd - 1,
-        title
-      };
-    });
-
-  return chapters;
 }
 
 export function formatNumber(value) {

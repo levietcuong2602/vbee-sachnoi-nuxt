@@ -15,6 +15,20 @@
     justify-content: flex-start;
     .box-main {
       width: 100%;
+      .box-main__header {
+        border: 1px solid #c4c4c4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2px;
+        background: #c4c4c4;
+        .el-button {
+          border-radius: 0;
+          padding: 10px 20px;
+          background-color: rgb(48, 65, 86);
+          color: #fff;
+        }
+      }
       .preview-book {
         background: #ffffff;
         border: 1px solid #c4c4c4;
@@ -49,6 +63,18 @@
       background-color: #c4c4c4;
       margin-left: 5px;
       height: 650px;
+    }
+  }
+  .exchange {
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    display: flex;
+    .el-button {
+      border-radius: 0;
+      padding: 10px;
+      background-color: rgb(48, 65, 86);
+      color: #fff;
     }
   }
   .box-right {

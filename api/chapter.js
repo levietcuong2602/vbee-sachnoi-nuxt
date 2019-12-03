@@ -1,31 +1,41 @@
 import request from "@/utils/request";
 
-export function getChapters(params) {
-  return request({
+export async function getChapters(params) {
+  return await request({
     url: "/api/v1/chapters",
     method: "GET",
     params
   });
 }
 
-export function getChapter(chapterId) {
-  return request({
+export async function getChapter(chapterId) {
+  return await request({
     url: `/api/v1/chapters/${chapterId}`,
     method: "GET",
     type: "GET"
   });
 }
 
-export function updateChapter(chapterId, params) {
-  return request({
+export async function updateChapter(chapterId, params) {
+  return await request({
     url: `/api/v1/chapters/${chapterId}`,
     method: "PUT",
     data: params
   });
 }
 
-export function downloadChapter(url) {
-  return request({
+export async function createChapters({ chapters }) {
+  return await request({
+    url: "/api/v1/chapters-mutils",
+    method: "POST",
+    data: {
+      chapters
+    }
+  });
+}
+
+export async function downloadChapter(url) {
+  return await request({
     url,
     method: "GET",
     responseType: "blob"
