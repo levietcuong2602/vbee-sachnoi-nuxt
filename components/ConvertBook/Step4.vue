@@ -297,7 +297,7 @@
     </div>
     <div class="row mt-5 pb-5">
       <div class="col text-right">
-        <el-button @click="gotoNextStep(3)">Quay lại</el-button>
+        <el-button @click="gotoNextStep(2)">Quay lại</el-button>
         <el-button type="warning" @click="handleSendRequest">Gửi yêu cầu</el-button>
       </div>
     </div>

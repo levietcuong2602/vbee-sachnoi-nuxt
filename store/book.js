@@ -6,6 +6,7 @@ const state = () => ({
   publicYear: "",
   mimeType: "mp3",
   chapters: [],
+  pages: [],
   file: null,
   voice: "hn_male_xuantin_vdts_48k-hsmm",
   rate: 1.0,
@@ -74,6 +75,9 @@ const mutations = {
   },
   UPDATE_SOUND_VOLUMN: (state, soundBackgroundVolumn) => {
     state.soundBackgroundVolumn = soundBackgroundVolumn;
+  },
+  UPDATE_PAGES_BOOK: (state, pages) => {
+    state.pages = pages;
   }
 };
 const actions = {
@@ -109,6 +113,9 @@ const actions = {
   },
   updateSoundVolumn({ commit }, soundBackgroundVolumn) {
     commit("UPDATE_SOUND_VOLUMN", soundBackgroundVolumn);
+  },
+  updatePages({ commit }, pages) {
+    commit("UPDATE_PAGES_BOOK", pages);
   }
 };
 export default {

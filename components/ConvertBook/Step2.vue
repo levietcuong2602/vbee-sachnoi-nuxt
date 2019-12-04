@@ -183,11 +183,12 @@
     <div class="row mt-5 pb-5">
       <div class="col text-right">
         <el-button @click="gotoBackStep()">Quay lại</el-button>
-        <el-button>Bỏ qua</el-button>
+        <!-- <el-button>Bỏ qua</el-button> -->
         <el-button type="warning" @click="gotoNextStep()">Tiếp tục</el-button>
       </div>
     </div>
-    <!-- dialog -->
+
+    <!-- dialog 1 -->
     <el-dialog :visible.sync="dialogNotifyVisible" width="40%" center>
       <div slot="title">
         <h5 class="text-center">Thông báo</h5>
@@ -201,7 +202,21 @@
         <el-button type="primary" @click="handleDetachFile">Tiếp tục</el-button>
       </span>
     </el-dialog>
-    <!-- context-menu -->
+
+    <!-- dialog 2 -->
+    <el-dialog :visible.sync="dialogNotifyBack" width="40%" center>
+      <div slot="title">
+        <h5 class="text-center">Thông báo</h5>
+      </div>
+      <h5>
+        Quay lại bước trước đó có thể mất thông tin tách chương của bạn
+        <br />Bạn muốn tiếp tục tách chương?
+      </h5>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="danger" @click="dialogNotifyBack = false">Bỏ qua</el-button>
+        <el-button type="primary" @click="handleGotoBack">Tiếp tục</el-button>
+      </span>
+    </el-dialog>
     <!-- context menu -->
     <ul id="context-menu">
       <li class="context-menu-item" @click="addTagChapter">
@@ -234,6 +249,7 @@ export default {
       detachFile: false,
       chapters: [],
       dialogNotifyVisible: false,
+      dialogNotifyBack: false,
       isSaveBook: false,
       isSaveChapter: false,
       pageSize: 10,
@@ -250,6 +266,14 @@ export default {
   },
   methods: {
     gotoBackStep() {
+      const { chapters, pages } = this.book;
+      if (chapters.length <= 0 || pages.length <= 0) {
+        this.dialogNotifyBack = true;
+        return;
+      }
+      this.handleGotoBack();
+    },
+    handleGotoBack() {
       this.$emit("handleNextStep", 1);
     },
     gotoNextStep() {
@@ -323,12 +347,17 @@ export default {
       this.segmentPage = bufferPages[this.currentPage - 1];
     },
     loadBufferPages() {
+      const { pages } = this.book;
+      if (pages.length > 0) {
+        this.bufferPages = pages;
+        this.currentPage = 1;
+        this.segmentPage = this.bufferPages[this.currentPage - 1];
+        this.totalPage = this.bufferPages.length;
+        return;
+      }
+
       this.bufferPages = this.getPageSentences(
         this.contentBook,
-        this.limitPage
-      );
-      const pages = this.getPageSentences(
-        this.bufferPages.join(" "),
         this.limitPage
       );
 
@@ -339,7 +368,7 @@ export default {
           content: this.contentBook,
           startPage: 1,
           endPage: this.totalPage,
-          title: "Chương 1"
+          title: "Chương 1:"
         }
       ];
     },
@@ -408,7 +437,6 @@ export default {
       // create book and chapter
       await this.saveBookInfo();
       await this.saveChaptersInfo();
-      await this.updateNumberChapterBook();
 
       if (this.isSaveBook && this.isSaveChapter) {
         this.$emit("handleNextStep", 4);
@@ -430,11 +458,10 @@ export default {
           author,
           publicYear,
           status: { waiting: true },
-          numberChapter: 0
+          numberChapter: this.chapters.length
         });
         if (status === 1) {
           const { id } = result;
-          console.log("book Id: ", id);
           this.$store.dispatch("book/updateIdBook", id);
           this.isSaveBook = true;
           return;
@@ -452,10 +479,15 @@ export default {
     },
     async saveChaptersInfo() {
       if (!this.isSaveBook) return;
+      if (this.book.chapters && this.book.chapters.length > 0) {
+        const [{ id }] = this.book.chapters;
+        if (id) return;
+      }
 
       const userId = this.userId;
-      let chapters = this.chapters.map(chapter => {
+      this.chapters = this.chapters.map(chapter => {
         return {
+          ...chapter,
           bookId: this.book.id,
           userId,
           title: chapter.title,
@@ -465,21 +497,30 @@ export default {
       });
 
       try {
-        const { status, result } = await createChapters({ chapters });
+        const { status, result } = await createChapters({
+          chapters: this.chapters
+        });
         if (status === 1) {
-          console.log("chapter Ids: ", result);
-          if (result.length !== chapters.length) {
-            console.log("lưu chapter thất bại");
+          if (result.length === this.chapters.length) {
+            this.chapters = this.chapters.map((chapter, index) => {
+              return {
+                ...chapter,
+                id: result[index]
+              };
+            });
+
+            this.$store.dispatch("book/updateChapterBook", this.chapters);
+            this.$store.dispatch("book/updatePages", this.bufferPages);
+            this.isSaveChapter = true;
             return;
           }
-          chapters = chapters.map((chapter, index) => {
-            return {
-              ...chapter,
-              id: result[index]
-            };
+
+          this.$notify({
+            type: "error",
+            title: "Lỗi",
+            message: "Lưu thông tin chương thất bại",
+            offset: 40
           });
-          this.$store.dispatch("book/updateChapterBook", chapters);
-          this.isSaveChapter = true;
           return;
         }
       } catch (error) {
@@ -491,27 +532,6 @@ export default {
           offset: 40
         });
         this.isSaveChapter = false;
-      }
-    },
-    async updateNumberChapterBook() {
-      try {
-        if (!this.isSaveChapter || !this.isSaveBook) return;
-        const { id } = this.book;
-        const { status } = await updateBook(id, {
-          numberChapter: this.chapters.length
-        });
-        if (status === 1) {
-          this.isSaveBook = true;
-          return;
-        }
-      } catch (error) {
-        console.log(error.message);
-        this.$notify.error({
-          title: "Lỗi",
-          message: "Cập nhật số chương thất bại",
-          offset: 40
-        });
-        this.isSaveBook = false;
       }
     },
     addTagChapter() {
@@ -536,7 +556,9 @@ export default {
     },
     onClickHideContextMenu() {
       document.addEventListener("click", function(e) {
-        document.getElementById("context-menu").classList.remove("active");
+        if (document.getElementById("context-menu")) {
+          document.getElementById("context-menu").classList.remove("active");
+        }
       });
     },
     showContextMenu(vm) {
@@ -574,6 +596,15 @@ export default {
   mounted() {
     this.onClickHideContextMenu();
     this.loadBufferPages();
+
+    // check xem đã tồn tại chương chưa
+    const { chapters } = this.book;
+    if (chapters.length > 0) {
+      this.chapters = chapters;
+      this.detachFile = true;
+      this.isSaveBook = true;
+      this.isSaveChapter = true;
+    }
   }
 };
 </script>

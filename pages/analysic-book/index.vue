@@ -59,7 +59,7 @@
           </el-table>
         </el-scrollbar>
       </div>
-      <div class="analysic-book__footer" v-if="total > limit">
+      <div class="analysic-book__footer" v-if="total > 1">
         <el-pagination
           layout="prev, pager, next"
           :total="total"
@@ -102,41 +102,32 @@ export default {
         start = new Date(this.dateRange[0]).valueOf();
         end = new Date(this.dateRange[1]).valueOf();
       }
-
-      getBooks({
-        limit: this.limit,
-        user_id: this.userId,
-        page_num: this.pageCurrent,
-        start_time: start,
-        end_time: end
-      })
-        .then(res => {
-          const {
-            result: {
-              data,
-              pager: { total_count, current_page_num }
-            },
-            status
-          } = res;
-
-          if (status === 1) {
-            this.pageCurrent = current_page_num;
-            this.total = total_count;
-            this.tableData = data;
-            this.loading = false;
-          } else {
-            this.tableData = [];
-            this.pageCurrent = 1;
-            this.loading = false;
-            return;
-          }
-        })
-        .catch(err => {
-          this.tableData = [];
-          this.pageCurrent = 1;
-          this.total = 0;
-          this.loading = false;
+      try {
+        const { status, result } = await getBooks({
+          limit: this.limit,
+          user_id: this.userId,
+          page_num: this.pageCurrent,
+          start_time: start,
+          end_time: end
         });
+        if (status === 1) {
+          const {
+            data,
+            pager: { total_count, current_page_num }
+          } = result;
+
+          this.pageCurrent = current_page_num;
+          this.total = total_count;
+          this.tableData = data;
+          this.loading = false;
+        }
+      } catch (error) {
+        console.log(error.message);
+        this.tableData = [];
+        this.pageCurrent = 1;
+        this.total = 0;
+        this.loading = false;
+      }
     },
     formatTimeRequest(time) {
       const date = new Date(time);
