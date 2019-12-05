@@ -8,10 +8,10 @@
   .book-detail__main {
     padding: 10px;
     .el-table__row {
-      i {
-        width: 20px;
-        &:hover {
-          background: #dcdcdc;
+      .el-button {
+        margin: 0px;
+        &.is-circle {
+          padding: 5px;
         }
       }
     }

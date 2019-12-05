@@ -5,7 +5,7 @@
       <el-breadcrumb-item>Thống kê sách</el-breadcrumb-item>
       <el-breadcrumb-item>Thống kê sách chi tiết</el-breadcrumb-item>
     </el-breadcrumb>
-    <template v-if="bookInfo">
+    <template>
       <div class="analysic-book__header">
         <div class="title">THỐNG KÊ SÁCH</div>
         <div class="options">
@@ -44,36 +44,39 @@
               style="width: 100%"
               :header-cell-style="{background: '#EAECED'}"
             >
-              <el-table-column type="index" width="50"></el-table-column>
-              <el-table-column property="title" label="Tên phần/chương" width="220"></el-table-column>
-              <el-table-column label="Ngày gửi yêu cầu">
+              <el-table-column type="index" width="50" align="center"></el-table-column>
+              <el-table-column property="title" label="Tên phần/chương" width="220" align="center"></el-table-column>
+              <el-table-column label="Ngày gửi yêu cầu" align="center">
                 <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
               </el-table-column>
-              <el-table-column label="Ngày trả file">
+              <el-table-column label="Ngày trả file" align="center">
                 <template slot-scope="scope">{{ formatTimeRequest(scope.row.updated_at) }}</template>
               </el-table-column>
-              <el-table-column label="Độ dài">
+              <el-table-column label="Độ dài" align="center">
                 <template slot-scope="scope">{{toHHMMSS(scope.row.duration)}}</template>
               </el-table-column>
-              <el-table-column property="status" label="Trạng thái">
+              <el-table-column label="Trạng thái" align="center">
                 <template slot-scope="scope">
-                  <span class="text-center">{{ convertStatusBook(scope.row.status) }}</span>
+                  <span
+                    class="text-center"
+                    v-html="scope.row.detail ? convertStatusDetail(scope.row.detail) : convertStatusBook(scope.row.status)"
+                  ></span>
                 </template>
               </el-table-column>
               <el-table-column label="Thao tác" align="center">
                 <template slot-scope="scope">
                   <el-tooltip effect="light" content="Tải xuống" placement="bottom-start">
-                    <span v-if="scope.row.status === 'DONE'">
-                      <i class="fas fa-download text-primary"></i>
-                    </span>
-                    <span v-else>
-                      <i class="fas fa-download"></i>
-                    </span>
+                    <el-button icon="el-icon-download" circle></el-button>
                   </el-tooltip>
                   <el-tooltip effect="light" content="Chi tiết" placement="bottom-start">
-                    <span @click="showDetailContentChapter(scope.row)">
-                      <i class="fas fa-info-circle"></i>
-                    </span>
+                    <el-button
+                      icon="el-icon-info"
+                      circle
+                      @click="showDetailContentChapter(scope.row)"
+                    ></el-button>
+                  </el-tooltip>
+                  <el-tooltip effect="light" content="Sửa" placement="bottom-start">
+                    <el-button icon="el-icon-edit" circle @click="showDialogEditChapter(scope.row)"></el-button>
                   </el-tooltip>
                 </template>
               </el-table-column>
@@ -82,7 +85,17 @@
         </div>
       </div>
     </template>
-    <div class="container" v-else>Không tìm thấy thông tin sách</div>
+
+    <!-- dialog edit -->
+    <el-dialog title="Sửa tên chương" :visible.sync="dialogEditVisiable" width="30%" center>
+      <el-form v-model="formEditChapter" label-width="120px">
+        <el-input v-model="formEditChapter.title" placeholder="Tên chương"></el-input>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogEditVisiable = false">Hủy</el-button>
+        <el-button type="primary" @click="handleEditChapter">Chỉnh sửa</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -90,20 +103,27 @@ import phrases from "@/data";
 import moment from "moment";
 import { mapGetters } from "vuex";
 import { getBookInfo } from "@/api/book";
-import { getChapters } from "@/api/chapter";
+import { getChapters, updateChapter } from "@/api/chapter";
+import { mixins } from "@/mixins/status";
 
 export default {
   name: "BookDetail",
   data() {
     return {
       chapterBooks: [],
-      time: "0:00:00.165",
       bookInfo: null,
       limit: 10,
       pageCurrent: 1,
-      isLoadingData: true
+      isLoadingData: true,
+      dateRange: null,
+      dialogEditVisiable: false,
+      formEditChapter: {
+        id: null,
+        title: ""
+      }
     };
   },
+  mixins: [mixins],
   methods: {
     getClassStatus(status) {
       status = parseInt(status);
@@ -214,7 +234,7 @@ export default {
       if (seconds) {
         return moment()
           .startOf("day")
-          .seconds(seconds)
+          .seconds(Math.round(seconds))
           .format("HH:mm:ss");
       }
       return "-";
@@ -239,17 +259,37 @@ export default {
         offset: "40"
       });
     },
-    convertStatusBook(status) {
-      switch (status) {
-        case "INIT":
-          return "Đã khởi tạo";
-        case "WAITING":
-          return "Chờ convert";
-        case "DONE":
-          return "Đã convert";
-        default:
-          return "Không xác định";
-          break;
+    showDialogEditChapter(chapter) {
+      const { id, title } = chapter;
+
+      this.formEditChapter.id = id;
+      this.formEditChapter.title = title;
+      this.dialogEditVisiable = true;
+    },
+    async handleEditChapter() {
+      const { id, title } = this.formEditChapter;
+      try {
+        const { status } = await updateChapter(id, {
+          title
+        });
+        if (status === 1) {
+          this.$notify({
+            type: "success",
+            message: "Sửa thông tin sách thành công",
+            offset: 40
+          });
+
+          this.getChapterList();
+          this.dialogEditVisiable = false;
+          return;
+        }
+      } catch (error) {
+        console.log(error.message);
+        this.$notify({
+          type: "error",
+          message: "Sửa thông tin chương không thành công",
+          offset: 40
+        });
       }
     }
   },

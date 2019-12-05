@@ -28,31 +28,36 @@
             style="width: 100%"
             :header-cell-style="{background: '#EAECED'}"
             v-loading="loading"
+            @row-click="gotoDetailBook"
           >
             <el-table-column type="index" width="50" align="center"></el-table-column>
-            <el-table-column property="title" label="Tên sách" width="320" align="center"></el-table-column>
-            <el-table-column label="Ngày gửi yêu cầu" align="center">
+            <el-table-column property="title" label="Tên sách" width="200" align="center"></el-table-column>
+            <el-table-column property="author" label="Tác giả" width="150" align="center"></el-table-column>
+            <el-table-column property="public_year" label="Năm xuất bản" width="130" align="center"></el-table-column>
+            <el-table-column label="Ngày gửi yêu cầu" align="center" width="230">
               <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
             </el-table-column>
-            <el-table-column label="Tổng số phần/chương" align="center">
+            <el-table-column label="Số chương" align="center" width="100">
               <template slot-scope="scope">{{ scope.row.number_chapter }}</template>
             </el-table-column>
-            <el-table-column property="status" label="Trạng thái" align="center">
+            <el-table-column property="status" label="Trạng thái" align="center" width="250">
               <template slot-scope="scope">
-                <span class="text-center">{{ convertStatusBook(scope.row.status) }}</span>
+                <span
+                  class="text-center"
+                  v-html="scope.row.detail ? convertStatusDetail(scope.row.detail) : convertStatusBook(scope.row.status)"
+                ></span>
               </template>
             </el-table-column>
-            <el-table-column label="Thao tác" align="center">
+            <el-table-column label="Thao tác" align="center" fixed="right" width="120">
               <template slot-scope="scope">
                 <el-tooltip effect="light" content="Tải xuống" placement="bottom-start">
-                  <span>
-                    <i class="fas fa-download text-primary"></i>
-                  </span>
+                  <el-button icon="el-icon-download" circle></el-button>
                 </el-tooltip>
                 <el-tooltip effect="light" content="Chi tiết" placement="bottom-start">
-                  <span @click="gotoDetailBook(scope.row.id)">
-                    <i class="fas fa-info-circle"></i>
-                  </span>
+                  <el-button icon="el-icon-info" circle @click="gotoDetailBook(scope.row)"></el-button>
+                </el-tooltip>
+                <el-tooltip effect="light" content="Sủa" placement="bottom-start">
+                  <el-button icon="el-icon-edit" circle @click.stop="showDialogEditBook(scope.row)"></el-button>
                 </el-tooltip>
               </template>
             </el-table-column>
@@ -67,15 +72,32 @@
         ></el-pagination>
       </div>
     </div>
+
+    <!-- dialog edit book -->
+    <el-dialog title="Sửa thông tin sách" :visible.sync="dialogEditVisiable" width="30%" center>
+      <el-form v-model="formEditBook" label-width="120px">
+        <el-form-item label="Tên sách" prop="title">
+          <el-input v-model="formEditBook.title" placeholder="Tên sách"></el-input>
+        </el-form-item>
+        <el-form-item label="Tác giả" prop="author">
+          <el-input v-model="formEditBook.author" placeholder="Tác giả"></el-input>
+        </el-form-item>
+        <el-form-item label="Năm xuất bản" prop="publicYear">
+          <el-date-picker v-model="formEditBook.publicYear" type="year" placeholder="Năm xuất bản"></el-date-picker>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogEditVisiable = false">Hủy</el-button>
+        <el-button type="primary" @click="handleEditBook">Chỉnh sửa</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
-import axios from "axios";
 import moment from "moment";
-
-import { getBooks } from "@/api/book";
-import { switchCase } from "@babel/types";
+import { getBooks, updateBook } from "@/api/book";
+import { mixins } from "@/mixins/status";
 
 export default {
   name: "AnalysicBook",
@@ -87,12 +109,21 @@ export default {
       limit: 10,
       pageCurrent: 1,
       total: 0,
-      loading: true
+      loading: true,
+      dialogEditVisiable: false,
+      formEditBook: {
+        id: "",
+        title: "",
+        author: "",
+        publicYear: ""
+      }
     };
   },
+  mixins: [mixins],
   methods: {
-    gotoDetailBook(bookId) {
-      this.$router.push("/analysic-book/" + bookId);
+    gotoDetailBook(row) {
+      const { id } = row;
+      this.$router.push("/analysic-book/" + id);
     },
     async getBooks() {
       this.book = true;
@@ -137,23 +168,49 @@ export default {
       this.pageCurrent = pageNum;
       this.getBooks();
     },
+    async handleEditBook() {
+      try {
+        const { id, title, author, publicYear } = this.formEditBook;
+        const { status } = await updateBook(id, {
+          title,
+          author,
+          publicYear
+        });
+        if (status === 1) {
+          this.$notify({
+            type: "success",
+            message: "Sửa thông tin sách thành công",
+            offset: 40
+          });
+
+          this.getBooks();
+          this.dialogEditVisiable = false;
+          return;
+        }
+      } catch (error) {
+        console.log(error.message);
+        this.$notify({
+          type: "error",
+          message: "Sửa thông tin sách không thành công",
+          offset: 40
+        });
+      }
+    },
+    showDialogEditBook(book) {
+      const { id, title, author, public_year } = book;
+
+      this.formEditBook.id = id;
+      this.formEditBook.title = title;
+      this.formEditBook.author = author;
+      this.formEditBook.publicYear = public_year;
+
+      this.dialogEditVisiable = true;
+    },
     initDateRangeDefault() {
       var date = new Date();
       var start = new Date(date.getFullYear(), date.getMonth(), 1);
       var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
       this.dateRange = [start, end];
-    },
-    convertStatusBook(status) {
-      switch (status) {
-        case "INIT":
-          return "Đã khởi tạo";
-        case "WAITING":
-          return "Chờ convert";
-        case "DONE":
-          return "Đã convert";
-        default:
-          break;
-      }
     }
   },
   mounted() {

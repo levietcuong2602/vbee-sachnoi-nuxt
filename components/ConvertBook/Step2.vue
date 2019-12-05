@@ -189,10 +189,7 @@
     </div>
 
     <!-- dialog 1 -->
-    <el-dialog :visible.sync="dialogNotifyVisible" width="40%" center>
-      <div slot="title">
-        <h5 class="text-center">Thông báo</h5>
-      </div>
+    <el-dialog title="Thông báo" :visible.sync="dialogNotifyVisible" width="40%" center>
       <h5>
         Bạn có chưa gắn thẻ tách chương.
         <br />Bạn muốn tiếp tục tách chương?
@@ -204,10 +201,7 @@
     </el-dialog>
 
     <!-- dialog 2 -->
-    <el-dialog :visible.sync="dialogNotifyBack" width="40%" center>
-      <div slot="title">
-        <h5 class="text-center">Thông báo</h5>
-      </div>
+    <el-dialog title="Thông báo" :visible.sync="dialogNotifyBack" width="40%" center>
       <h5>
         Quay lại bước trước đó có thể mất thông tin tách chương của bạn
         <br />Bạn muốn tiếp tục tách chương?
@@ -235,6 +229,7 @@ import { mapGetters } from "vuex";
 import { createBook, updateBook } from "@/api/book";
 import { createChapters } from "@/api/chapter";
 import { getPageSentences } from "@/utils/convert";
+import { STATUS_BOOK, STATUS_CHAPTER } from "@/constant";
 
 export default {
   name: "Step2",
@@ -457,7 +452,7 @@ export default {
           title: name,
           author,
           publicYear,
-          status: { waiting: true },
+          status: STATUS_BOOK.INIT,
           numberChapter: this.chapters.length
         });
         if (status === 1) {
@@ -492,7 +487,7 @@ export default {
           userId,
           title: chapter.title,
           content: chapter.content,
-          status: { waiting: true }
+          status: STATUS_CHAPTER.INIT
         };
       });
 

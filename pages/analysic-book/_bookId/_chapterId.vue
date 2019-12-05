@@ -16,7 +16,7 @@
               <h5 class="text-center">{{ currentChapter ? currentChapter.title : "" }}</h5>
               <div class="back">
                 <el-tooltip effect="light" content="Đóng" placement="bottom-start">
-                  <i class="fas fa-times" @click="gotoBack"></i>
+                  <i class="fas fa-times" @click="gotoBack" style="cursor: pointer"></i>
                 </el-tooltip>
               </div>
             </div>
@@ -633,7 +633,8 @@ export default {
           this.sentences = result.sentences;
           this.isChange = this.sentences.some(
             sentence =>
-              sentence.status !== "DONE" && sentence.status !== "WAITING"
+              sentence.status !== STATUS_SENTENCE.SUCCESS &&
+              sentence.status !== STATUS_SENTENCE.WAITING
           );
         })
         .catch(err => {});
@@ -710,11 +711,11 @@ export default {
     },
     getClassByStatus(status) {
       switch (status) {
-        case "ADD":
+        case STATUS_SENTENCE.ADD:
           return "action-add";
-        case "EDIT":
+        case STATUS_SENTENCE.EDIT:
           return "action-edit";
-        case "ERROR":
+        case STATUS_SENTENCE.ERROR:
           return "action-error";
         default:
           return "";

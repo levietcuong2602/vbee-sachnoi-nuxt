@@ -303,10 +303,7 @@
     </div>
 
     <!-- dialog notify -->
-    <el-dialog :visible.sync="dialogCongratulation" width="30%" center>
-      <div slot="title" class="text-center">
-        <b>Chúc mừng</b>
-      </div>
+    <el-dialog title="Chúc mừng" :visible.sync="dialogCongratulation" width="30%" center>
       <p>
         Yêu cầu của bạn đã được gửi.
         <br />Hệ thống đang xử lý yêu cầu của bạn
@@ -316,10 +313,7 @@
       </div>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogNotifyFail" width="30%" center>
-      <div slot="title" class="text-center">
-        <b>Thất bại</b>
-      </div>
+    <el-dialog title="Thông báo" :visible.sync="dialogNotifyFail" width="30%" center>
       <p>
         Đã xảy ra lỗi.
         <br />Vui lòng kiểm tra lại
@@ -332,16 +326,15 @@
   </div>
 </template>
 <script>
-import axios from "axios";
 import { mapGetters } from "vuex";
-
 import { getToken } from "@/utils/auth";
-
 import Pagination from "@/components/Pagination";
 
 import { getVoices } from "@/api/voice";
 import { getAudios } from "@/api/audio";
 import { convertTTS, convertBook } from "@/api/tts";
+import { updateBook } from "@/api/book";
+import { STATUS_BOOK, STATUS_CHAPTER } from "@/constant";
 
 export default {
   name: "Step4",
@@ -654,9 +647,7 @@ export default {
       this.$store.dispatch("book/updateSoundVolumn", value);
     },
     async handleSendRequest() {
-      // update property book
       await this.onUpdatePropertyBook();
-      // convert book return file audio
       this.onConvertBook();
     },
     handleStartListentTest(link) {
@@ -763,29 +754,20 @@ export default {
           sound_background_volumn: soundBackgroundVolumn,
           audio_type: mimeType,
           voice_id: voice,
-          sound_background: soundBackground
+          sound_background: soundBackground,
+          status: STATUS_BOOK.WAITING
         };
-        const {
-          data: { status },
-          status: statusCode
-        } = await axios({
-          method: "PUT",
-          url: `${this.domain}books/${id}`,
-          data: options
-        });
-
-        if (statusCode === 200 && status === 1) {
+        const { status } = await updateBook(id, options);
+        if (status === 1) {
           this.isUpdateBook = true;
-          return;
         }
+      } catch (error) {
+        console.log(error.message);
         this.$notify.error({
           title: "Lỗi",
           message: "Cập nhật thông tin sách thất bại",
           offset: 50
         });
-        return;
-      } catch (error) {
-        console.log(error.message);
       }
     },
     async onConvertBook() {

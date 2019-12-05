@@ -48,11 +48,12 @@ service.interceptors.response.use(
       error.message = "Đường dẫn không tồn tại !";
     }
 
-    Message({
-      message: error.message,
-      type: "error",
-      duration: 5 * 1000
-    });
+    // Message({
+    //   message: error.message,
+    //   type: "error",
+    //   duration: 5 * 1000,
+    //   offset: 40
+    // });
     return Promise.reject(error);
   }
 );
