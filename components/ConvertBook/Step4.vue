@@ -333,8 +333,10 @@ import Pagination from "@/components/Pagination";
 import { getVoices } from "@/api/voice";
 import { getAudios } from "@/api/audio";
 import { convertTTS, convertBook } from "@/api/tts";
+import { getChapters, updateChapter } from "@/api/chapter";
 import { updateBook } from "@/api/book";
-import { STATUS_BOOK, STATUS_CHAPTER } from "@/constant";
+import { STATUS_BOOK, STATUS_CHAPTER, STATUS_SENTENCE } from "@/constant";
+import { getSentences } from "@/utils/convert";
 
 export default {
   name: "Step4",
@@ -626,6 +628,7 @@ export default {
       );
       this.handleStopBgAudio();
     },
+    getSentences,
     getAudioTemplate() {},
     gotoNextStep(step) {
       this.$emit("handleNextStep", step);
@@ -648,6 +651,7 @@ export default {
     },
     async handleSendRequest() {
       await this.onUpdatePropertyBook();
+      await this.onUpdateChapters();
       this.onConvertBook();
     },
     handleStartListentTest(link) {
@@ -768,6 +772,32 @@ export default {
           message: "Cập nhật thông tin sách thất bại",
           offset: 50
         });
+      }
+    },
+    async onUpdateChapters() {
+      const { status, result } = await getChapters({
+        book_id: this.book.id,
+        limit: 1000,
+        page_num: 1
+      });
+      if (status === 1) {
+        const chapters = result.data;
+        for (const chapter of chapters) {
+          if (chapter.hasOwnProperty("id") && chapter.id) {
+            let sentences = this.getSentences(chapter.content);
+            sentences = sentences
+              .filter(sentence => sentence.trim())
+              .map(sentence => {
+                return {
+                  content: sentence,
+                  fileName: null,
+                  link: null,
+                  status: STATUS_SENTENCE.WAITING
+                };
+              });
+            await updateChapter(chapter.id, { sentences });
+          }
+        }
       }
     },
     async onConvertBook() {

@@ -6,11 +6,11 @@
           <div class="dialog-box__main col-lg-10 col-12">
             <div class="title-chapter">
               <div class="note">
-                <p class="note-item error"></p>
+                <p class="note-item bg-danger"></p>
                 <span>lỗi</span>
-                <p class="note-item add"></p>
+                <p class="note-item bg-info"></p>
                 <span>thêm</span>
-                <p class="note-item edit"></p>
+                <p class="note-item bg-warning"></p>
                 <span>sửa</span>
               </div>
               <h5 class="text-center">{{ currentChapter ? currentChapter.title : "" }}</h5>
@@ -48,7 +48,7 @@
     <div class="box__footer">
       <div class="box__footer_main row">
         <div class="box__footer_main-controll col-lg-3">
-          <span class="btn btn-prev">
+          <span class="btn btn-prev" @click="handlePrevSentence">
             <el-tooltip effect="light" content="Previous" placement="bottom-start">
               <i class="fas fa-step-backward"></i>
             </el-tooltip>
@@ -63,7 +63,7 @@
               <i class="far fa-play-circle"></i>
             </el-tooltip>
           </span>
-          <span class="btn btn-next">
+          <span class="btn btn-next" @click="handleNextSentence">
             <el-tooltip effect="light" content="Next" placement="bottom-start">
               <i class="fas fa-step-forward"></i>
             </el-tooltip>
@@ -93,11 +93,13 @@
             </el-dropdown>
           </div>
           <div class="download">
-            <el-dropdown trigger="click" @command="handleDownloadChapter">
+            <el-tooltip effect="light" content="Tải xuống" placement="bottom-start">
+              <span @click="handleDownloadChapter">
+                <img src="/img/download.png" alt />
+              </span>
+            </el-tooltip>
+            <!-- <el-dropdown trigger="click" @command="handleDownloadChapter">
               <span class="el-dropdown-link">
-                <el-tooltip effect="light" content="Xem thêm" placement="bottom-start">
-                  <i class="fas fa-ellipsis-h"></i>
-                </el-tooltip>
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item class="item-download" command="1">
@@ -105,7 +107,7 @@
                   <span>Tải xuống</span>
                 </el-dropdown-item>
               </el-dropdown-menu>
-            </el-dropdown>
+            </el-dropdown>-->
           </div>
         </div>
         <div class="box__footer_main-chapter col-lg-3">
@@ -186,6 +188,15 @@
     </ul>
     <!-- end context menu -->
     <audio ref="audioSrc" id="idAudio" preload="auto" autoplay :src="audioSrc"></audio>
+
+    <el-backtop
+      target=".chapter-detail .box__body"
+      :right="40"
+      :bottom="60"
+      :visibility-height="100"
+    ></el-backtop>
+  </div>
+</template>
   </div>
 </template>
 <script>
@@ -198,6 +209,8 @@ import {
 import { reconvertChapter } from "@/api/tts";
 import { mapGetters } from "vuex";
 import { STATUS_SENTENCE } from "@/constant";
+import { downloadMixins } from "@/mixins/chapter";
+import { async } from "q";
 
 const OPTIONS_TYPE = {
   ADD_BEFORE_PHRASE: 0,
@@ -232,6 +245,7 @@ export default {
       chapterOptions: []
     };
   },
+  mixins: [downloadMixins],
   computed: {
     ...mapGetters(["sidebar"])
   },
@@ -277,7 +291,9 @@ export default {
       menu.classList.add("active");
     },
     hideContextMenu: () => {
-      document.getElementById("context-menu").classList.remove("active");
+      if (document.getElementById("context-menu")) {
+        document.getElementById("context-menu").classList.remove("active");
+      }
     },
     async addBeforePhrases() {
       if (this.tempSentence.trim().length > 0) {
@@ -349,9 +365,6 @@ export default {
                 status: STATUS_SENTENCE.EDIT
               };
             }
-            if (sentence.status !== "EDIT" && sentence.status !== "ADD") {
-              return { ...sentence, status: "DONE" };
-            }
             return sentence;
           });
         const content = sentences.reduce(
@@ -383,12 +396,11 @@ export default {
         }
       )
         .then(async () => {
-          const sentences = this.sentences;
-          sentences.splice(this.tempIndex, 1);
-          this.sentences = sentences;
-          await updateChapter(this.chapterId, { sentences });
+          this.sentences.splice(this.tempIndex, 1);
+          await updateChapter(this.chapterId, { sentences: this.sentences });
           await this.getChapterInfo();
 
+          this.isChange = true;
           this.$message({
             type: "success",
             message: "Cập nhật thông tin chương thành công",
@@ -447,7 +459,9 @@ export default {
     },
     onClickHideContextMenu() {
       document.addEventListener("click", function(e) {
-        document.getElementById("context-menu").classList.remove("active");
+        if (document.getElementById("context-menu")) {
+          document.getElementById("context-menu").classList.remove("active");
+        }
       });
     },
     handlePhrases() {
@@ -474,10 +488,9 @@ export default {
     },
     initPlayer() {
       if (!this.currentChapter) return;
-      const { sentences } = this.currentChapter;
-      if (sentences.length > 0) {
+
+      if (this.sentences.length > 0) {
         var me = this;
-        me.sentences = sentences;
         const audioElement = me.$refs.audioSrc;
 
         // Audio track has ended playing.
@@ -520,7 +533,7 @@ export default {
         // change volume audio
 
         var _trackHasEnded = function() {
-          let file_name = null;
+          let link = null;
           do {
             if (parseInt(me.currentSentence) === me.sentences.length - 1) {
               me.currentSentence = 0;
@@ -528,16 +541,18 @@ export default {
               return;
             }
             me.currentSentence = parseInt(me.currentSentence) + 1;
-            file_name = sentences[me.currentSentence].file_name;
-          } while (!file_name);
+            link = me.sentences[me.currentSentence].link;
+          } while (!link);
 
           me.isStartingAudio = false;
           _setTrack();
         };
         var _setTrack = function() {
-          const { file_name } = sentences[me.currentSentence]; // get current entry, increment i
-          const { book_id, id } = me.currentChapter;
-          const songURL = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
+          const baseUrl = process.env.baseUrl;
+          let { file_name } = me.sentences[me.currentSentence]; // get current entry, increment i
+
+          const audioUrl = file_name.replace("public", "").replace(/\\/gi, "/");
+          const songURL = baseUrl + audioUrl;
           audioElement.setAttribute("src", songURL);
           audioElement.volume = parseFloat(me.soundVolume / 100);
           audioElement.load();
@@ -567,6 +582,7 @@ export default {
     },
     handleStartAudio() {
       // start audio
+      const baseUrl = process.env.baseUrl;
       let { file_name } = this.sentences[this.currentSentence];
       const { book_id, id } = this.currentChapter;
       while (!file_name) {
@@ -586,9 +602,11 @@ export default {
         audio.currentTime = 0;
       }
 
-      const desc = `http://localhost:8888/audio/${book_id}/${id}/${file_name}`;
-      this.audioSrc = desc;
-      audio.src = desc;
+      const link = file_name.replace("public", "").replace(/\\/gi, "/");
+      const songURL = baseUrl + link;
+      this.audioSrc = songURL;
+
+      audio.src = songURL;
       audio.load();
       const playPromise = audio.play();
       if (playPromise !== undefined) {
@@ -605,16 +623,8 @@ export default {
       }
     },
     async handleDownloadChapter() {
-      const me = this;
-      const des = `http://localhost:8888/audio/${this.bookdId}/${this.chapterId}/${this.chapterId}.mp3`;
-      await downloadChapter(des).then(res => {
-        const url = window.URL.createObjectURL(new Blob([res]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `${me.chapterId}.mp3`); //or any other extension
-        document.body.appendChild(link);
-        link.click();
-      });
+      const { audio, title } = this.currentChapter;
+      this.downloadChapter(audio, title);
     },
     handleChangeChapter(chapterId) {
       this.$router.push(`/analysic-book/${this.bookdId}/${chapterId}`);
@@ -631,11 +641,11 @@ export default {
           const { result } = res;
           this.currentChapter = result;
           this.sentences = result.sentences;
-          this.isChange = this.sentences.some(
-            sentence =>
-              sentence.status !== STATUS_SENTENCE.SUCCESS &&
-              sentence.status !== STATUS_SENTENCE.WAITING
-          );
+          this.isChange =
+            !result.audio ||
+            this.sentences.some(
+              sentence => sentence.status !== STATUS_SENTENCE.SUCCESS
+            );
         })
         .catch(err => {});
     },
@@ -656,73 +666,68 @@ export default {
         .catch();
     },
     async requestConvertChapter() {
-      const me = this;
-      const sentences = this.sentences
-        .filter(sentence => sentence.content.trim().length > 0)
-        .map(sentence => {
-          const { status } = sentence;
-          if (status !== "DONE") {
-            return { ...sentence, status: "WAITING" };
-          }
-          return sentence;
-        });
-      me.$notify({
-        type: "warning",
-        message: "Đang cập nhật thay đổi vào hệ thống ...",
-        offset: 40
-      });
-      await updateChapter(this.chapterId, { sentences })
-        .then(res => {
-          const { status } = res;
-          if (status === 1) {
-            me.$notify({
-              type: "success",
-              message: "Đã cập nhật nội dung mới nhất của chương",
-              offset: 40
-            });
-          }
-        })
-        .catch(err => {
-          me.$notify({
-            type: "error",
-            message: "Cập nhật chapter thất bại",
-            offset: 40
+      try {
+        const me = this;
+        const sentences = this.sentences
+          .filter(sentence => sentence.content.trim().length > 0)
+          .map(sentence => {
+            const { status } = sentence;
+            if (status !== STATUS_SENTENCE.SUCCESS) {
+              return { ...sentence, status: STATUS_SENTENCE.WAITING };
+            }
+            return sentence;
           });
-        });
-      await reconvertChapter(this.bookdId)
-        .then(res => {
-          const { status } = res;
-          if (status === 1) {
-            me.$notify({
-              type: "success",
-              message: "reconvert chương thành công",
-              offset: 40
-            });
-          }
-        })
-        .catch(err => {
-          me.$notify({
-            type: "error",
-            message: "reconvert chương thất bại",
-            offset: 40
+        await updateChapter(this.chapterId, { sentences }).then(async res => {
+          await reconvertChapter(this.chapterId).then(res => {
+            const { status } = res;
+            if (status === 1) {
+              me.$notify({
+                type: "success",
+                message: "reconvert chương thành công",
+                offset: 40
+              });
+            }
           });
+          await me.getChapterInfo();
+          me.isChange = false;
         });
-      this.isChange = false;
+      } catch (error) {
+        me.$notify({
+          type: "error",
+          message: "reconvert chương thất bại",
+          offset: 40
+        });
+        console.log(error.message);
+      }
     },
     getClassByStatus(status) {
       switch (status) {
         case STATUS_SENTENCE.ADD:
-          return "action-add";
+          return "bg-info";
         case STATUS_SENTENCE.EDIT:
-          return "action-edit";
+          return "bg-warning";
+        case STATUS_SENTENCE.SUCCESS:
+          return "";
+        case STATUS_SENTENCE.WAITING:
+          return "bg-muted";
         case STATUS_SENTENCE.ERROR:
-          return "action-error";
+          return "bg-danger";
         default:
           return "";
       }
     },
     gotoBack() {
       this.$router.push(`/analysic-book/${this.bookdId}`);
+    },
+    handleNextSentence() {
+      if (this.currentSentence < this.sentences.length - 1) {
+        this.currentSentence += 1;
+      }
+    },
+    handlePrevSentence() {
+      if (this.currentSentence > 0) {
+        this.currentSentence -= 1;
+      }
     }
   },
   created() {

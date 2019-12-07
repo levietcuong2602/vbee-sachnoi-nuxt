@@ -10,13 +10,13 @@
         status-icon
         ref="ruleForm"
       >
-        <el-form-item label="Tên sách" class="col-md-2 col-sm-4 col-6" prop="name">
+        <el-form-item label="Tên sách" class="col-md-4 col-sm-4 col-6" prop="name">
           <el-input v-model="bookInfo.name" placeholder="Nhập tên sách" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="Tác giả" class="col-md-2 col-sm-4 col-6" prop="author">
+        <el-form-item label="Tác giả" class="col-md-4 col-sm-4 col-6" prop="author">
           <el-input v-model="bookInfo.author" placeholder="Nhập tên tác giả"></el-input>
         </el-form-item>
-        <el-form-item label="Năm xuất bản" class="col-md-2 col-sm-4 col-6">
+        <el-form-item label="Năm xuất bản" class="col-md-4 col-sm-4 col-6">
           <el-date-picker v-model="yearTime" type="year" placeholder="Năm xuất bản"></el-date-picker>
         </el-form-item>
       </el-form>

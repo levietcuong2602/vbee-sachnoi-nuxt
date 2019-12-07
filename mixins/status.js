@@ -5,13 +5,15 @@ export const mixins = {
     convertStatusBook(status) {
       switch (status) {
         case STATUS_BOOK.INIT:
-          return "Đã khởi tạo";
+          return "<i class='text-success'>Đã khởi tạo</i>";
         case STATUS_BOOK.WAITING:
-          return "Chờ convert";
+          return "<i class='text-warning'>Chờ convert</i>";
         case STATUS_BOOK.DONE:
-          return "Đã convert";
+          return "<i class='text-primary'>Đã convert</i>";
+        case STATUS_BOOK.PROCESSING:
+          return "<i class='text-muted'>Đang xử lý</>";
         default:
-          return "Không xác định";
+          return "<i class='text-danger'>Không xác định</i>";
       }
     },
     convertStatusDetail(detail) {

@@ -7,7 +7,15 @@
     </el-breadcrumb>
     <template>
       <div class="analysic-book__header">
-        <div class="title">THỐNG KÊ SÁCH</div>
+        <div class="title">
+          <strong>THỐNG KÊ SÁCH</strong>
+        </div>
+        <div class="refresh">
+          <el-button @click="getChapterList">
+            <i class="el-icon-refresh"></i>
+            Cập nhật
+          </el-button>
+        </div>
         <div class="options">
           <el-date-picker
             v-model="dateRange"
@@ -29,9 +37,11 @@
             </span>
           </div>
           <div class="download">
-            <strong>
-              <a href="#">Tải xuống toàn bộ</a>
-            </strong>
+            <el-tooltip effect="light" content="Tải xuống file zip" placement="bottom-start">
+              <strong>
+                <a href="#" @click.prevent="handleDownloadBook">Tải xuống toàn bộ</a>
+              </strong>
+            </el-tooltip>
           </div>
         </div>
         <div class="book-detail__main">
@@ -43,17 +53,22 @@
               highlight-current-row
               style="width: 100%"
               :header-cell-style="{background: '#EAECED'}"
+              @row-click="showDetailContentChapter"
             >
               <el-table-column type="index" width="50" align="center"></el-table-column>
               <el-table-column property="title" label="Tên phần/chương" width="220" align="center"></el-table-column>
               <el-table-column label="Ngày gửi yêu cầu" align="center">
                 <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
               </el-table-column>
-              <el-table-column label="Ngày trả file" align="center">
-                <template slot-scope="scope">{{ formatTimeRequest(scope.row.updated_at) }}</template>
+              <el-table-column label="Ngày trả file" align="center" prop="time_refund_file">
+                <template
+                  slot-scope="scope"
+                >{{ scope.row.time_refund_file ? formatTimeRequest(scope.row.time_refund_file) : "-" }}</template>
               </el-table-column>
               <el-table-column label="Độ dài" align="center">
-                <template slot-scope="scope">{{toHHMMSS(scope.row.duration)}}</template>
+                <template
+                  slot-scope="scope"
+                >{{scope.row.duration ? toHHMMSS(scope.row.duration) : "-"}}</template>
               </el-table-column>
               <el-table-column label="Trạng thái" align="center">
                 <template slot-scope="scope">
@@ -66,17 +81,25 @@
               <el-table-column label="Thao tác" align="center">
                 <template slot-scope="scope">
                   <el-tooltip effect="light" content="Tải xuống" placement="bottom-start">
-                    <el-button icon="el-icon-download" circle></el-button>
+                    <el-button
+                      icon="el-icon-download"
+                      circle
+                      @click.stop="downloadChapter(scope.row.audio, scope.row.title)"
+                    ></el-button>
                   </el-tooltip>
                   <el-tooltip effect="light" content="Chi tiết" placement="bottom-start">
                     <el-button
                       icon="el-icon-info"
                       circle
-                      @click="showDetailContentChapter(scope.row)"
+                      @click.stop="showDetailContentChapter(scope.row)"
                     ></el-button>
                   </el-tooltip>
                   <el-tooltip effect="light" content="Sửa" placement="bottom-start">
-                    <el-button icon="el-icon-edit" circle @click="showDialogEditChapter(scope.row)"></el-button>
+                    <el-button
+                      icon="el-icon-edit"
+                      circle
+                      @click.stop="showDialogEditChapter(scope.row)"
+                    ></el-button>
                   </el-tooltip>
                 </template>
               </el-table-column>
@@ -105,6 +128,7 @@ import { mapGetters } from "vuex";
 import { getBookInfo } from "@/api/book";
 import { getChapters, updateChapter } from "@/api/chapter";
 import { mixins } from "@/mixins/status";
+import { downloadMixins } from "@/mixins/chapter";
 
 export default {
   name: "BookDetail",
@@ -123,7 +147,7 @@ export default {
       }
     };
   },
-  mixins: [mixins],
+  mixins: [mixins, downloadMixins],
   methods: {
     getClassStatus(status) {
       status = parseInt(status);
@@ -190,41 +214,37 @@ export default {
       }
     },
     async getChapterList() {
-      this.isLoadingData = true;
-      const { bookId } = this.$route.params;
+      try {
+        this.isLoadingData = true;
+        const { bookId } = this.$route.params;
+        let start = "";
+        let end = "";
 
-      let start = "";
-      let end = "";
-      if (this.dateRange) {
-        start = new Date(this.dateRange[0]).valueOf();
-        end = new Date(this.dateRange[1]).valueOf();
-      }
-      const options = {
-        limit: this.limit,
-        book_id: bookId,
-        page_num: this.pageCurrent,
-        start_time: start,
-        end_time: end
-      };
-      getChapters(options)
-        .then(res => {
-          const { status, result } = res;
-          if (status === 1) {
-            const {
-              pager: { limit, total_count, current_page_num },
-              data
-            } = result;
+        if (this.dateRange) {
+          start = new Date(this.dateRange[0]).valueOf();
+          end = new Date(this.dateRange[1]).valueOf();
+        }
+        const options = {
+          limit: this.limit,
+          book_id: bookId,
+          page_num: this.pageCurrent,
+          start_time: start,
+          end_time: end
+        };
+        const { status, result } = await getChapters(options);
 
-            this.pageCurrent = current_page_num;
-            this.total = total_count;
-            this.chapterBooks = data;
-          }
-        })
-        .catch(err => {
-          this.total = 0;
-          this.chapterBooks = [];
-        });
-      this.isLoadingData = false;
+        if (status === 1) {
+          const {
+            pager: { limit, total_count, current_page_num },
+            data
+          } = result;
+
+          this.pageCurrent = current_page_num;
+          this.total = total_count;
+          this.chapterBooks = data;
+          this.isLoadingData = false;
+        }
+      } catch (error) {}
     },
     formatTimeRequest(time) {
       const date = new Date(time);
@@ -245,18 +265,18 @@ export default {
       var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
       this.dateRange = [start, end];
     },
-    showDetailContentChapter(currentChapter) {
-      const { sentences } = currentChapter;
-      if (currentChapter && sentences > 0) {
+    showDetailContentChapter(chapter) {
+      const { sentences } = chapter;
+      if (chapter && sentences > 0) {
         const { id } = this.bookInfo;
-        this.$router.push(`/analysic-book/${id}/${currentChapter.id}`);
+        this.$router.push(`/analysic-book/${id}/${chapter.id}`);
         return;
       }
 
       this.$notify({
         type: "error",
-        message: "Lỗi không tìm thấy nội dung của chương này",
-        offset: "40"
+        message: "Nội dung chương chưa được convert",
+        offset: 35
       });
     },
     showDialogEditChapter(chapter) {
@@ -291,6 +311,17 @@ export default {
           offset: 40
         });
       }
+    },
+    handleDownloadBook() {
+      const chapters = this.chapterBooks
+        .filter(chapter => chapter.audio)
+        .map(({ audio, title }) => {
+          return {
+            audio,
+            title
+          };
+        });
+      this.downloadZip({ bookName: this.bookInfo.title, chapters });
     }
   },
   computed: {

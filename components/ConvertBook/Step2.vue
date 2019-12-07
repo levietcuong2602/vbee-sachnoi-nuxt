@@ -368,49 +368,62 @@ export default {
       ];
     },
     handleDeleteChapter(indexChapter) {
-      const { length } = this.chapters;
-      if (indexChapter < 0 || indexChapter >= length) return;
-      if (length <= 1) return;
+      this.$confirm(
+        "Bạn có chắc chắn muốn xóa câu này khỏi đoạn văn không?",
+        "Cảnh báo",
+        {
+          confirmButtonText: "Xác nhận",
+          cancelButtonText: "Hủy bỏ",
+          type: "warning",
+          customClass: "book-detail__messagebox"
+        }
+      )
+        .then(() => {
+          const { length } = this.chapters;
+          if (indexChapter < 0 || indexChapter >= length) return;
+          if (length <= 1) return;
 
-      if (indexChapter === 0) {
-        indexChapter = 1;
-      }
-      const currentChapter = this.chapters[indexChapter];
-      const beforeChapter = this.chapters[indexChapter - 1];
-      const content = beforeChapter.content + "\n" + currentChapter.content;
-      const pages = this.getPageSentences(content, this.limitPage);
-      const startPage = beforeChapter.startPage;
-      const endPage = startPage + pages.length - 1;
+          if (indexChapter === 0) {
+            indexChapter = 1;
+          }
+          const currentChapter = this.chapters[indexChapter];
+          const beforeChapter = this.chapters[indexChapter - 1];
+          const content = beforeChapter.content + "\n" + currentChapter.content;
+          const pages = this.getPageSentences(content, this.limitPage);
+          const startPage = beforeChapter.startPage;
+          const endPage = startPage + pages.length - 1;
 
-      const mergeChapter = {
-        startPage,
-        endPage,
-        content,
-        title: beforeChapter.title
-      };
-
-      const increatePage = endPage - currentChapter.endPage;
-      this.chapters = this.chapters.map((chapter, index) => {
-        if (index > indexChapter)
-          return {
-            ...chapter,
-            startPage: chapter.startPage + increatePage,
-            endPage: chapter.endPage + increatePage
+          const mergeChapter = {
+            startPage,
+            endPage,
+            content,
+            title: beforeChapter.title
           };
-        return chapter;
-      });
-      this.chapters.splice(indexChapter - 1, 2, mergeChapter);
 
-      // cập nhật buffers pages
-      const bufferPages = [];
-      for (const { content } of this.chapters) {
-        const pages = this.getPageSentences(content, this.limitPage);
-        bufferPages.push(...pages);
-      }
+          const increatePage = endPage - currentChapter.endPage;
+          this.chapters = this.chapters.map((chapter, index) => {
+            if (index > indexChapter)
+              return {
+                ...chapter,
+                startPage: chapter.startPage + increatePage,
+                endPage: chapter.endPage + increatePage
+              };
+            return chapter;
+          });
+          this.chapters.splice(indexChapter - 1, 2, mergeChapter);
 
-      this.bufferPages = bufferPages;
-      this.totalPage = bufferPages.length;
-      this.segmentPage = bufferPages[this.currentPage - 1];
+          // cập nhật buffers pages
+          const bufferPages = [];
+          for (const { content } of this.chapters) {
+            const pages = this.getPageSentences(content, this.limitPage);
+            bufferPages.push(...pages);
+          }
+
+          this.bufferPages = bufferPages;
+          this.totalPage = bufferPages.length;
+          this.segmentPage = bufferPages[this.currentPage - 1];
+        })
+        .catch();
     },
     handleBlurSegmentPage() {
       this.isFocus = false;

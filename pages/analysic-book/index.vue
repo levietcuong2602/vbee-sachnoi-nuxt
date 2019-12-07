@@ -51,7 +51,11 @@
             <el-table-column label="Thao tác" align="center" fixed="right" width="120">
               <template slot-scope="scope">
                 <el-tooltip effect="light" content="Tải xuống" placement="bottom-start">
-                  <el-button icon="el-icon-download" circle></el-button>
+                  <el-button
+                    icon="el-icon-download"
+                    circle
+                    @click.stop="handleDownloadBook(scope.row)"
+                  ></el-button>
                 </el-tooltip>
                 <el-tooltip effect="light" content="Chi tiết" placement="bottom-start">
                   <el-button icon="el-icon-info" circle @click="gotoDetailBook(scope.row)"></el-button>
@@ -97,7 +101,9 @@
 import { mapGetters } from "vuex";
 import moment from "moment";
 import { getBooks, updateBook } from "@/api/book";
+import { getChapters } from "@/api/chapter";
 import { mixins } from "@/mixins/status";
+import { downloadMixins } from "@/mixins/chapter";
 
 export default {
   name: "AnalysicBook",
@@ -119,7 +125,12 @@ export default {
       }
     };
   },
-  mixins: [mixins],
+  watch: {
+    dateRange: function(range) {
+      this.getBooks();
+    }
+  },
+  mixins: [mixins, downloadMixins],
   methods: {
     gotoDetailBook(row) {
       const { id } = row;
@@ -144,11 +155,11 @@ export default {
         if (status === 1) {
           const {
             data,
-            pager: { total_count, current_page_num }
+            pager: { last_page_num, current_page_num }
           } = result;
 
           this.pageCurrent = current_page_num;
-          this.total = total_count;
+          this.total = last_page_num;
           this.tableData = data;
           this.loading = false;
         }
@@ -211,6 +222,35 @@ export default {
       var start = new Date(date.getFullYear(), date.getMonth(), 1);
       var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
       this.dateRange = [start, end];
+    },
+    async handleDownloadBook(book) {
+      try {
+        const { title, id } = book;
+        const { status, result } = await getChapters({
+          book_id: id,
+          limit: 100,
+          page_num: 1
+        });
+        if (status === 1) {
+          let chapters = result.data;
+          chapters = chapters
+            .filter(chapter => chapter.audio)
+            .map(({ audio, title }) => {
+              return {
+                audio,
+                title
+              };
+            });
+          this.downloadZip({ bookName: title, chapters });
+        }
+      } catch (error) {
+        console.log(error.message);
+        this.$notify({
+          type: "error",
+          message: "Đã có lỗi xảy ra",
+          offset: 40
+        });
+      }
     }
   },
   mounted() {

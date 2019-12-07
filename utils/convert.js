@@ -111,13 +111,17 @@ export function getPageWithLines(string, maxLineOfPage, maxCharacterOfLine) {
   return pages;
 }
 
-export function getPageSentences(characters, limit) {
-  var pages = [];
-  var sentences = characters
+export function getSentences(string) {
+  return string
     .replace(/(\.|:|!|\?|\. )(\-)/gi, "$1\n$2")
     .replace(/(\.+|\:|\!|\?)(\"*|\'*|\)*|}*|]*)(\s|\n|\r|\r\n)/gm, "$1$2$3|")
     .trim()
     .split("|");
+}
+
+export function getPageSentences(characters, limit) {
+  var pages = [];
+  var sentences = getSentences(characters);
 
   var totalSentence = sentences.length;
   var pageLength = 0;
