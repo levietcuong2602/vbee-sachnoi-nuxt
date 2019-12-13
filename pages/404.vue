@@ -34,6 +34,9 @@ export default {
     message() {
       return "The webmaster said that you can not enter this page...";
     }
+  },
+  layout() {
+    return "splash";
   }
 };
 </script>

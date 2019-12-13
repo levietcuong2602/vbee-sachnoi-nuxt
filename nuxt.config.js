@@ -49,6 +49,7 @@ module.exports = {
    */
   loading: { color: "#fff" },
   router: {
+    middleware: "before-router",
     extendRoutes(routes, resolve) {
       routes.push({
         name: "custom",
@@ -81,7 +82,46 @@ module.exports = {
   /*
    ** Nuxt.js modules
    */
-  modules: [],
+  modules: ["@nuxtjs/axios", "@nuxtjs/auth"],
+  /**
+   * Authen
+   */
+  auth: {
+    strategies: {
+      local: {
+        endpoints: {
+          login: {
+            url: "/auth/login",
+            method: "POST",
+            propertyName: "token"
+          },
+          logout: {
+            url: "/auth/logout",
+            method: "POST"
+          },
+          user: false
+        },
+        tokenRequired: true,
+        tokenType: false
+      },
+      watchLoggedIn: true,
+      redirect: {
+        login: "/login",
+        logout: "/login",
+        callback: "/login",
+        home: "/"
+      },
+      cookie: false,
+      localStorage: false,
+      token: {
+        prefix: "token."
+      }
+    }
+  },
+  axios: {
+    baseURL: "http://localhost:8888/api/v1",
+    credentials: true
+  },
   /*
    ** Build configuration
    */

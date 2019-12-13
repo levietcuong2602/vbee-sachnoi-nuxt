@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
 
-const TokenKey = "Server-Token";
+const TokenKey = "Nuxt-Token";
 
 export function getToken() {
   return Cookies.get(TokenKey);

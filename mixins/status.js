@@ -31,17 +31,17 @@ export const mixins = {
         if (detail.hasOwnProperty(key)) {
           const percent = Math.round((detail[key] / total) * 100);
           if (key === STATUS_SENTENCE.SUCCESS)
-            status += `<i class="text-success">${percent}% thành công</i>`;
+            status += `<i class="text-success">${percent}% thành công </i>`;
           if (key === STATUS_SENTENCE.WAITING)
-            status += `<i class="text-warning">${percent}% đang chờ</i>`;
+            status += `<i class="text-warning">${percent}% đang chờ </i>`;
           if (key === STATUS_SENTENCE.PROCESSING)
-            status += `<i class="text-muted">${percent}% đang xử lý</i>`;
+            status += `<i class="text-muted">${percent}% đang xử lý </i>`;
           if (key === STATUS_SENTENCE.ERROR)
-            status += `<i class="text-danger">${percent}% có lỗi</i>`;
+            status += `<i class="text-danger">${percent}% có lỗi </i>`;
           if (key === STATUS_SENTENCE.EDIT)
-            status += `<i class="text-primary">${percent}% chỉnh sửa</i>`;
+            status += `<i class="text-primary">${percent}% chỉnh sửa </i>`;
           if (key === STATUS_SENTENCE.ADD)
-            status += `<i class="text-info">${percent}% thêm mới</i>`;
+            status += `<i class="text-info">${percent}% thêm mới </i>`;
         }
       }
 

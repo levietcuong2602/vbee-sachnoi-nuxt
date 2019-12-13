@@ -223,8 +223,8 @@ export default {
         scrollTo($tp, 40);
       });
     },
-    getPackageList() {
-      getPackages()
+    async getPackageList() {
+      await getPackages()
         .then(res => {
           const { status, result } = res;
           if (status === 1) {
@@ -252,7 +252,6 @@ export default {
               }
             }
             this.listPackages = listPackages;
-            console.log("listPackages: ", listPackages);
           }
         })
         .catch(err => {});
@@ -263,7 +262,7 @@ export default {
     this.onJqueryTabpane();
   },
   async asyncData() {
-    return getPackages()
+    return await getPackages()
       .then(res => {
         const { status, result } = res;
         if (status === 1) {

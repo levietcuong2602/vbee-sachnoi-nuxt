@@ -1,8 +1,10 @@
 import { getToken, setToken, removeToken } from "@/utils/auth";
 
+import { login } from "@/api/authen";
+
 const state = () => ({
-  token: getToken(),
-  name: "",
+  token: "",
+  userName: "",
   avatar: "",
   userId: "1",
   phoneNumber: "",
@@ -15,8 +17,8 @@ const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token;
   },
-  SET_NAME: (state, name) => {
-    state.name = name;
+  SET_USER_NAME: (state, userName) => {
+    state.userName = userName;
   },
   SET_AVATAR: (state, avatar) => {
     state.avatar = avatar;
@@ -38,13 +40,13 @@ const mutations = {
 const actions = {
   // user login
   login({ commit }, userInfo) {
-    const { username, password } = userInfo;
+    const { userName, password, captcha, session } = userInfo;
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password })
+      login({ user_name: userName.trim(), password, captcha, session })
         .then(response => {
-          const { data } = response;
-          commit("SET_TOKEN", data.token);
-          setToken(data.token);
+          const { accessToken } = response;
+          commit("SET_TOKEN", accessToken);
+          setToken(accessToken);
           resolve();
         })
         .catch(error => {
@@ -91,7 +93,10 @@ const actions = {
         });
     });
   },
-
+  // set token
+  setToken({ commit }, token) {
+    commit("SET_TOKEN", token);
+  },
   // remove token
   resetToken({ commit }) {
     return new Promise(resolve => {

@@ -1,5 +1,5 @@
 <template>
-  <div class="app-wrapper1">
+  <div class="app-wrapper">
     <div class="splash-container">
       <nuxt />
     </div>
@@ -21,5 +21,8 @@ export default {
   position: relative;
   height: 100%;
   width: 100%;
+  .splash-container {
+    height: 100%;
+  }
 }
 </style>

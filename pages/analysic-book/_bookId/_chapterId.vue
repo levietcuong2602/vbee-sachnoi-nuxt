@@ -38,7 +38,7 @@
               >{{ sentence.content }}&nbsp;</span>
             </template>
             <div class="footer-chapter text-right">
-              <el-button v-if="isChange" type="primary" @click="requestConvertChapter">Chỉnh sửa</el-button>
+              <el-button v-if="isChange" type="primary" @click="requestConvertChapter">Cập nhật</el-button>
             </div>
           </div>
         </div>
@@ -703,13 +703,13 @@ export default {
     getClassByStatus(status) {
       switch (status) {
         case STATUS_SENTENCE.ADD:
-          return "bg-info";
+          return "text-info";
         case STATUS_SENTENCE.EDIT:
-          return "bg-warning";
+          return "text-warning";
         case STATUS_SENTENCE.SUCCESS:
           return "";
         case STATUS_SENTENCE.WAITING:
-          return "bg-muted";
+          return "text-muted";
         case STATUS_SENTENCE.ERROR:
           return "bg-danger";
         default:

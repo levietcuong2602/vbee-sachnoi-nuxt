@@ -1,20 +1,14 @@
 <template>
   <div class="analysic-book pt-3">
     <el-breadcrumb separator="-">
-      <el-breadcrumb-item>Sách nói</el-breadcrumb-item>
-      <el-breadcrumb-item>Thống kê sách</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/' }">Sách nói</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/analysic-book/' }">Thống kê sách</el-breadcrumb-item>
       <el-breadcrumb-item>Thống kê sách chi tiết</el-breadcrumb-item>
     </el-breadcrumb>
     <template>
-      <div class="analysic-book__header">
+      <div class="analysic-book__header mt-3">
         <div class="title">
           <strong>THỐNG KÊ SÁCH</strong>
-        </div>
-        <div class="refresh">
-          <el-button @click="getChapterList">
-            <i class="el-icon-refresh"></i>
-            Cập nhật
-          </el-button>
         </div>
         <div class="options">
           <el-date-picker
@@ -33,7 +27,7 @@
           <div class="title">
             <span>Tên sách:</span>
             <span>
-              <strong>Đắc nhân tâm</strong>
+              <strong>{{bookInfo ? bookInfo.title : ""}}</strong>
             </span>
           </div>
           <div class="download">
@@ -56,7 +50,7 @@
               @row-click="showDetailContentChapter"
             >
               <el-table-column type="index" width="50" align="center"></el-table-column>
-              <el-table-column property="title" label="Tên phần/chương" width="220" align="center"></el-table-column>
+              <el-table-column property="title" label="Tên phần/chương" width="220" align="left"></el-table-column>
               <el-table-column label="Ngày gửi yêu cầu" align="center">
                 <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
               </el-table-column>

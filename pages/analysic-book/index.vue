@@ -1,12 +1,20 @@
 <template>
-  <div class="analysic-book">
+  <div class="analysic-book pt-3">
     <el-breadcrumb separator="-">
       <el-breadcrumb-item>Sách nói</el-breadcrumb-item>
       <el-breadcrumb-item>Thống kê sách</el-breadcrumb-item>
     </el-breadcrumb>
-    <div class="analysic-book__header">
-      <div class="title">THỐNG KÊ SÁCH</div>
+    <div class="analysic-book__header mt-3">
+      <div class="title">
+        <strong>THỐNG KÊ SÁCH</strong>
+      </div>
       <div class="options">
+        <el-input
+          placeholder="Nhập tên sách"
+          class="input-search"
+          v-model="inputSearch"
+          @keyup.enter.native="getBooks()"
+        ></el-input>
         <el-date-picker
           v-model="dateRange"
           type="daterange"
@@ -15,7 +23,7 @@
           end-placeholder="Kết thúc"
           format="dd/MM/yyyy"
         >></el-date-picker>
-        <el-button class="search" @click="getBooks()">Tra cứu</el-button>
+        <el-button class="search" @click="getBooks()" icon="el-icon-search">Tra cứu</el-button>
       </div>
     </div>
     <div class="analysic-book__index">
@@ -32,8 +40,14 @@
           >
             <el-table-column type="index" width="50" align="center"></el-table-column>
             <el-table-column property="title" label="Tên sách" width="200" align="center"></el-table-column>
-            <el-table-column property="author" label="Tác giả" width="150" align="center"></el-table-column>
-            <el-table-column property="public_year" label="Năm xuất bản" width="130" align="center"></el-table-column>
+            <el-table-column property="author" label="Tác giả" width="150" align="center" sortable></el-table-column>
+            <el-table-column
+              property="public_year"
+              label="Năm xuất bản"
+              width="140"
+              align="center"
+              sortable
+            ></el-table-column>
             <el-table-column label="Ngày gửi yêu cầu" align="center" width="230">
               <template slot-scope="scope">{{ formatTimeRequest(scope.row.created_at) }}</template>
             </el-table-column>
@@ -60,7 +74,7 @@
                 <el-tooltip effect="light" content="Chi tiết" placement="bottom-start">
                   <el-button icon="el-icon-info" circle @click="gotoDetailBook(scope.row)"></el-button>
                 </el-tooltip>
-                <el-tooltip effect="light" content="Sủa" placement="bottom-start">
+                <el-tooltip effect="light" content="Sửa" placement="bottom-start">
                   <el-button icon="el-icon-edit" circle @click.stop="showDialogEditBook(scope.row)"></el-button>
                 </el-tooltip>
               </template>
@@ -122,7 +136,8 @@ export default {
         title: "",
         author: "",
         publicYear: ""
-      }
+      },
+      inputSearch: ""
     };
   },
   watch: {
@@ -144,14 +159,19 @@ export default {
         start = new Date(this.dateRange[0]).valueOf();
         end = new Date(this.dateRange[1]).valueOf();
       }
+      const params = {
+        limit: this.limit,
+        user_id: this.userId,
+        page_num: this.pageCurrent,
+        start_time: start,
+        end_time: end
+      };
+
+      if (this.inputSearch && this.inputSearch.length > 0) {
+        params.inputSearch = this.inputSearch;
+      }
       try {
-        const { status, result } = await getBooks({
-          limit: this.limit,
-          user_id: this.userId,
-          page_num: this.pageCurrent,
-          start_time: start,
-          end_time: end
-        });
+        const { status, result } = await getBooks(params);
         if (status === 1) {
           const {
             data,

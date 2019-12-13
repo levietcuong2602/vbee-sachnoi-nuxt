@@ -25,15 +25,18 @@
       @include mobile-xs {
         text-align: center;
       }
+      .input-search {
+        width: 350px;
+      }
       .search {
         background-color: #3c4858;
         color: #fff;
-        @include Responsive(XS) {
-          margin-top: 5px;
-        }
-        @include mobile-xs {
-          margin-top: 5px;
-        }
+        // @include Responsive(XS) {
+        //   margin-top: 5px;
+        // }
+        // @include mobile-xs {
+        //   margin-top: 5px;
+        // }
       }
     }
   }
