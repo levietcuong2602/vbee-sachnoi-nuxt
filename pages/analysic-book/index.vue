@@ -1,7 +1,7 @@
 <template>
   <div class="analysic-book pt-3">
     <el-breadcrumb separator="-">
-      <el-breadcrumb-item>Sách nói</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/' }">Sách nói</el-breadcrumb-item>
       <el-breadcrumb-item>Thống kê sách</el-breadcrumb-item>
     </el-breadcrumb>
     <div class="analysic-book__header mt-3">
@@ -85,7 +85,7 @@
       <div class="analysic-book__footer" v-if="total > 1">
         <el-pagination
           layout="prev, pager, next"
-          :total="total"
+          :page-count="total"
           @current-change="handleCurrentChange"
         ></el-pagination>
       </div>

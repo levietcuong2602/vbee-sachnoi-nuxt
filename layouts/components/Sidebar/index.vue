@@ -37,17 +37,6 @@ export default {
       // return this.$router.options.routes;
       return [
         {
-          path: "/",
-          redirect: "/dashboard",
-          children: [
-            {
-              path: "dashboard",
-              name: "Dashboard",
-              meta: { title: "Dashboard", icon: "dashboard" }
-            }
-          ]
-        },
-        {
           path: "/convert-book",
           redirect: "/convert-book",
           children: [
@@ -99,6 +88,16 @@ export default {
               path: "/buy-package",
               name: "BuyPackage",
               meta: { title: "Mua gói cước", icon: "buy-package" }
+            }
+          ]
+        },
+        {
+          path: "/logout",
+          redirect: "/logout",
+          children: [
+            {
+              path: "/logout",
+              meta: { title: "Đăng xuất", icon: "logout" }
             }
           ]
         }

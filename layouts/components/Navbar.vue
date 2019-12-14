@@ -21,7 +21,7 @@
         </span>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item command="edit-info">
-            <i class="el-icon-user-solid"></i>Thông tin
+            <i class="fas fa-users-cog"></i>Thông tin
           </el-dropdown-item>
           <el-dropdown-item command="edit-pass">
             <i class="fas fa-cogs"></i>Đổi mật khẩu

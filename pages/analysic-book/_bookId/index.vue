@@ -321,10 +321,10 @@ export default {
   computed: {
     ...mapGetters(["userId"])
   },
-  mounted() {
+  async mounted() {
     this.initDateRangeDefault();
-    this.getBookInfo();
-    this.getChapterList();
+    await this.getBookInfo();
+    await this.getChapterList();
   }
 };
 </script>
