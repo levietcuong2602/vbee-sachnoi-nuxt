@@ -54,6 +54,9 @@
           }
         }
       }
+      .el-scrollbar__bar.is-horizontal {
+        display: none !important;
+      }
     }
     .analysic-book__footer {
       padding: 10px 0px;

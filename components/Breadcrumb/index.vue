@@ -22,7 +22,7 @@ export default {
         },
         {
           name: "Thống kê sách",
-          path: "/analysic-book"
+          path: "/statistic-book"
         },
         {
           name: "Thống kê chi tiết"

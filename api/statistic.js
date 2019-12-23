@@ -35,3 +35,15 @@ export async function statisticsSentences({ startTime, endTime }) {
     }
   });
 }
+
+export async function statisticsPeriod({ startTime, endTime }) {
+  return await request({
+    type: "GET",
+    method: "GET",
+    url: "/api/v1/statistics/period/day",
+    params: {
+      start_time: startTime,
+      end_time: endTime
+    }
+  });
+}

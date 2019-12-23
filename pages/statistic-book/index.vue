@@ -39,7 +39,7 @@
             @row-click="gotoDetailBook"
           >
             <el-table-column type="index" width="50" align="center"></el-table-column>
-            <el-table-column property="title" label="Tên sách" width="200" align="center"></el-table-column>
+            <el-table-column property="title" label="Tên sách" width="200" align="center" sortable></el-table-column>
             <el-table-column property="author" label="Tác giả" width="150" align="center" sortable></el-table-column>
             <el-table-column
               property="public_year"
@@ -100,8 +100,8 @@
         <el-form-item label="Tác giả" prop="author">
           <el-input v-model="formEditBook.author" placeholder="Tác giả"></el-input>
         </el-form-item>
-        <el-form-item label="Năm xuất bản" prop="publicYear">
-          <el-date-picker v-model="formEditBook.publicYear" type="year" placeholder="Năm xuất bản"></el-date-picker>
+        <el-form-item label="Năm xuất bản">
+          <el-date-picker v-model="yearTime" type="year" placeholder="Năm xuất bản"></el-date-picker>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -137,19 +137,34 @@ export default {
         author: "",
         publicYear: ""
       },
-      inputSearch: ""
+      yearTime: "",
+      inputSearch: "",
+      timer: ""
     };
   },
   watch: {
     dateRange: function(range) {
       this.getBooks();
+    },
+    yearTime: function(time) {
+      const date = new Date(time);
+      this.formEditBook.publicYear = date.getFullYear();
     }
+  },
+  beforeRouteLeave(to, from, next) {
+    // called when the route that renders this component is about to
+    // be navigated away from.
+    // has access to `this` component instance.
+    console.log("clear Interval");
+    clearInterval(this.timer);
+
+    next();
   },
   mixins: [mixins, downloadMixins],
   methods: {
     gotoDetailBook(row) {
       const { id } = row;
-      this.$router.push("/analysic-book/" + id);
+      this.$router.push("/statistic-book/" + id);
     },
     async getBooks() {
       this.book = true;
@@ -185,10 +200,10 @@ export default {
         }
       } catch (error) {
         console.log(error.message);
-        this.tableData = [];
-        this.pageCurrent = 1;
-        this.total = 0;
-        this.loading = false;
+        // this.tableData = [];
+        // this.pageCurrent = 1;
+        // this.total = 0;
+        // this.loading = false;
       }
     },
     formatTimeRequest(time) {
@@ -273,9 +288,16 @@ export default {
       }
     }
   },
-  mounted() {
+  async mounted() {
     this.initDateRangeDefault();
-    this.getBooks();
+    await this.getBooks();
+
+    this.timer = setInterval(async () => {
+      const isFlag = this.tableData.some(book => book.detail.error);
+      if (isFlag) {
+        await this.getBooks();
+      }
+    }, 5000);
   }
 };
 </script>

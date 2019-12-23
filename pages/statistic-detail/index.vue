@@ -1,5 +1,5 @@
 <template>
-  <div class="analysic-detail pt-3">
+  <div class="analysic-detail pt-3" v-loading.fullscreen.lock="fullscreenLoading">
     <div id="user_dashboard" class="components-container">
       <el-breadcrumb separator="-">
         <el-breadcrumb-item :to="{ path: '/' }">Sách nói</el-breadcrumb-item>
@@ -46,12 +46,16 @@
             <h3>Dữ liệu so với kỳ trước</h3>
           </div>
           <div class="statistic-request-detail">
-            <div class="line-detail" v-for="item  in statistic_request_detail" :key="item.title">
+            <div class="line-detail" v-for="item  in statisticsDetail" :key="item.title">
               <p class="statistic-title">{{item.title}}</p>
               <p class="detail-value">
                 {{item.value}}
                 <br />
-                <span class="increase-percent">tăng {{item.increase}} %</span>
+                <span
+                  class="increase-percent"
+                  :class="{'text-danger': item.increase < 0, 'text-success': item.increase > 0}"
+                  v-if="item.increase"
+                >{{item.increase > 0 ? `tăng ${item.increase}` : `giảm ${item.increase}` }} %</span>
               </p>
             </div>
           </div>
@@ -283,7 +287,8 @@ import { mapGetters } from "vuex";
 import {
   statisticsBooks,
   statisticsChapters,
-  statisticsSentences
+  statisticsSentences,
+  statisticsPeriod
 } from "@/api/statistic";
 import { STATUS_SENTENCE } from "@/constant";
 
@@ -291,32 +296,8 @@ export default {
   name: "AnalysicDetail",
   data() {
     return {
-      loading: false,
-      statistic_request_detail: [
-        {
-          title: "Tổng số trang sách đã yêu cầu:",
-          value: "546",
-          increase: "10"
-        },
-        {
-          title: "Số trang xử lý thành công",
-          value: "502",
-          increase: "5"
-        },
-        {
-          title: "Số trang xử lý lỗi",
-          value: "44",
-          increase: "9"
-        },
-        {
-          title: "Tổng số ký tự:",
-          value: "20000"
-        },
-        {
-          title: "Tỷ lệ chiết khấu kinh doanh:",
-          value: "14"
-        }
-      ],
+      fullscreenLoading: false,
+      statisticsDetail: [],
       overview: {
         requestCountTotal: 1230,
         requestCountSuccess: 320,
@@ -487,6 +468,7 @@ export default {
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     },
     async statisticsBooks() {
+      this.fullscreenLoading = false;
       let startTime = 0,
         endTime = new Date().valueOf();
       if (this.dateRange) {
@@ -514,6 +496,7 @@ export default {
         endTime
       });
       if (status === 1) {
+        this.fullscreenLoading = true;
         // format array data
         const dataCharts = [];
         let totalBooks = 0;
@@ -540,6 +523,7 @@ export default {
       }
     },
     async statisticsChapters() {
+      this.fullscreenLoading = true;
       let startTime = 0,
         endTime = new Date().valueOf();
       if (this.dateRange) {
@@ -567,6 +551,7 @@ export default {
         endTime
       });
       if (status === 1) {
+        this.fullscreenLoading = false;
         // format array data
         const dataCharts = [];
         let totalChapters = 0;
@@ -593,6 +578,7 @@ export default {
       }
     },
     async statisticsSentences() {
+      this.fullscreenLoading = true;
       let startTime = 0,
         endTime = new Date().valueOf();
       if (this.dateRange) {
@@ -620,6 +606,7 @@ export default {
         endTime
       });
       if (status === 1) {
+        this.fullscreenLoading = false;
         // format array data
         const dataChartsSuccess = [];
         const dataChartsError = [];
@@ -678,6 +665,24 @@ export default {
           }
         ];
       }
+    },
+    async statisticsPeriod() {
+      this.fullscreenLoading = true;
+      let startTime = 0,
+        endTime = new Date().valueOf();
+      if (this.dateRange) {
+        startTime = moment(this.dateRange[0])
+          .startOf("day")
+          .valueOf();
+        endTime = moment(this.dateRange[1])
+          .endOf("day")
+          .valueOf();
+      }
+      const { status, result } = await statisticsPeriod({ startTime, endTime });
+      if (status === 1) {
+        this.fullscreenLoading = false;
+        this.statisticsDetail = result;
+      }
     }
   },
   watch: {
@@ -700,15 +705,17 @@ export default {
       this.statisticsBooks();
       this.statisticsChapters();
       this.statisticsSentences();
+      this.statisticsPeriod();
     }
   },
   computed: {
     ...mapGetters(["userId"])
   },
-  async mounted() {
-    await this.statisticsBooks();
-    await this.statisticsChapters();
-    await this.statisticsSentences();
+  mounted() {
+    this.statisticsBooks();
+    this.statisticsChapters();
+    this.statisticsSentences();
+    this.statisticsPeriod();
   }
 };
 </script>

@@ -627,7 +627,7 @@ export default {
       this.downloadChapter(audio, title);
     },
     handleChangeChapter(chapterId) {
-      this.$router.push(`/analysic-book/${this.bookdId}/${chapterId}`);
+      this.$router.push(`/statistic-book/${this.bookdId}/${chapterId}`);
     },
     checkTimeHightLight: function() {
       return ({ start, end }) => {
@@ -717,7 +717,7 @@ export default {
       }
     },
     gotoBack() {
-      this.$router.push(`/analysic-book/${this.bookdId}`);
+      this.$router.push(`/statistic-book/${this.bookdId}`);
     },
     handleNextSentence() {
       if (this.currentSentence < this.sentences.length - 1) {

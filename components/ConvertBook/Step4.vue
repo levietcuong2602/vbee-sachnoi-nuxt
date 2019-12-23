@@ -821,7 +821,7 @@ export default {
               position: "bottom-right"
             });
             setTimeout(() => {
-              this.$router.push(`/analysic-book/${id}`);
+              this.$router.push(`/statistic-book/${id}`);
             }, 1000);
           }
         })

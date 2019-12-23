@@ -13,7 +13,7 @@
       </a>
     </div>
 
-    <div class="right-menu">
+    <div class="right-menu profile">
       <el-dropdown trigger="click" @command="handleCommand">
         <span class="el-dropdown-link">
           <i class="hi-user">Xin chào, {{ userInfo.fullName }}</i>

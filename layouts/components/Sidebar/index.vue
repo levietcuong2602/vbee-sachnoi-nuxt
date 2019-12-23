@@ -48,24 +48,24 @@ export default {
           ]
         },
         {
-          path: "/analysic-detail",
-          redirect: "/analysic-detail",
+          path: "/statistic-detail",
+          redirect: "/statistic-detail",
           children: [
             {
-              path: "/analysic-detail",
-              name: "AnalysicDetail",
-              meta: { title: "Thống kê chi tiết", icon: "analysic-detail" }
+              path: "/statistic-detail",
+              name: "StatisticDetail",
+              meta: { title: "Thống kê chi tiết", icon: "statistic-detail" }
             }
           ]
         },
         {
-          path: "/analysic-book",
-          redirect: "/analysic-book",
+          path: "/statistic-book",
+          redirect: "/statistic-book",
           children: [
             {
-              path: "/analysic-book",
-              name: "AnalysicBook",
-              meta: { title: "Thống kê sách", icon: "analysic-book" }
+              path: "/statistic-book",
+              name: "StatisticBook",
+              meta: { title: "Thống kê sách", icon: "statistic-book" }
             }
           ]
         },

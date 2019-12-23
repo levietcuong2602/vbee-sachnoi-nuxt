@@ -309,8 +309,9 @@ export default {
         const pages = this.getPageSentences(chapter, this.limitPage);
         pageStart = pageEnd;
         pageEnd = pageStart + pages.length;
+
         return {
-          content: pages.join(" "),
+          content: chapter,
           startPage: pageStart,
           endPage: pageEnd - 1,
           title: `Chương ${++indexTemp}: `
@@ -330,6 +331,7 @@ export default {
       });
       // cập nhật các chương vừa tách
       this.chapters.splice(indexChapter, 1, ...updateChapters);
+
       // cập nhật buffers pages
       const bufferPages = [];
       for (const { content } of this.chapters) {
@@ -447,7 +449,7 @@ export default {
       await this.saveChaptersInfo();
 
       if (this.isSaveBook && this.isSaveChapter) {
-        this.$emit("handleNextStep", 4);
+        this.$emit("handleNextStep", 3);
       }
     },
     async saveBookInfo() {

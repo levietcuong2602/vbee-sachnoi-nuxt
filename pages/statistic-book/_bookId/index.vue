@@ -2,7 +2,7 @@
   <div class="analysic-book pt-3">
     <el-breadcrumb separator="-">
       <el-breadcrumb-item :to="{ path: '/' }">Sách nói</el-breadcrumb-item>
-      <el-breadcrumb-item :to="{ path: '/analysic-book/' }">Thống kê sách</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/statistic-book/' }">Thống kê sách</el-breadcrumb-item>
       <el-breadcrumb-item>Thống kê sách chi tiết</el-breadcrumb-item>
     </el-breadcrumb>
     <template>
@@ -141,6 +141,12 @@ export default {
       }
     };
   },
+  watch: {
+    $route(to, from) {
+      console.log(to);
+      console.log(from);
+    }
+  },
   mixins: [mixins, downloadMixins],
   methods: {
     getClassStatus(status) {
@@ -263,7 +269,7 @@ export default {
       const { sentences } = chapter;
       if (chapter && sentences > 0) {
         const { id } = this.bookInfo;
-        this.$router.push(`/analysic-book/${id}/${chapter.id}`);
+        this.$router.push(`/statistic-book/${id}/${chapter.id}`);
         return;
       }
 

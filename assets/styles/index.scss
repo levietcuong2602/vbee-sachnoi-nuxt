@@ -147,6 +147,9 @@ div:focus {
     .analysic-book__scroll {
       max-height: 500px;
     }
+    .el-scrollbar__bar.is-horizontal {
+      display: none !important;
+    }
   }
 }
 
