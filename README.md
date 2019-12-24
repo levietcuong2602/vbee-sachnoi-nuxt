@@ -1,13 +1,13 @@
-Technologies
+### Technologies
  NuxtJs
-Setup
+### Setup
  Install packages
 $ npm install
- Chạy ứng dụng
+### Chạy ứng dụng
 $ npm run dev
- Build ứng dụng
+### Build ứng dụng
 $ npm run build
 
-Test
- Chạy test
+### Test
+### Chạy test
 $ npm run test
