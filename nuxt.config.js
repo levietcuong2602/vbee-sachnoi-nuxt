@@ -125,6 +125,10 @@ module.exports = {
   /*
    ** Build configuration
    */
+  server: {
+    port: 9802,
+    host: "0.0.0.0"
+  },
   build: {
     transpile: [/^element-ui/],
     /*

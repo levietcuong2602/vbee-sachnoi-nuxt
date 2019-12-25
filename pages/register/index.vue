@@ -60,7 +60,7 @@
                     ref="confirm"
                   />
                   <!-- <span class="show-pwd" @click="showConfirmPwd">
-                    <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
+                      <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
                   </span>-->
                 </el-form-item>
 
@@ -348,10 +348,13 @@ $cursor: #fff;
     width: 100%;
     height: 100%;
   }
+  .el-scrollbar__bar {
+    opacity: 0;
+  }
   .box-left {
     width: 100%;
-    height: 700px;
-    overflow: hidden !important;
+    height: 600px;
+    // overflow: hidden !important;
   }
   .register-container {
     padding-left: 10%;

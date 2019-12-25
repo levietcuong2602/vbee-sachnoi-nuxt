@@ -354,7 +354,7 @@ export default {
       });
     },
     async editPhrases() {
-      if (this.tempSentence.trim().length > 0 || this.tempIndex) {
+      if (this.tempSentence.trim().length > 0 && this.tempIndex) {
         const sentences = this.sentences
           .filter(sentence => sentence.content.trim().length > 0)
           .map((sentence, index) => {
@@ -380,7 +380,7 @@ export default {
       }
       this.$notify({
         type: "error",
-        message: "Lỗi thao tác dữ liệu",
+        message: "Nội dung câu không được bỏ trống",
         offset: 40
       });
     },

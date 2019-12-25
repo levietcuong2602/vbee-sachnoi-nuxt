@@ -60,7 +60,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { mapGetters } from "vuex";
 
 import { formatNumber, formatTimeRequest } from "@/utils";
-import axios from "axios";
+import { getTransactions } from "@/api/transactions";
 
 export default {
   name: "PaymentHistory",
@@ -83,37 +83,40 @@ export default {
   methods: {
     async getTransactions() {
       try {
-        let start = '';
-        let end = '';
+        let start = "";
+        let end = "";
         if (this.dateRange) {
           start = new Date(this.dateRange[0]).valueOf();
           end = new Date(this.dateRange[1]).valueOf();
         }
-        const { data, status } = await axios({
-          type: "GET",
-          method: "GET",
-          url: `http://localhost:8888/api/v1/transactions?type=PACKAGE&limit=${this.limit}&user_id=${this.userId}&page_num=${this.pageCurrent}&start_time=${start}&end_time=${end}`
+        // const { data, status } = await axios({
+        //   type: "GET",
+        //   method: "GET",
+        //   url: `http://localhost:8888/api/v1/transactions?type=PACKAGE&limit=${this.limit}
+        // &user_id=${this.userId}&page_num=${this.pageCurrent}&start_time=${start}&end_time=${end}`
+        // });
+        const { status, result } = await getTransactions({
+          type: "PACKAGE",
+          limit: this.limit,
+          user_id: this.userId,
+          page_num: this.pageCurrent,
+          start_time: start,
+          end_time: end
         });
-
-        if (status !== 200) {
-          this.tableData = [];
-          this.loading = false;
-          return;
-        }
         const {
-          result: {
-            pager: { total_count, current_page_num }
-          }
-        } = data;
+          pager: { total_count, current_page_num },
+          data
+        } = result;
 
         this.total = total_count;
         this.pageCurrent = current_page_num;
-        this.tableData = data.result.data;
+        this.tableData = data;
+
         this.loading = false;
       } catch (error) {
         console.log(error.message);
         // init attribute
-        this.tableData = [];
+        // this.tableData = [];
         this.loading = false;
       }
     },
