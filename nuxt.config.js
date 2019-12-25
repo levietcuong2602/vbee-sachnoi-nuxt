@@ -1,4 +1,6 @@
 const { resolve } = require("path");
+require('dotenv').config();
+
 module.exports = {
   mode: "universal",
   /*
@@ -42,7 +44,7 @@ module.exports = {
     ]
   },
   env: {
-    baseUrl: process.env.BASE_URL || "http://localhost:8888"
+    baseUrl: process.env.VUE_APP_BASE_URL
   },
   /*
    ** Customize the progress-bar color
@@ -119,16 +121,12 @@ module.exports = {
     }
   },
   axios: {
-    baseURL: "http://localhost:8888/api/v1",
+    baseURL: `${process.env.VUE_APP_BASE_URL}/api/v1`,
     credentials: true
   },
   /*
    ** Build configuration
    */
-  server: {
-    port: 9802,
-    host: "0.0.0.0"
-  },
   build: {
     transpile: [/^element-ui/],
     /*
