@@ -19,7 +19,7 @@
             end-placeholder="Kết thúc"
             format="dd/MM/yyyy"
           ></el-date-picker>
-          <el-button class="search" @click="getChapterList">Tra cứu</el-button>
+          <el-button class="search" @click="searchChapters">Tra cứu</el-button>
         </div>
       </div>
       <div class="book-detail">
@@ -204,6 +204,10 @@ export default {
 
       return millisecond;
     },
+    searchChapters() {
+      this.isLoadingData = true;
+      this.getChapterList();
+    },
     async getBookInfo() {
       try {
         const { bookId } = this.$route.params;
@@ -222,7 +226,7 @@ export default {
     },
     async getChapterList() {
       try {
-        this.isLoadingData = true;
+        // this.isLoadingData = true;
         const { bookId } = this.$route.params;
         let start = "";
         let end = "";
@@ -251,7 +255,11 @@ export default {
           this.chapterBooks = data;
           this.isLoadingData = false;
 
-          if (this.chapterBooks.every(chapter => !chapter.detail.waiting)) {
+          if (
+            this.chapterBooks.every(
+              chapter => chapter.detail && !chapter.detail.waiting
+            )
+          ) {
             clearInterval(this.timer);
           }
         }
@@ -259,7 +267,7 @@ export default {
     },
     formatTimeRequest(time) {
       const date = new Date(time);
-      return moment(date.valueOf()).format("h:mm:ss - MM/DD/YYYY");
+      return moment(date.valueOf()).format("h:mm:ss - DD/MM/YYYY");
     },
     toHHMMSS(seconds) {
       if (seconds) {
@@ -367,11 +375,16 @@ export default {
   },
   async mounted() {
     this.initDateRangeDefault();
+    this.isLoadingData = true;
     await this.getBookInfo();
     await this.getChapterList();
 
     const me = this;
-    if (this.chapterBooks.some(chapter => chapter.detail.waiting)) {
+    if (
+      this.chapterBooks.some(
+        chapter => chapter.detail && chapter.detail.waiting
+      )
+    ) {
       this.timer = setInterval(() => {
         me.getChapterList();
       }, 10000);

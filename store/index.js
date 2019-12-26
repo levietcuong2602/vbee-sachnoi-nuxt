@@ -5,7 +5,7 @@ const state = () => ({
       name: "Sách nói"
     }
   ],
-  domainServiceUrl: `${process.env.VUE_APP_BASE_URL}/api/v1/`
+  domainServiceUrl: `${process.env.baseUrl}/api/v1/`
 });
 
 const mutations = {

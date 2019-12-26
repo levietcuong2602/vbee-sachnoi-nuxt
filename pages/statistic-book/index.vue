@@ -215,7 +215,7 @@ export default {
     },
     formatTimeRequest(time) {
       const date = new Date(time);
-      return moment(date.valueOf()).format("h:mm:ss - MM/DD/YYYY");
+      return moment(date.valueOf()).format("h:mm:ss - DD/MM/YYYY");
     },
     handleCurrentChange(pageNum) {
       this.pageCurrent = pageNum;

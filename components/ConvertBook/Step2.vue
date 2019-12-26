@@ -167,12 +167,12 @@
                 </el-scrollbar>
               </div>
               <div class="box-step3__footer">
-                <el-pagination
+                <!-- <el-pagination
                   v-show="chapters.length > pageSize"
                   :page-size="pageSize"
                   layout="prev, pager, next"
                   :total="chapters.length"
-                ></el-pagination>
+                ></el-pagination>-->
                 <!-- <a href="#" class="btn-save">Lưu thay đổi</a> -->
               </div>
             </div>

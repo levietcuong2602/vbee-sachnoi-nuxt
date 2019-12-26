@@ -10,7 +10,7 @@ export const downloadMixins = {
   methods: {
     async downloadChapter(audioUrl, chapterName) {
       const baseUrl = process.env.baseUrl;
-      if (audioUrl) {
+      if (audioUrl && audioUrl.length > 0) {
         const link = audioUrl.replace("public", "").replace(/\\/gi, "/");
         const desc = baseUrl + link;
         const mimtype = link.substring(link.lastIndexOf(".") + 1);
