@@ -95,6 +95,13 @@
                       @click.stop="showDialogEditChapter(scope.row)"
                     ></el-button>
                   </el-tooltip>
+                  <el-tooltip effect="light" content="Xóa" placement="bottom-start">
+                    <el-button
+                      icon="el-icon-delete"
+                      circle
+                      @click.stop="showDialogDeleteChapter(scope.row.id)"
+                    ></el-button>
+                  </el-tooltip>
                 </template>
               </el-table-column>
             </el-table>
@@ -120,7 +127,7 @@ import phrases from "@/data";
 import moment from "moment";
 import { mapGetters } from "vuex";
 import { getBookInfo } from "@/api/book";
-import { getChapters, updateChapter } from "@/api/chapter";
+import { getChapters, updateChapter, deleteChapter } from "@/api/chapter";
 import { mixins } from "@/mixins/status";
 import { downloadMixins } from "@/mixins/chapter";
 
@@ -138,14 +145,14 @@ export default {
       formEditChapter: {
         id: null,
         title: ""
-      }
+      },
+      timer: null
     };
   },
-  watch: {
-    $route(to, from) {
-      console.log(to);
-      console.log(from);
-    }
+  beforeRouteLeave(to, from, next) {
+    clearInterval(this.timer);
+
+    next();
   },
   mixins: [mixins, downloadMixins],
   methods: {
@@ -243,6 +250,10 @@ export default {
           this.total = total_count;
           this.chapterBooks = data;
           this.isLoadingData = false;
+
+          if (this.chapterBooks.every(chapter => !chapter.detail.waiting)) {
+            clearInterval(this.timer);
+          }
         }
       } catch (error) {}
     },
@@ -286,6 +297,33 @@ export default {
       this.formEditChapter.title = title;
       this.dialogEditVisiable = true;
     },
+    showDialogDeleteChapter(chapterId) {
+      const me = this;
+      this.$confirm("Bạn có chắc chắn muốn xóa chương này không?", "Cảnh báo", {
+        confirmButtonText: "Xác nhận",
+        cancelButtonText: "Hủy bỏ",
+        type: "warning",
+        customClass: "book-detail__messagebox"
+      })
+        .then(async () => {
+          const { status, message } = await deleteChapter(chapterId);
+          if (status === 1) {
+            me.$notify({
+              type: "success",
+              message: "Xóa thành công",
+              offset: 35
+            });
+            me.getBooks();
+          } else {
+            me.$notify({
+              type: "error",
+              message,
+              offset: 35
+            });
+          }
+        })
+        .catch();
+    },
     async handleEditChapter() {
       const { id, title } = this.formEditChapter;
       try {
@@ -295,7 +333,7 @@ export default {
         if (status === 1) {
           this.$notify({
             type: "success",
-            message: "Sửa thông tin sách thành công",
+            message: "Sửa thông tin chương thành công",
             offset: 40
           });
 
@@ -331,6 +369,15 @@ export default {
     this.initDateRangeDefault();
     await this.getBookInfo();
     await this.getChapterList();
+
+    const me = this;
+    if (this.chapterBooks.some(chapter => chapter.detail.waiting)) {
+      this.timer = setInterval(() => {
+        me.getChapterList();
+      }, 10000);
+    } else {
+      clearInterval(this.timer);
+    }
   }
 };
 </script>

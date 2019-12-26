@@ -62,7 +62,7 @@
                 ></span>
               </template>
             </el-table-column>
-            <el-table-column label="Thao tác" align="center" fixed="right" width="120">
+            <el-table-column label="Thao tác" align="center" fixed="right" width="150">
               <template slot-scope="scope">
                 <el-tooltip effect="light" content="Tải xuống" placement="bottom-start">
                   <el-button
@@ -76,6 +76,13 @@
                 </el-tooltip>
                 <el-tooltip effect="light" content="Sửa" placement="bottom-start">
                   <el-button icon="el-icon-edit" circle @click.stop="showDialogEditBook(scope.row)"></el-button>
+                </el-tooltip>
+                <el-tooltip effect="light" content="Xóa" placement="bottom-start">
+                  <el-button
+                    icon="el-icon-delete"
+                    circle
+                    @click.stop="showDialogDeleteBook(scope.row.id)"
+                  ></el-button>
                 </el-tooltip>
               </template>
             </el-table-column>
@@ -114,7 +121,7 @@
 <script>
 import { mapGetters } from "vuex";
 import moment from "moment";
-import { getBooks, updateBook } from "@/api/book";
+import { getBooks, updateBook, deleteBook } from "@/api/book";
 import { getChapters } from "@/api/chapter";
 import { mixins } from "@/mixins/status";
 import { downloadMixins } from "@/mixins/chapter";
@@ -151,15 +158,15 @@ export default {
       this.formEditBook.publicYear = date.getFullYear();
     }
   },
-  beforeRouteLeave(to, from, next) {
-    // called when the route that renders this component is about to
-    // be navigated away from.
-    // has access to `this` component instance.
-    console.log("clear Interval");
-    clearInterval(this.timer);
+  // beforeRouteLeave(to, from, next) {
+  //   // called when the route that renders this component is about to
+  //   // be navigated away from.
+  //   // has access to `this` component instance.
+  //   console.log("clear Interval");
+  //   clearInterval(this.timer);
 
-    next();
-  },
+  //   next();
+  // },
   mixins: [mixins, downloadMixins],
   methods: {
     gotoDetailBook(row) {
@@ -252,6 +259,33 @@ export default {
 
       this.dialogEditVisiable = true;
     },
+    showDialogDeleteBook(bookId) {
+      const me = this;
+      this.$confirm("Bạn có chắc chắn muốn xóa sách này không?", "Cảnh báo", {
+        confirmButtonText: "Xác nhận",
+        cancelButtonText: "Hủy bỏ",
+        type: "warning",
+        customClass: "book-detail__messagebox"
+      })
+        .then(async () => {
+          const { status, message } = await deleteBook(bookId);
+          if (status === 1) {
+            me.$notify({
+              type: "success",
+              message: "Xóa thành công",
+              offset: 35
+            });
+            me.getBooks();
+          } else {
+            me.$notify({
+              type: "error",
+              message,
+              offset: 35
+            });
+          }
+        })
+        .catch();
+    },
     initDateRangeDefault() {
       var date = new Date();
       var start = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -291,13 +325,6 @@ export default {
   async mounted() {
     this.initDateRangeDefault();
     await this.getBooks();
-
-    this.timer = setInterval(async () => {
-      const isFlag = this.tableData.some(book => book.detail.error);
-      if (isFlag) {
-        await this.getBooks();
-      }
-    }, 5000);
   }
 };
 </script>

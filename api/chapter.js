@@ -41,3 +41,9 @@ export async function downloadChapter(url) {
     responseType: "blob"
   });
 }
+export async function deleteChapter(chapterId) {
+  return await request({
+    method: "DELETE",
+    url: `/api/v1/chapters/${chapterId}`
+  });
+}

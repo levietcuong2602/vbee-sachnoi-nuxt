@@ -90,3 +90,11 @@ export async function updateBook(
     }
   });
 }
+
+export async function deleteBook(bookId) {
+  return await request({
+    url: `/api/v1/books/${bookId}`,
+    method: "DELETE",
+    type: "DELETE"
+  });
+}

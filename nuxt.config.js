@@ -1,5 +1,5 @@
 const { resolve } = require("path");
-require('dotenv').config();
+require("dotenv").config();
 
 module.exports = {
   mode: "universal",
@@ -44,7 +44,10 @@ module.exports = {
     ]
   },
   env: {
-    baseUrl: process.env.VUE_APP_BASE_URL
+    baseUrl:
+      process.env.NODE_ENV === "production"
+        ? process.env.VUE_APP_BASE_URL
+        : "http://localhost:8888"
   },
   /*
    ** Customize the progress-bar color

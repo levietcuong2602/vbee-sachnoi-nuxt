@@ -24,7 +24,7 @@
         <el-upload
           class="col-12"
           drag
-          action="http://localhost:8888/api/v1/upload"
+          :action="domain + '/upload'"
           :file-list="fileBooks"
           :on-change="onChangeUpload"
           :on-success="onUploadSuccess"
@@ -94,7 +94,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["contentBook", "book"])
+    ...mapGetters(["contentBook", "book", "domain"])
   },
   watch: {
     yearTime: function(time) {
