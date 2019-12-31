@@ -544,8 +544,7 @@ export default {
         chapters: [{ content }]
       } = this.book;
 
-      const textTest =
-        content.length > 1000 ? content.substr(0, 1000) : content;
+      const textTest = content.length > 500 ? content.substr(0, 500) : content;
       const options = {
         voice: this.voiceSelect,
         text: textTest,
@@ -567,7 +566,11 @@ export default {
           } = res;
           if (status === 1) {
             this.dialogTryListen = true;
-            this.audioTest = link;
+
+            const baseUrl = process.env.baseUrl;
+            const audio = link.replace("public", "").replace(/\\/gi, "/");
+            const desc = baseUrl + audio;
+            this.audioTest = desc;
 
             this.tryListen = false;
             this.isChangeProperty = false;

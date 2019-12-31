@@ -354,7 +354,7 @@ export default {
       });
     },
     async editPhrases() {
-      if (this.tempSentence.trim().length > 0 && this.tempIndex) {
+      if (this.tempSentence.trim().length > 0) {
         const sentences = this.sentences
           .filter(sentence => sentence.content.trim().length > 0)
           .map((sentence, index) => {
