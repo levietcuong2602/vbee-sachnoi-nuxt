@@ -116,6 +116,18 @@
         <el-button type="primary" @click="handleEditBook">Chỉnh sửa</el-button>
       </span>
     </el-dialog>
+
+    <!-- dialog vaof casu hinh -->
+    <el-dialog title="Thông báo" :visible.sync="dialogSettingVisiable" width="30%" center>
+      <span>
+        Sách của bạn chưa được cài đặt thông số.
+        <br />Vui lòng vào cấu hình để cài đặt.
+      </span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="handleToSetting">Vào cấu hình</el-button>
+        <el-button @click="dialogSettingVisiable = false">Bỏ qua</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -132,7 +144,7 @@ export default {
   data() {
     return {
       tableData: [],
-      dateRange: [],
+      dateRange: [moment().startOf("month"), moment().endOf("month")],
       limit: 10,
       pageCurrent: 1,
       total: 0,
@@ -146,7 +158,9 @@ export default {
       },
       yearTime: "",
       inputSearch: "",
-      timer: ""
+      timer: "",
+      dialogSettingVisiable: false,
+      bookTemp: null
     };
   },
   watch: {
@@ -158,20 +172,64 @@ export default {
       this.formEditBook.publicYear = date.getFullYear();
     }
   },
-  // beforeRouteLeave(to, from, next) {
-  //   // called when the route that renders this component is about to
-  //   // be navigated away from.
-  //   // has access to `this` component instance.
-  //   console.log("clear Interval");
-  //   clearInterval(this.timer);
-
-  //   next();
-  // },
   mixins: [mixins, downloadMixins],
   methods: {
-    gotoDetailBook(row) {
-      const { id } = row;
+    gotoDetailBook(book) {
+      const {
+        id,
+        detail: { add }
+      } = book;
+
+      if (add) {
+        this.dialogSettingVisiable = true;
+        this.bookTemp = book;
+        return;
+      }
       this.$router.push("/statistic-book/" + id);
+    },
+    async handleToSetting() {
+      if (this.bookTemp) {
+        try {
+          const { id, title, public_year, author } = this.bookTemp;
+          const { status, result } = await getChapters({
+            book_id: id,
+            limit: 100,
+            page_num: 1
+          });
+          let chapters = result.data;
+          let contentBook = "";
+          chapters = chapters.map(chapter => {
+            const { title, content, id } = chapter;
+            return {
+              content,
+              title,
+              id
+            };
+          });
+          chapters.forEach(({ content }) => {
+            contentBook += content + " ";
+          });
+
+          this.$store.dispatch("book/updateInfoBook", {
+            id,
+            name: title,
+            publicYear: public_year,
+            author,
+            chapters,
+            content: contentBook
+          });
+
+          console.log(this.$store.state.book);
+          this.$router.push({ path: "/convert-book", query: { step: 3 } });
+        } catch (error) {
+          this.$notify({
+            type: "error",
+            message: "Có lỗi xảy ra",
+            offset: 35
+          });
+          console.log(error.message);
+        }
+      }
     },
     async getBooks() {
       this.book = true;
@@ -286,12 +344,6 @@ export default {
         })
         .catch();
     },
-    initDateRangeDefault() {
-      var date = new Date();
-      var start = new Date(date.getFullYear(), date.getMonth(), 1);
-      var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-      this.dateRange = [start, end];
-    },
     async handleDownloadBook(book) {
       try {
         const { title, id } = book;
@@ -323,7 +375,6 @@ export default {
     }
   },
   async mounted() {
-    this.initDateRangeDefault();
     await this.getBooks();
   }
 };

@@ -202,10 +202,10 @@
 
     <!-- dialog 2 -->
     <el-dialog title="Thông báo" :visible.sync="dialogNotifyBack" width="40%" center>
-      <h5>
+      <span>
         Quay lại bước trước đó có thể mất thông tin tách chương của bạn
-        <br />Bạn muốn tiếp tục tách chương?
-      </h5>
+        <br />Bạn muốn tiếp tục?
+      </span>
       <span slot="footer" class="dialog-footer">
         <el-button type="danger" @click="dialogNotifyBack = false">Bỏ qua</el-button>
         <el-button type="primary" @click="handleGotoBack">Tiếp tục</el-button>
@@ -226,10 +226,10 @@
 </template>
 <script>
 import { mapGetters } from "vuex";
-import { createBook, updateBook } from "@/api/book";
+import { createBook, updateBook, deleteBook } from "@/api/book";
 import { createChapters } from "@/api/chapter";
-import { getPageSentences } from "@/utils/convert";
-import { STATUS_BOOK, STATUS_CHAPTER } from "@/constant";
+import { getPageSentences, getSentences } from "@/utils/convert";
+import { STATUS_BOOK, STATUS_CHAPTER, STATUS_SENTENCE } from "@/constant";
 
 export default {
   name: "Step2",
@@ -272,6 +272,17 @@ export default {
       this.$emit("handleNextStep", 1);
     },
     gotoNextStep() {
+      // check nội dung chương
+      const { content } = this.book;
+      if (!content || content.length <= 0) {
+        this.$notify({
+          type: "error",
+          message: "Không tìm thấy nội dung sách",
+          offset: 35
+        });
+        return;
+      }
+      // check đã gắn thẻ tách chương
       if (!this.detachFile) {
         this.dialogNotifyVisible = true;
         return;
@@ -284,6 +295,7 @@ export default {
       this.handleChangePage(startPage);
     },
     getPageSentences,
+    getSentences,
     updateBreakChapter() {
       // lấy ra chapter cần tách chương
       const indexPage = this.currentPage;
@@ -344,15 +356,46 @@ export default {
       this.segmentPage = bufferPages[this.currentPage - 1];
     },
     loadBufferPages() {
-      const { pages } = this.book;
+      const { pages, chapters } = this.book;
+      // Trường hợp 1: Đã tách chương nhưng chưa tạo sách nói.
       if (pages.length > 0) {
         this.bufferPages = pages;
         this.currentPage = 1;
         this.segmentPage = this.bufferPages[this.currentPage - 1];
         this.totalPage = this.bufferPages.length;
+        this.chapters = chapters;
         return;
       }
 
+      // Trường hợp 2: Sửa sách từ trong thống kê sách
+      if (pages.length <= 0 && chapters.length > 0) {
+        let pageEnd = 1,
+          pageStart = 1,
+          indexTemp = 0;
+        this.chapters = chapters.map(chapter => {
+          const pagesTmp = this.getPageSentences(
+            chapter.content,
+            this.limitPage
+          );
+          this.bufferPages.push(...pagesTmp);
+          pageStart = pageEnd;
+          pageEnd = pageStart + pagesTmp.length;
+
+          return {
+            content: chapter.content,
+            startPage: pageStart,
+            endPage: pageEnd - 1,
+            title: `Chương ${++indexTemp}: `
+          };
+        });
+
+        this.$store.dispatch("book/updatePages", this.bufferPages);
+        this.segmentPage = this.bufferPages[this.currentPage - 1];
+        this.totalPage = this.bufferPages.length;
+        return;
+      }
+
+      // Trường hợp 3: còn lại
       this.bufferPages = this.getPageSentences(
         this.contentBook,
         this.limitPage
@@ -395,7 +438,9 @@ export default {
           const startPage = beforeChapter.startPage;
           const endPage = startPage + pages.length - 1;
 
+          delete beforeChapter.id;
           const mergeChapter = {
+            ...beforeChapter,
             startPage,
             endPage,
             content,
@@ -429,7 +474,13 @@ export default {
     },
     handleBlurSegmentPage() {
       this.isFocus = false;
-      this.bufferPages.splice(this.currentPage - 1, 1, this.segmentPage);
+      // this.bufferPages.splice(this.currentPage - 1, 1, this.segmentPage);
+      this.bufferPages = this.bufferPages.map((page, index) => {
+        if (index === this.currentPage - 1) {
+          return this.segmentPage;
+        }
+        return page;
+      });
     },
     updateOriginBook() {
       const content = this.bufferPages.join(" ");
@@ -444,6 +495,15 @@ export default {
     },
     async handleDetachFile() {
       this.dialogNotifyVisible = false;
+      const { content } = this.book;
+      if (!content || content.length <= 0) {
+        this.$notify({
+          type: "error",
+          message: "Không tìm thấy nội dung sách",
+          offset: 35
+        });
+        return;
+      }
       // create book and chapter
       await this.saveBookInfo();
       await this.saveChaptersInfo();
@@ -454,11 +514,10 @@ export default {
     },
     async saveBookInfo() {
       try {
-        const { id, name, publicYear, author } = this.book;
+        const { id, name, publicYear, author, file } = this.book;
         if (id) {
-          // tạo rồi k tạo lại nữa
-          this.isSaveBook = true;
-          return;
+          // tạo rồi thì xóa đi tạo lại
+          await deleteBook(id);
         }
 
         const userId = this.userId;
@@ -468,7 +527,8 @@ export default {
           author,
           publicYear,
           status: STATUS_BOOK.INIT,
-          numberChapter: this.chapters.length
+          numberChapter: this.chapters.length,
+          file
         });
         if (status === 1) {
           const { id } = result;
@@ -489,20 +549,28 @@ export default {
     },
     async saveChaptersInfo() {
       if (!this.isSaveBook) return;
-      if (this.book.chapters && this.book.chapters.length > 0) {
-        const [{ id }] = this.book.chapters;
-        if (id) return;
-      }
 
       const userId = this.userId;
       this.chapters = this.chapters.map(chapter => {
+        let sentences = this.getSentences(chapter.content);
+        sentences = sentences
+          .filter(sentence => sentence.trim())
+          .map(sentence => {
+            return {
+              content: sentence,
+              fileName: null,
+              link: null,
+              status: STATUS_SENTENCE.ADD
+            };
+          });
         return {
           ...chapter,
           bookId: this.book.id,
           userId,
           title: chapter.title,
           content: chapter.content,
-          status: STATUS_CHAPTER.INIT
+          status: STATUS_CHAPTER.INIT,
+          sentences
         };
       });
 
@@ -545,7 +613,25 @@ export default {
       }
     },
     addTagChapter() {
+      const { content } = this.book;
+      if (!content || content.length <= 0) {
+        this.$notify({
+          type: "error",
+          message: "Nội dung chương không tồn tại.",
+          offset: 35
+        });
+        return;
+      }
+
       const tArea = this.$refs.segmentPage;
+      if (!tArea) {
+        this.$notify({
+          type: "error",
+          message: "Có lỗi xảy ra",
+          offset: 35
+        });
+        return;
+      }
       const startPos = tArea.selectionStart;
       const endPos = tArea.selectionEnd;
 
@@ -560,9 +646,14 @@ export default {
         this.bufferPages[this.currentPage - 1] = tempStr;
         this.updateBreakChapter();
         this.detachFile = true;
+
         return;
       }
-      console.log("no");
+      this.$notify({
+        type: "error",
+        message: "Không thể gắn thẻ tách chương",
+        offset: 35
+      });
     },
     onClickHideContextMenu() {
       document.addEventListener("click", function(e) {
@@ -606,11 +697,9 @@ export default {
   mounted() {
     this.onClickHideContextMenu();
     this.loadBufferPages();
-
     // check xem đã tồn tại chương chưa
-    const { chapters } = this.book;
+    const { chapters, pages } = this.book;
     if (chapters.length > 0) {
-      this.chapters = chapters;
       this.detachFile = true;
       this.isSaveBook = true;
       this.isSaveChapter = true;

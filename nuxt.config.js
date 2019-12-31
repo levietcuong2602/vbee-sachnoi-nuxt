@@ -19,7 +19,7 @@ module.exports = {
       }
     ],
     link: [
-      { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+      { rel: "icon", type: "image/x-icon", href: "/img/headphones.svg" },
       {
         rel: "stylesheet",
         href: "https://use.fontawesome.com/releases/v5.7.2/css/all.css"

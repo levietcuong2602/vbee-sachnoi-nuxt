@@ -297,7 +297,7 @@
     </div>
     <div class="row mt-5 pb-5">
       <div class="col text-right">
-        <el-button @click="gotoNextStep(2)">Quay lại</el-button>
+        <el-button @click="gotoBack(2)">Quay lại</el-button>
         <el-button type="warning" @click="handleSendRequest">Gửi yêu cầu</el-button>
       </div>
     </div>
@@ -333,7 +333,7 @@ import Pagination from "@/components/Pagination";
 import { getVoices } from "@/api/voice";
 import { getAudios } from "@/api/audio";
 import { convertTTS, convertBook } from "@/api/tts";
-import { getChapters, updateChapter } from "@/api/chapter";
+import { getChapters, updateChapter, getChapter } from "@/api/chapter";
 import { updateBook } from "@/api/book";
 import { STATUS_BOOK, STATUS_CHAPTER, STATUS_SENTENCE } from "@/constant";
 import { getSentences } from "@/utils/convert";
@@ -385,7 +385,8 @@ export default {
       isChangeProperty: false,
       dialogCongratulation: false,
       dialogNotifyFail: false,
-      isUpdateBook: false
+      isUpdateBook: false,
+      isUpdateChapter: false
     };
   },
   watch: {
@@ -630,7 +631,17 @@ export default {
     },
     getSentences,
     getAudioTemplate() {},
-    gotoNextStep(step) {
+    gotoBack(step) {
+      const { content } = this.book;
+      if (!content || content.length <= 0) {
+        this.$notify({
+          type: "error",
+          message: "Không tìm thấy nội dung sách",
+          offset: 35
+        });
+        return;
+      }
+
       this.$emit("handleNextStep", step);
     },
     hanleChangeVoice(value) {
@@ -650,9 +661,21 @@ export default {
       this.$store.dispatch("book/updateSoundVolumn", value);
     },
     async handleSendRequest() {
+      const { content } = this.book;
+      if (!content || content.length <= 0) {
+        this.$notify({
+          type: "error",
+          message: "Không tìm thấy nội dung sách",
+          offset: 35
+        });
+        return;
+      }
+
       await this.onUpdatePropertyBook();
       await this.onUpdateChapters();
-      this.onConvertBook();
+      if (this.isUpdateBook && this.isUpdateChapter) {
+        this.onConvertBook();
+      }
     },
     handleStartListentTest(link) {
       if (this.isStartTryBg && this.audioBackgroundSrc === link) {
@@ -775,29 +798,37 @@ export default {
       }
     },
     async onUpdateChapters() {
-      const { status, result } = await getChapters({
-        book_id: this.book.id,
-        limit: 1000,
-        page_num: 1
-      });
-      if (status === 1) {
-        const chapters = result.data;
+      try {
+        if (!this.isUpdateBook) return;
+        this.isUpdateChapter = false;
+
+        const { chapters } = this.book;
         for (const chapter of chapters) {
           if (chapter.hasOwnProperty("id") && chapter.id) {
-            let sentences = this.getSentences(chapter.content);
+            let { sentences } = chapter;
+            if (!sentences || sentences.length < 0) {
+              const { status, result } = await getChapter(chapter.id);
+              sentences = result.sentences;
+            }
             sentences = sentences
-              .filter(sentence => sentence.trim())
+              .filter(sentence => sentence.content.length > 0)
               .map(sentence => {
                 return {
-                  content: sentence,
-                  fileName: null,
-                  link: null,
+                  ...sentence,
                   status: STATUS_SENTENCE.WAITING
                 };
               });
             await updateChapter(chapter.id, { sentences });
           }
         }
+        this.isUpdateChapter = true;
+      } catch (error) {
+        this.isUpdateChapter = false;
+        this.$message({
+          type: "error",
+          message: error.message,
+          offset: 35
+        });
       }
     },
     async onConvertBook() {
@@ -821,6 +852,7 @@ export default {
               position: "bottom-right"
             });
             setTimeout(() => {
+              this.$store.dispatch("book/updateIsEditing", false);
               this.$router.push(`/statistic-book/${id}`);
             }, 1000);
           }

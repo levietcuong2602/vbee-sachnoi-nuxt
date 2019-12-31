@@ -140,7 +140,7 @@ export default {
       limit: 10,
       pageCurrent: 1,
       isLoadingData: true,
-      dateRange: null,
+      dateRange: [moment().startOf("month"), moment().endOf("month")],
       dialogEditVisiable: false,
       formEditChapter: {
         id: null,
@@ -278,12 +278,6 @@ export default {
       }
       return "-";
     },
-    initDateRangeDefault() {
-      var date = new Date();
-      var start = new Date(date.getFullYear(), date.getMonth(), 1);
-      var end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-      this.dateRange = [start, end];
-    },
     showDetailContentChapter(chapter) {
       const { sentences } = chapter;
       if (chapter && sentences > 0) {
@@ -374,7 +368,6 @@ export default {
     ...mapGetters(["userId"])
   },
   async mounted() {
-    this.initDateRangeDefault();
     this.isLoadingData = true;
     await this.getBookInfo();
     await this.getChapterList();

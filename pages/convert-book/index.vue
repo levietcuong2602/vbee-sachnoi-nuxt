@@ -265,6 +265,9 @@ import Step2Component from "@/components/ConvertBook/Step2";
 import Step3Component from "@/components/ConvertBook/Step3";
 import Step4Component from "@/components/ConvertBook/Step4";
 
+import { mapGetters } from "vuex";
+import { deleteBook } from "@/api/book";
+
 export default {
   name: "ConvertBook",
   components: {
@@ -273,10 +276,16 @@ export default {
     Step3Component,
     Step4Component
   },
+  computed: { ...mapGetters(["isEditing", "book"]) },
   data() {
     return {
       currentStep: 1
     };
+  },
+  watch: {
+    currentStep: function(step) {
+      this.$router.push({ query: { step } });
+    }
   },
   methods: {
     handleChangeStep(step) {
@@ -285,6 +294,26 @@ export default {
       } else {
         this.currentStep = step;
       }
+    },
+    preventNav(event) {
+      if (!this.isEditing) return;
+      event.preventDefault();
+      event.returnValue = "";
+    }
+  },
+  beforeMount() {
+    window.addEventListener("beforeunload", this.preventNav);
+    this.$once("hook:beforeDestroy", () => {
+      window.removeEventListener("beforeunload", this.preventNav);
+    });
+  },
+  created() {
+    const { step } = this.$route.query;
+    if (!step) {
+      this.currentStep = 1;
+      this.$router.push({ query: { step: 1 } });
+    } else {
+      this.currentStep = parseInt(step);
     }
   }
 };

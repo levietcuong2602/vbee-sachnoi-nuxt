@@ -13,41 +13,32 @@ const state = () => ({
   bitRate: "64000",
   soundBackground: "",
   usedSoundBackground: false,
-  soundBackgroundVolumn: 30
+  soundBackgroundVolumn: 30,
+  isEditing: true
 });
 const mutations = {
   UPDATE_CONTENT_BOOK: (state, content) => {
     state.content = content;
   },
-  UPDATE_INFO_BOOK: (
-    state,
-    {
-      name,
-      author,
-      publicYear,
-      mimeType,
-      id,
-      rate,
-      voice,
-      bitRate,
-      soundBackground,
-      usedSoundBackground,
-      soundBackgroundVolumn,
-      file
+  UPDATE_INFO_BOOK: (state, params) => {
+    for (const key in params) {
+      if (params.hasOwnProperty(key)) {
+        const element = params[key];
+        state[key] = element;
+      }
     }
-  ) => {
-    state.name = name;
-    state.author = author;
-    state.publicYear = publicYear;
-    state.mimeType = mimeType;
-    state.id = id;
-    state.rate = rate;
-    state.voice = voice;
-    state.bitRate = bitRate;
-    state.soundBackground = soundBackground;
-    state.usedSoundBackground = usedSoundBackground;
-    state.soundBackgroundVolumn = soundBackgroundVolumn;
-    state.file = file;
+    // state.name = name;
+    // state.author = author;
+    // state.publicYear = publicYear;
+    // state.mimeType = mimeType;
+    // state.id = id;
+    // state.rate = rate;
+    // state.voice = voice;
+    // state.bitRate = bitRate;
+    // state.soundBackground = soundBackground;
+    // state.usedSoundBackground = usedSoundBackground;
+    // state.soundBackgroundVolumn = soundBackgroundVolumn;
+    // state.file = file;
   },
   UPDATE_CHAPTER_BOOK: (state, chapters) => {
     state.chapters = chapters;
@@ -78,6 +69,9 @@ const mutations = {
   },
   UPDATE_PAGES_BOOK: (state, pages) => {
     state.pages = pages;
+  },
+  UPDATE_IS_EDITING: (state, isEditing) => {
+    state.isEditing = isEditing;
   }
 };
 const actions = {
@@ -116,6 +110,9 @@ const actions = {
   },
   updatePages({ commit }, pages) {
     commit("UPDATE_PAGES_BOOK", pages);
+  },
+  updateIsEditing({ commit }, isEditing) {
+    commit("UPDATE_IS_EDITING", isEditing);
   }
 };
 export default {
