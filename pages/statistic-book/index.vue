@@ -190,7 +190,7 @@ export default {
     async handleToSetting() {
       if (this.bookTemp) {
         try {
-          const { id, title, public_year, author } = this.bookTemp;
+          const { id, title, public_year, author, file } = this.bookTemp;
           const { status, result } = await getChapters({
             book_id: id,
             limit: 100,
@@ -216,10 +216,10 @@ export default {
             publicYear: public_year,
             author,
             chapters,
-            content: contentBook
+            content: contentBook,
+            file
           });
 
-          console.log(this.$store.state.book);
           this.$router.push({ path: "/convert-book", query: { step: 3 } });
         } catch (error) {
           this.$notify({

@@ -528,7 +528,10 @@ export default {
           publicYear,
           status: STATUS_BOOK.INIT,
           numberChapter: this.chapters.length,
-          file
+          file: {
+            name: file.name,
+            status: file.status
+          }
         });
         if (status === 1) {
           const { id } = result;
