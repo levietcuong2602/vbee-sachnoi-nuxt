@@ -60,6 +60,19 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="text-danger col-12">
+        <small>*Lưu ý:</small>
+        <ul>
+          <li>
+            <small>Kiểm tra nội dung sách của bạn trước khi tải lên hệ thống.</small>
+          </li>
+          <li>
+            <small>Nếu vi phạm các vấn đề liên quan đến bản quyền bạn hoàn toàn chịu trách nhiệm.</small>
+          </li>
+        </ul>
+      </div>
+    </div>
     <div class="row mt-5 pb-5">
       <div class="col text-right">
         <el-button type="warning" @click="gotoNextStep(2)">Tiếp tục</el-button>
