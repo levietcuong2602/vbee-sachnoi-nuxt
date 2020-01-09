@@ -140,7 +140,7 @@ export default {
       limit: 10,
       pageCurrent: 1,
       isLoadingData: true,
-      dateRange: [moment().startOf("month"), moment().endOf("month")],
+      dateRange: [moment().subtract(1, 'month'), moment().endOf("month")],
       dialogEditVisiable: false,
       formEditChapter: {
         id: null,

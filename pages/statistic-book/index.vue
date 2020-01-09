@@ -144,7 +144,7 @@ export default {
   data() {
     return {
       tableData: [],
-      dateRange: [moment().startOf("month"), moment().endOf("month")],
+      dateRange: [moment().subtract(1, 'month').startOf("month"), moment().endOf("month")],
       limit: 10,
       pageCurrent: 1,
       total: 0,
